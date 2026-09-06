@@ -1,0 +1,11 @@
+/* ============================================
+   FOOTBALL FACTORY — RESET (RC2.1 visual parity)
+   Identical to RC1's universal box-sizing rule.
+   No additional resets to preserve RC1 rendering.
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

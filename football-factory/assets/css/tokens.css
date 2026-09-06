@@ -1,0 +1,260 @@
+/* ============================================
+   FOOTBALL FACTORY — DESIGN TOKENS v1.0
+   Source of truth: Product Design System v1.0
+   Tokens ONLY. No selectors, no rules.
+   ============================================ */
+
+:root {
+  /* === Color: Brand === */
+  --ff-color-brand-900: #073D24;
+  --ff-color-brand-700: #0B5D34;
+  --ff-color-brand-500: #148A4B;
+  --ff-color-brand-100: #DDF4E7;
+
+  /* === Color: Ink (text) === */
+  --ff-color-ink-900: #0B1117;
+  --ff-color-ink-700: #26333B;
+
+  /* === Color: Neutral === */
+  --ff-color-neutral-900: #0F1714;
+  --ff-color-neutral-700: #2C3A33;
+  --ff-color-neutral-500: #66737A;
+  --ff-color-neutral-300: #C0C9C5;
+  --ff-color-neutral-200: #DCE5DF;
+  --ff-color-neutral-100: #F4F7F5;
+  --ff-color-neutral-50:  #F9FBFA;
+
+  /* === Color: Surface === */
+  --ff-color-white: #FFFFFF;
+  --ff-color-black: #000000;
+
+  /* === Color: Status === */
+  --ff-color-live-red: #D92D20;
+  --ff-color-warning-amber: #F59E0B;
+  --ff-color-info-blue: #2563EB;
+  --ff-color-success-green: #16A34A;
+
+  /* === Color: Semantic (light) === */
+  --ff-color-bg-page: var(--ff-color-neutral-100);
+  --ff-color-bg-surface: var(--ff-color-white);
+  --ff-color-bg-surface-2: var(--ff-color-neutral-50);
+  --ff-color-bg-elevated: var(--ff-color-white);
+  --ff-color-bg-ink: var(--ff-color-ink-900);
+  --ff-color-bg-ink-2: var(--ff-color-brand-900);
+  --ff-color-text-primary: var(--ff-color-ink-900);
+  --ff-color-text-secondary: var(--ff-color-ink-700);
+  --ff-color-text-muted: var(--ff-color-neutral-500);
+  --ff-color-text-inverse: var(--ff-color-white);
+  --ff-color-text-brand: var(--ff-color-brand-700);
+  --ff-color-border: var(--ff-color-neutral-200);
+  --ff-color-border-strong: #B7C3BC;
+  --ff-color-border-ink: #1B2A24;
+  --ff-color-divider: #E5EBE7;
+  --ff-color-overlay: rgba(7, 17, 14, 0.55);
+
+  /* === Shadow === */
+  --ff-shadow-sm: 0 1px 2px rgba(11, 17, 23, 0.04), 0 1px 1px rgba(11, 17, 23, 0.04);
+  --ff-shadow-md: 0 4px 8px -2px rgba(11, 17, 23, 0.06), 0 2px 4px -2px rgba(11, 17, 23, 0.04);
+  --ff-shadow-lg: 0 12px 24px -8px rgba(11, 17, 23, 0.10), 0 4px 8px -4px rgba(11, 17, 23, 0.06);
+
+  /* === Font (token only) === */
+  --ff-font-th: "Noto Sans Thai", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --ff-font-en: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ff-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* === Font size === */
+  --ff-text-display: 48px;
+  --ff-text-h1: 36px;
+  --ff-text-h2: 28px;
+  --ff-text-h3: 22px;
+  --ff-text-h4: 18px;
+  --ff-text-h5: 16px;
+  --ff-text-h6: 14px;
+  --ff-text-body-l: 18px;
+  --ff-text-body: 16px;
+  --ff-text-body-s: 14px;
+  --ff-text-caption: 12px;
+  --ff-text-xs: 11px;
+
+  /* === Line height === */
+  --ff-leading-display: 56px;
+  --ff-leading-h1: 44px;
+  --ff-leading-h2: 36px;
+  --ff-leading-h3: 30px;
+  --ff-leading-h4: 26px;
+  --ff-leading-h5: 24px;
+  --ff-leading-h6: 20px;
+  --ff-leading-body-l: 30px;
+  --ff-leading-body: 26px;
+  --ff-leading-body-s: 22px;
+  --ff-leading-caption: 18px;
+  --ff-leading-xs: 16px;
+
+  /* === Spacing (8px base) === */
+  --ff-space-1: 4px;
+  --ff-space-2: 8px;
+  --ff-space-3: 12px;
+  --ff-space-4: 16px;
+  --ff-space-5: 20px;
+  --ff-space-6: 24px;
+  --ff-space-8: 32px;
+  --ff-space-10: 40px;
+  --ff-space-12: 48px;
+  --ff-space-16: 64px;
+  --ff-space-20: 80px;
+
+  /* === Radius === */
+  --ff-radius-xs: 4px;
+  --ff-radius-sm: 8px;
+  --ff-radius-md: 12px;
+  --ff-radius-lg: 16px;
+  --ff-radius-xl: 20px;
+  --ff-radius-pill: 999px;
+  --ff-radius-circle: 50%;
+
+  /* === Size (border, icon) === */
+  --ff-size-border: 1px;
+  --ff-size-border-2: 2px;
+  --ff-size-icon-sm: 14px;
+  --ff-size-icon-md: 18px;
+  --ff-size-icon-lg: 20px;
+  --ff-size-icon-xl: 24px;
+  --ff-size-touch: 44px;
+
+  /* === Container / Grid === */
+  --ff-container-max: 1440px;
+  --ff-container-pad-x: 16px;
+  --ff-container-pad-x-lg: 24px;
+  --ff-gutter: 16px;
+  --ff-gutter-lg: 24px;
+
+  /* === Breakpoint (documentation) === */
+  --ff-bp-sm: 375px;
+  --ff-bp-md: 768px;
+  --ff-bp-lg: 1024px;
+  --ff-bp-xl: 1280px;
+  --ff-bp-2xl: 1440px;
+  --ff-bp-3xl: 1920px;
+
+  /* === Duration === */
+  --ff-duration-micro: 140ms;
+  --ff-duration-standard: 220ms;
+  --ff-duration-panel: 280ms;
+  --ff-duration-ticker: 40s;
+
+  /* === Easing === */
+  --ff-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ff-ease-inout: cubic-bezier(.4, 0, .2, 1);
+
+  /* === Z-index === */
+  --ff-z-base: 1;
+  --ff-z-raised: 10;
+  --ff-z-sticky: 100;
+  --ff-z-header: 200;
+  --ff-z-drawer: 300;
+  --ff-z-modal: 400;
+  --ff-z-toast: 500;
+
+  /* === Compatibility aliases (preserved from RC1) === */
+  /* These keep the RC1 token names working so existing CSS still resolves. */
+  --ff-brand-900: var(--ff-color-brand-900);
+  --ff-brand-700: var(--ff-color-brand-700);
+  --ff-brand-500: var(--ff-color-brand-500);
+  --ff-brand-100: var(--ff-color-brand-100);
+  --ff-ink-900: var(--ff-color-ink-900);
+  --ff-ink-700: var(--ff-color-ink-700);
+  --ff-neutral-900: var(--ff-color-neutral-900);
+  --ff-neutral-700: var(--ff-color-neutral-700);
+  --ff-neutral-500: var(--ff-color-neutral-500);
+  --ff-neutral-300: var(--ff-color-neutral-300);
+  --ff-neutral-200: var(--ff-color-neutral-200);
+  --ff-neutral-100: var(--ff-color-neutral-100);
+  --ff-neutral-50:  var(--ff-color-neutral-50);
+  --ff-white: var(--ff-color-white);
+  --ff-black: var(--ff-color-black);
+  --ff-live-red: var(--ff-color-live-red);
+  --ff-warning-amber: var(--ff-color-warning-amber);
+  --ff-info-blue: var(--ff-color-info-blue);
+  --ff-success-green: var(--ff-color-success-green);
+  --ff-bg-page: var(--ff-color-bg-page);
+  --ff-bg-surface: var(--ff-color-bg-surface);
+  --ff-bg-surface-2: var(--ff-color-bg-surface-2);
+  --ff-bg-elevated: var(--ff-color-bg-elevated);
+  --ff-bg-ink: var(--ff-color-bg-ink);
+  --ff-bg-ink-2: var(--ff-color-bg-ink-2);
+  --ff-text-primary: var(--ff-color-text-primary);
+  --ff-text-secondary: var(--ff-color-text-secondary);
+  --ff-text-muted: var(--ff-color-text-muted);
+  --ff-text-inverse: var(--ff-color-text-inverse);
+  --ff-text-brand: var(--ff-color-text-brand);
+  --ff-border: var(--ff-color-border);
+  --ff-border-strong: var(--ff-color-border-strong);
+  --ff-border-ink: var(--ff-color-border-ink);
+  --ff-divider: var(--ff-color-divider);
+  --ff-overlay: var(--ff-color-overlay);
+  /* Fonts are defined at the top of the file (lines 80-82) with the correct
+     values. No alias needed (the value IS the RC1 value). */
+  --ff-fs-display: var(--ff-text-display);
+  --ff-fs-h1: var(--ff-text-h1);
+  --ff-fs-h2: var(--ff-text-h2);
+  --ff-fs-h3: var(--ff-text-h3);
+  --ff-fs-h4: var(--ff-text-h4);
+  --ff-fs-h5: var(--ff-text-h5);
+  --ff-fs-h6: var(--ff-text-h6);
+  --ff-fs-body-l: var(--ff-text-body-l);
+  --ff-fs-body: var(--ff-text-body);
+  --ff-fs-body-s: var(--ff-text-body-s);
+  --ff-fs-caption: var(--ff-text-caption);
+  --ff-fs-xs: var(--ff-text-xs);
+  --ff-lh-display: var(--ff-leading-display);
+  --ff-lh-h1: var(--ff-leading-h1);
+  --ff-lh-h2: var(--ff-leading-h2);
+  --ff-lh-h3: var(--ff-leading-h3);
+  --ff-lh-h4: var(--ff-leading-h4);
+  --ff-lh-h5: var(--ff-leading-h5);
+  --ff-lh-h6: var(--ff-leading-h6);
+  --ff-lh-body-l: var(--ff-leading-body-l);
+  --ff-lh-body: var(--ff-leading-body);
+  --ff-lh-body-s: var(--ff-leading-body-s);
+  --ff-lh-caption: var(--ff-leading-caption);
+  --ff-lh-xs: var(--ff-leading-xs);
+  --ff-ease-out: var(--ff-ease-out);
+  --ff-ease-inout: var(--ff-ease-inout);
+  --ff-dur-micro: var(--ff-duration-micro);
+  --ff-dur-standard: var(--ff-duration-standard);
+  --ff-dur-panel: var(--ff-duration-panel);
+  --ff-dur-ticker: var(--ff-duration-ticker);
+}
+
+/* === Dark mode (preserved from RC1) === */
+[data-theme="dark"] {
+  --ff-color-bg-page: #07100C;
+  --ff-color-bg-surface: #0D1712;
+  --ff-color-bg-surface-2: #0A130F;
+  --ff-color-bg-elevated: #11201A;
+  --ff-color-bg-ink: #F3F6F4;
+  --ff-color-bg-ink-2: #0B5D34;
+  --ff-color-text-primary: #F3F6F4;
+  --ff-color-text-secondary: #C5D2CB;
+  --ff-color-text-muted: #A5B1AA;
+  --ff-color-text-inverse: #07100C;
+  --ff-color-text-brand: #39B970;
+  --ff-color-border: #223329;
+  --ff-color-border-strong: #2F4438;
+  --ff-color-border-ink: #B7C3BC;
+  --ff-color-divider: #1B2A24;
+  --ff-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ff-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5);
+  --ff-shadow-lg: 0 12px 24px -8px rgba(0, 0, 0, 0.6);
+  --ff-color-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Status colors in dark - slightly brighter for legibility */
+  --ff-color-live-red: #FF5A4E;
+  --ff-color-warning-amber: #FBBF24;
+  --ff-color-info-blue: #60A5FA;
+  --ff-color-success-green: #39B970;
+  --ff-color-brand-500: #39B970;
+  --ff-color-brand-700: #2E9D5E;
+  --ff-color-brand-900: #052819;
+  --ff-color-brand-100: #103626;
+}

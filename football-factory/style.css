@@ -1,0 +1,78 @@
+/* ============================================
+   Football Factory — Theme Header
+   ============================================
+   This file is the WordPress-required theme header.
+   It contains ONLY the metadata block; CSS lives in assets/css/.
+
+   The header must remain at the top of this file for WordPress
+   to detect the theme.
+   ============================================ */
+
+Theme Name: Football Factory
+Theme URI: https://example.com/football-factory
+Author: Football Factory Team
+Author URI: https://example.com/football-factory
+Description: Football Factory — a Thai football news, data, and AI-driven analysis theme. Hybrid Classic PHP theme with theme.json v2 design tokens, derived from the approved Enterprise Frontend v1.0 visual baseline. Requires the Football Factory Core Plugin for live data; the theme activates safely without it (Phase 6B scaffold).
+Version: 0.3.2
+Requires at least: 6.5
+Tested up to: 6.6
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: football-factory
+Copyright: (C) 2026 Football Factory Team. Licensed under GPL-2.0-or-later.
+Tags: news, one-column, two-columns, custom-colors, custom-menu, editor-style, block-styles, wide-blocks, accessibility-ready, translation-ready, custom-logo
+
+/* ============================================
+   Below the header: minimal WordPress-required
+   styles. The full design system lives in
+   assets/css/tokens.css and assets/css/components.css,
+   loaded via the asset registry in inc/assets.php.
+   ============================================ */
+
+/*
+ * Why this file is mostly empty:
+ * ----------------------------------------------
+ * WordPress requires style.css at the theme root and
+ * requires the theme metadata to be at the top of the
+ * file. WordPress does not require that style.css
+ * itself contain design rules; many production themes
+ * use it only for the header.
+ *
+ * We follow that pattern: the actual design tokens,
+ * base, layout, components, and utilities live in
+ * `assets/css/` and are enqueued from `inc/assets.php`.
+ * This keeps the theme root uncluttered and matches
+ * the Enterprise Frontend v1.0 file layout.
+ *
+ * We do, however, define one minimal compatibility
+ * rule below: enforce a sane box-sizing baseline if
+ * the asset pipeline fails to load (e.g. asset cache
+ * miss during theme activation). This is a safety net
+ * only; production rendering always loads the full
+ * assets/css/ stack.
+ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+}
+
+/*
+ * WordPress core required alignments / wp-block styles
+ * --------------------------------------------------
+ * The full block-default styling lives in
+ * assets/css/components.css (enqueued separately).
+ * We intentionally do not redeclare block styles here
+ * to avoid drift between the static visual baseline
+ * and the theme output.
+ */

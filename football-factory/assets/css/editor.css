@@ -1,0 +1,20 @@
+/* ============================================
+   Football Factory — Editor Stylesheet
+   ============================================
+   Loaded by the block editor (Gutenberg) to match
+   the front-end visual baseline. The Phase 6B
+   editor stylesheet is intentionally minimal:
+   the editor surfaces a subset of the front-end
+   stack so the authoring experience is consistent.
+
+   We do not copy the full front-end stack because
+   the editor only needs typography, base, and
+   block-level color/typography defaults.
+   ============================================ */
+
+@import url("./tokens.css");
+@import url("./reset.css");
+@import url("./base.css");
+@import url("./typography.css");
+@import url("./layout.css");
+@import url("./components.css");

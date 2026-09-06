@@ -1,0 +1,115 @@
+# Copyright (C) 2026 Football Factory
+# This file is distributed under the GNU General Public License v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Football Factory 0.1.0\n"
+"Report-Msgid-Bugs-To: https://example.com/football-factory/support\n"
+"POT-Creation-Date: 2026-08-02 21:23+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
+"X-Domain: football-factory\n"
+"X-Generator: Football Factory Phase 6B\n"
+
+#: inc/navigation.php
+msgid "Primary"
+msgstr ""
+
+#: inc/navigation.php
+msgid "Utility"
+msgstr ""
+
+#: inc/navigation.php
+msgid "Footer"
+msgstr ""
+
+#: inc/navigation.php
+msgid "Mobile"
+msgstr ""
+
+#: inc/navigation.php
+msgid "Bottom Mobile"
+msgstr ""
+
+#: header.php
+msgid "Skip to content"
+msgstr ""
+
+#: header.php
+msgid "Home"
+msgstr ""
+
+#: footer.php
+msgctxt "footer copyright"
+msgid "© %1$s %2$s. All rights reserved."
+msgstr ""
+
+#: 404.php
+msgid "Page not found"
+msgstr ""
+
+#: 404.php
+msgid "The page you’re looking for couldn’t be found. It may have been moved, renamed, or is no longer available."
+msgstr ""
+
+#: 404.php
+msgid "Go to homepage"
+msgstr ""
+
+#: 404.php
+msgid "Try searching"
+msgstr ""
+
+#: searchform.php
+msgid "Search"
+msgstr ""
+
+#: searchform.php
+msgctxt "search placeholder"
+msgid "Search…"
+msgstr ""
+
+#: search.php
+msgid "Search results for: %s"
+msgstr ""
+
+#: search.php
+msgid "Nothing found"
+msgstr ""
+
+#: search.php
+msgid "Try a different keyword, or browse the homepage."
+msgstr ""
+
+#: index.php
+msgid "Latest posts"
+msgstr ""
+
+#: index.php
+msgid "No posts found"
+msgstr ""
+
+#: index.php
+msgid "There are no posts to display right now. Please check back later."
+msgstr ""
+
+#: comments.php
+msgid "Comments on “%s”"
+msgstr ""
+
+#: comments.php
+msgid "Leave a reply"
+msgstr ""
+
+#: comments.php
+msgid "Previous"
+msgstr ""
+
+#: comments.php
+msgid "Next"
+msgstr ""
+
+#: sidebar.php
+msgid "Sidebar"
+msgstr ""

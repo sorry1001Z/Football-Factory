@@ -1,0 +1,210 @@
+/* ============================================
+   FOOTBALL FACTORY — BASE & RESET
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--ff-font-th), var(--ff-font-en);
+  font-size: var(--ff-fs-body);
+  line-height: var(--ff-lh-body);
+  color: var(--ff-text-primary);
+  background: var(--ff-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "tnum";
+  transition: background-color var(--ff-dur-standard) var(--ff-ease-out),
+              color var(--ff-dur-standard) var(--ff-ease-out);
+}
+
+img, svg, video {
+  max-width: 100%;
+  display: block;
+  height: auto;
+}
+
+img {
+  font-style: italic;
+  background-repeat: no-repeat;
+  background-size: cover;
+  shape-margin: 0.75rem;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: var(--ff-text-brand);
+  text-decoration: none;
+  transition: color var(--ff-dur-micro) var(--ff-ease-out);
+}
+a:hover { color: var(--ff-brand-500); }
+
+input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+p { margin: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+  color: inherit;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--ff-brand-100);
+  color: var(--ff-brand-900);
+}
+[data-theme="dark"] ::selection {
+  background: var(--ff-brand-700);
+  color: var(--ff-white);
+}
+
+/* === Focus ring === */
+:focus-visible {
+  outline: 2px solid var(--ff-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--ff-brand-500);
+  outline-offset: 3px;
+}
+
+/* === Skip link === */
+.ff-skip {
+  position: absolute;
+  top: -100px;
+  left: 12px;
+  z-index: 9999;
+  padding: 12px 20px;
+  background: var(--ff-brand-700);
+  color: var(--ff-white);
+  border-radius: var(--ff-radius-md);
+  font-weight: 600;
+  transition: top var(--ff-dur-micro) var(--ff-ease-out);
+}
+.ff-skip:focus { top: 12px; }
+
+/* === Reduced motion === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === Container === */
+.ff-container {
+  width: 100%;
+  max-width: var(--ff-container-max);
+  margin: 0 auto;
+  padding-left: var(--ff-container-pad-x);
+  padding-right: var(--ff-container-pad-x);
+}
+
+@media (min-width: 768px) {
+  .ff-container { padding-left: 24px; padding-right: 24px; }
+}
+
+@media (min-width: 1024px) {
+  .ff-container { padding-left: 32px; padding-right: 32px; }
+}
+
+@media (min-width: 1440px) {
+  .ff-container { padding-left: 40px; padding-right: 40px; }
+}
+
+/* === Visually hidden === */
+.ff-sr {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* === Sections === */
+.ff-section {
+  padding-top: var(--ff-space-10);
+  padding-bottom: var(--ff-space-10);
+}
+@media (min-width: 1024px) {
+  .ff-section { padding-top: var(--ff-space-12); padding-bottom: var(--ff-space-12); }
+}
+
+/* === Section header === */
+.ff-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--ff-space-5);
+  gap: var(--ff-space-4);
+}
+.ff-section-title {
+  font-size: var(--ff-fs-h3);
+  line-height: var(--ff-lh-h3);
+  font-weight: 700;
+}
+@media (max-width: 767px) {
+  .ff-section-title { font-size: 18px; line-height: 26px; }
+}
+.ff-section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ff-fs-body-s);
+  font-weight: 600;
+  color: var(--ff-text-brand);
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 8px 0;
+}
+.ff-section-link::after {
+  content: "›";
+  font-size: 18px;
+  line-height: 1;
+  transition: transform var(--ff-dur-micro) var(--ff-ease-out);
+}
+.ff-section-link:hover::after { transform: translateX(2px); }

@@ -1,0 +1,75 @@
+/* ============================================
+   FOOTBALL FACTORY — UTILITIES (RC2.1 visual parity)
+   Intentionally empty. No utility classes are introduced
+   in RC2.1 to preserve exact visual parity with RC1.
+   This file is kept for the 8-file layered architecture.
+   ============================================ */
+
+/* WordPress-generated classes used in the scaffold. */
+.screen-reader-text {
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  -webkit-clip-path: inset(50%);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute !important;
+  width: 1px;
+  word-wrap: normal !important;
+}
+.screen-reader-text:focus {
+  background-color: var(--ff-bg-page, #fff);
+  clip: auto !important;
+  -webkit-clip-path: none;
+  clip-path: none;
+  color: var(--ff-text-primary, #000);
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  height: auto;
+  left: 5px;
+  line-height: normal;
+  padding: 15px 23px 14px;
+  text-decoration: none;
+  top: 5px;
+  width: auto;
+  z-index: 100000;
+}
+
+/* WordPress-generated content classes. */
+.sticky,
+.bypostauthor {
+  /* Inherit all typography; theme does not visually distinguish these. */
+}
+.alignleft {
+  float: left;
+  margin-right: 1.5em;
+  margin-bottom: 1.5em;
+}
+.alignright {
+  float: right;
+  margin-left: 1.5em;
+  margin-bottom: 1.5em;
+}
+.aligncenter {
+  clear: both;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1.5em;
+}
+.wp-caption {
+  margin-bottom: 1.5em;
+  max-width: 100%;
+}
+.wp-caption-text {
+  font-size: 0.875em;
+  font-style: italic;
+  color: var(--ff-text-secondary, #555);
+  text-align: center;
+}
+.gallery-caption {
+  font-size: 0.875em;
+}

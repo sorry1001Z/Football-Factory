@@ -1,0 +1,16 @@
+/* ============================================
+   Football Factory — RTL Companion
+   ============================================
+   The Theme is LTR-first; the underlying CSS uses
+   logical properties where possible so RTL is
+   handled at the property level (margin-inline-start,
+   padding-inline-end, etc.).
+
+   This file is reserved for RTL-specific overrides
+   that go beyond what logical properties can express
+   (e.g. icon mirroring for chevrons, sprite symbol
+   re-orientation). It is empty in Phase 6B.
+
+   When activated, it is enqueued automatically by
+   WordPress when the site's locale is RTL.
+   ============================================ */

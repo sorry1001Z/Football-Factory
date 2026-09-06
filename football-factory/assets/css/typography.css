@@ -1,0 +1,8 @@
+/* ============================================
+   FOOTBALL FACTORY — TYPOGRAPHY (RC2.1 visual parity)
+   Intentionally empty. All typography is defined in
+   base.css (which is identical to RC1's base.css).
+   This file is kept for the 8-file layered architecture
+   but must not introduce any new typography rules,
+   as that would alter the rendered cascade.
+   ============================================ */
