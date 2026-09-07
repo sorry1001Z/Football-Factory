@@ -10,6 +10,7 @@ out/
 # Local environment files
 .env
 .env.*
+!.env.example
 
 # Logs
 *.log
@@ -23,3 +24,7 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Source archives (legacy; not part of the repo)
+*.zip
+

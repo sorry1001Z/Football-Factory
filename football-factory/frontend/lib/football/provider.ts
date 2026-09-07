@@ -47,11 +47,11 @@ export abstract class BaseStubProvider implements FootballProvider {
     return { provider: this.name, configured: this.configured };
   }
 
-  async getCompetitions(): Promise<Competition[]> { return []; }
-  async getSeasons(): Promise<Season[]> { return []; }
-  async getFixtures(): Promise<Fixture[]> { return []; }
-  async getResults(): Promise<MatchResult[]> { return []; }
-  async getStandings(): Promise<Standings[]> { return []; }
-  async getTeams(): Promise<Team[]> { return []; }
-  async getMatch(): Promise<Fixture | MatchResult | null> { return null; }
+  async getCompetitions(_params?: QueryParams): Promise<Competition[]> { return []; }
+  async getSeasons(_competition_canonical_id?: string): Promise<Season[]> { return []; }
+  async getFixtures(_params?: QueryParams): Promise<Fixture[]> { return []; }
+  async getResults(_params?: QueryParams): Promise<MatchResult[]> { return []; }
+  async getStandings(_params?: QueryParams): Promise<Standings[]> { return []; }
+  async getTeams(_params?: QueryParams): Promise<Team[]> { return []; }
+  async getMatch(_canonical_id?: string): Promise<Fixture | MatchResult | null> { return null; }
 }

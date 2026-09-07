@@ -9,7 +9,10 @@ export type DataQualityStatus =
   | 'cached'        // served from local cache within TTL
   | 'stale'         // past TTL but better than nothing
   | 'fallback'      // served by secondary or mock
-  | 'unavailable';  // provider failed, no data
+  | 'partial'       // provider returned incomplete data
+  | 'unverified'    // source tier review pending
+  | 'unavailable'   // provider failed, no data
+  | 'error';        // payload unusable
 
 export interface Provenance {
   provider: ProviderName;
@@ -47,7 +50,8 @@ export type MatchStatus =
   | 'live'
   | 'finished'
   | 'postponed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'unknown';
 
 export interface Fixture extends Provenance {
   competition_canonical_id: string;
