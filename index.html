@@ -8,8 +8,8 @@
       :root {
         color-scheme: light dark;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f6f7f4;
-        color: #172016;
+        background: #f4f6f1;
+        color: #152018;
       }
 
       * {
@@ -19,18 +19,23 @@
       body {
         min-height: 100vh;
         margin: 0;
-        display: grid;
-        place-items: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding: 32px;
+        background:
+          linear-gradient(135deg, rgba(42, 115, 56, 0.16), transparent 36%),
+          linear-gradient(315deg, rgba(13, 54, 74, 0.12), transparent 34%),
+          #f4f6f1;
       }
 
       main {
-        width: min(720px, 100%);
+        width: min(920px, 100%);
       }
 
       h1 {
-        margin: 0 0 16px;
-        font-size: clamp(2.5rem, 7vw, 5rem);
+        margin: 0 0 18px;
+        font-size: clamp(2.6rem, 7vw, 5.75rem);
         line-height: 0.95;
       }
 
@@ -39,6 +44,12 @@
         margin: 0;
         font-size: 1.125rem;
         line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+        font-weight: 800;
+        text-underline-offset: 4px;
       }
 
       .status {
@@ -60,10 +71,73 @@
         content: "";
       }
 
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 40px;
+      }
+
+      .item {
+        min-height: 132px;
+        border: 1px solid rgba(21, 32, 24, 0.16);
+        border-radius: 8px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .item strong,
+      .item span {
+        display: block;
+      }
+
+      .item strong {
+        margin-bottom: 10px;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .item span {
+        font-size: 1rem;
+        line-height: 1.45;
+      }
+
+      .note {
+        margin-top: 28px;
+        font-size: 0.96rem;
+        color: rgba(21, 32, 24, 0.72);
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 24px;
+        }
+
+        .summary {
+          grid-template-columns: 1fr;
+        }
+      }
+
       @media (prefers-color-scheme: dark) {
         :root {
-          background: #101510;
           color: #edf5e8;
+        }
+
+        body {
+          background:
+            linear-gradient(135deg, rgba(78, 163, 92, 0.16), transparent 36%),
+            linear-gradient(315deg, rgba(88, 170, 194, 0.12), transparent 34%),
+            #101510;
+        }
+
+        .item {
+          border-color: rgba(237, 245, 232, 0.18);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .note {
+          color: rgba(237, 245, 232, 0.72);
         }
       }
     </style>
@@ -73,8 +147,25 @@
       <div class="status">Vercel staging ready</div>
       <h1>Football Factory</h1>
       <p>
-        The repository now has a deployable static entry point on the main branch.
-        The full Football Factory experience can be added here when it is ready.
+        This free Vercel staging page confirms the GitHub repository and main branch are deployable.
+        The WordPress theme and companion core plugin are packaged in this repo for installation on a WordPress host.
+      </p>
+      <section class="summary" aria-label="Project status">
+        <div class="item">
+          <strong>Vercel</strong>
+          <span>Static staging page is live from the repository root.</span>
+        </div>
+        <div class="item">
+          <strong>Theme</strong>
+          <span>Football Factory WordPress theme is stored in <code>football-factory/</code>.</span>
+        </div>
+        <div class="item">
+          <strong>Core</strong>
+          <span>Companion plugin scaffold is stored in <code>wordpress-plugins/</code>.</span>
+        </div>
+      </section>
+      <p class="note">
+        WordPress admin requires a separate WordPress host. Vercel remains the free staging layer for this repository.
       </p>
     </main>
   </body>
