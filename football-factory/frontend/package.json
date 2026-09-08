@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"lib/football/__tests__/**/*.test.ts\""
+    "test": "node --conditions=react-server --import tsx --test \"lib/football/__tests__/**/*.test.ts\" \"lib/**/__tests__/**/*.test.ts\""
   },
   "dependencies": {
     "next": "^15.5.0",

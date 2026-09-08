@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { LiveScores } from '@/components/LiveScores';
-import { getLatestNews } from '@/lib/wordpress';
+import { getHomepageNews } from '@/lib/content';
 
 export const revalidate = 300;
 
@@ -19,7 +19,7 @@ const featuredCompetitions = [
   { name:'ทั้งหมด', sub:'All Football', slug:'all', icon:'•••' },
 ];
 
-function NewsListItem({ item, index }: { item: Awaited<ReturnType<typeof getLatestNews>>[number]; index: number }) {
+function NewsListItem({ item, index }: { item: { slug: string; title: string; category: string; publishedAt: string }; index: number }) {
   return (
     <article className="compactNewsItem">
       <Link href={`/news/${item.slug}`} className={`compactThumb thumbTone${(index % 6) + 1}`} aria-label={item.title}>
@@ -36,9 +36,21 @@ function NewsListItem({ item, index }: { item: Awaited<ReturnType<typeof getLate
 }
 
 export default async function HomePage() {
-  const news = await getLatestNews(20);
-  const latest = news.slice(0, 10);
-  const analysis = news.slice(10, 20);
+  const { lead, side, latest, source: _source } = await getHomepageNews();
+  // Pad latest to 10 items from side if needed (content-service pads too)
+  const latestPadded = [...latest];
+  let padIdx = 0;
+  while (latestPadded.length < 10 && side.length > 0) {
+    const candidate = side[padIdx % side.length];
+    if (candidate && !latestPadded.find((it) => it.slug === candidate.slug)) {
+      latestPadded.push(candidate);
+    }
+    padIdx++;
+    if (padIdx > 20) break;
+  }
+  const news = [lead, ...side].slice(0, 5);
+  const analysis = latestPadded.slice(0, 10);
+  const featured = lead;
 
   return (
     <main className="page homePage">
@@ -57,14 +69,14 @@ export default async function HomePage() {
           <article className="featureHero">
             <div className="heroShade" />
             <div className="featureContent">
-              <span className="featureTag">พรีเมียร์ลีก</span>
-              <h1>แมนยูคืนฟอร์มโหด! เปิดรังถล่มเอฟเวอร์ตัน 3-0</h1>
-              <p>รูเบน อโมริม พาทีมกลับมาคืนฟอร์ม พร้อมเก็บสามแต้มสำคัญในบ้าน</p>
-              <div className="featureMeta">◷ 7 ก.ย. 2026 &nbsp;&nbsp; ◉ 12.4K &nbsp;&nbsp; ◌ 48</div>
+              <span className="featureTag">{featured.category}</span>
+              <h1>{featured.title}</h1>
+              <p>{featured.excerpt}</p>
+              <div className="featureMeta">◷ {featured.publishedAt} &nbsp;&nbsp; ◉ 12.4K &nbsp;&nbsp; ◌ 48</div>
             </div>
           </article>
           <div className="featureSideGrid">
-            {news.slice(1,5).map((item, index) => (
+            {side.map((item, index) => (
               <Link className={`miniFeature miniTone${index + 1}`} href={`/news/${item.slug}`} key={item.slug}>
                 <div className="miniShade" />
                 <div className="miniFeatureContent"><span>{item.category}</span><strong>{item.title}</strong></div>
@@ -80,7 +92,7 @@ export default async function HomePage() {
               <Link href="/news/man-utd-comeback">ดูข่าวทั้งหมด →</Link>
             </div>
             <div className="twoByFiveGrid">
-              {latest.map((item, index) => <NewsListItem item={item} index={index} key={item.slug} />)}
+              {latestPadded.map((item, index) => <NewsListItem item={item} index={index} key={item.slug} />)}
             </div>
 
             <section className="matchDayBanner">

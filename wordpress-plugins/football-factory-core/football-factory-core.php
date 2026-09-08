@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'FOOTBALL_FACTORY_CORE_VERSION', '0.1.0' );
 define( 'FOOTBALL_FACTORY_CORE_OPTION', 'football_factory_core_options' );
+define( 'FOOTBALL_FACTORY_CORE_OPTION_HEADLESS', 'football_factory_core_headless' );
 define( 'FOOTBALL_FACTORY_CORE_CAP_MANAGE', 'manage_football_data' );
 define( 'FOOTBALL_FACTORY_CORE_CAP_READ', 'read_football_data' );
 
@@ -130,6 +131,8 @@ final class Football_Factory_Core {
 		add_action( 'wp_head', array( __CLASS__, 'print_schema' ), 20 );
 		add_action( 'admin_menu', array( __CLASS__, 'register_admin_page' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
+		add_action( 'admin_init', array( __CLASS__, 'register_headless_settings' ) );
+		add_action( 'transition_post_status', array( __CLASS__, 'maybe_ping_nextjs' ), 10, 3 );
 	}
 
 	/**
@@ -442,6 +445,109 @@ final class Football_Factory_Core {
 					'football_api_key'      => '',
 					'n8n_webhook_token'     => '',
 				),
+			)
+		);
+	}
+
+	/**
+	 * Register headless settings: Next.js revalidate endpoint and shared
+	 * secret. Never serialized to the public REST API or to theme output.
+	 *
+	 * @return void
+	 */
+	public static function register_headless_settings(): void {
+		register_setting(
+			'football_factory_core_headless',
+			FOOTBALL_FACTORY_CORE_OPTION_HEADLESS,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_headless_options' ),
+				'default'           => array(
+					'nextjs_revalidate_url' => '',
+					'revalidate_secret'     => '',
+					'wpgraphql_endpoint'    => '',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Sanitize headless settings.
+	 *
+	 * @param mixed $input Raw input.
+	 * @return array<string,string>
+	 */
+	public static function sanitize_headless_options( $input ): array {
+		$input = is_array( $input ) ? $input : array();
+
+		return array(
+			'nextjs_revalidate_url' => esc_url_raw( (string) ( $input['nextjs_revalidate_url'] ?? '' ) ),
+			'revalidate_secret'     => sanitize_text_field( (string) ( $input['revalidate_secret'] ?? '' ) ),
+			'wpgraphql_endpoint'    => esc_url_raw( (string) ( $input['wpgraphql_endpoint'] ?? '' ) ),
+		);
+	}
+
+	/**
+	 * Return the saved headless settings.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function headless_options(): array {
+		$options = get_option( FOOTBALL_FACTORY_CORE_OPTION_HEADLESS, array() );
+		$options = is_array( $options ) ? $options : array();
+
+		return array_merge(
+			array(
+				'nextjs_revalidate_url' => '',
+				'revalidate_secret'     => '',
+				'wpgraphql_endpoint'    => '',
+			),
+			$options
+		);
+	}
+
+	/**
+	 * Fire a non-blocking revalidation request to Next.js when a public
+	 * post transitions to publish. No-op when the headless config is
+	 * missing. Server-side only; no UI surface.
+	 *
+	 * @param string  $new_status New post status.
+	 * @param string  $old_status Old post status.
+	 * @param WP_Post $post       Post object.
+	 * @return void
+	 */
+	public static function maybe_ping_nextjs( string $new_status, string $old_status, $post ): void {
+		if ( 'publish' !== $new_status ) {
+			return;
+		}
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+		// Only trigger for standard posts in Phase 2. CPTs are added in later phases.
+		if ( 'post' !== $post->post_type ) {
+			return;
+		}
+
+		$headless = self::headless_options();
+		$url      = (string) $headless['nextjs_revalidate_url'];
+		$secret   = (string) $headless['revalidate_secret'];
+		if ( '' === $url || '' === $secret ) {
+			return;
+		}
+
+		$paths = array( '/', '/news/' . $post->post_name, '/sitemap.xml' );
+		$body  = wp_json_encode( array( 'paths' => $paths ) );
+
+		wp_remote_post(
+			$url,
+			array(
+				'headers' => array(
+					'Content-Type'          => 'application/json',
+					'x-ff-revalidate-secret' => $secret,
+				),
+				'body'    => $body,
+				'timeout' => 4,
+				'blocking' => false,
 			)
 		);
 	}

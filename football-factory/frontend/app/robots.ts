@@ -1,5 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl } from '@/lib/seo/seo';
+
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://football-factory.vercel.app';
-  return { rules: { userAgent: '*', allow: '/' }, sitemap: `${base}/sitemap.xml` };
+  const base = getSiteUrl();
+  return {
+    rules: [{ userAgent: '*', allow: '/' }],
+    sitemap: `${base}/sitemap.xml`,
+    host: base,
+  };
 }
