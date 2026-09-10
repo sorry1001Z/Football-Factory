@@ -1,0 +1,712 @@
+{
+  "name": "Football Factory - Production Editorial Pipeline (FIRST SLICE, header-fixed)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "football-factory-ingest",
+        "responseMode": "responseNode"
+      },
+      "id": "1",
+      "name": "Source Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const h=$json.headers||{}; const expected=$env.AUTOMATION_SECRET; const got=h['x-automation-secret']||h['X-Automation-Secret']; if(!expected||got!==expected) throw new Error('UNAUTHORIZED_WEBHOOK'); return items;"
+      },
+      "id": "2",
+      "name": "Authenticate Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const x=$json.body||$json; const key=x.idempotency_key||x.source_id||x.url; if(!key) throw new Error('MISSING_IDEMPOTENCY_KEY'); return [{json:{...x,idempotency_key:String(key)}}];"
+      },
+      "id": "3",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PRODUCTION_BASE_URL + '/api/automation/deduplicate'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "4",
+      "name": "Deduplicate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.duplicate}}",
+              "operation": "isFalse"
+            }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "Is New?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.AI_ASSIST_ENDPOINT}}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "6",
+      "name": "AI Assist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -120
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.FACT_CHECK_ENDPOINT}}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "7",
+      "name": "Fact Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -120
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.fact_check_score}}",
+              "operation": "largerEqual",
+              "value2": 80
+            }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Fact Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SEO_ENDPOINT}}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "9",
+      "name": "SEO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.RIGHTS_CHECK_ENDPOINT}}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "10",
+      "name": "Rights Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.rights_confirmed}}",
+              "operation": "isTrue"
+            }
+          ]
+        }
+      },
+      "id": "11",
+      "name": "Rights Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2200,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PRODUCTION_BASE_URL + '/api/automation/wp-draft'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "12",
+      "name": "WordPress Draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        -240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "id": "13",
+      "name": "Human Approval Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2640,
+        -240
+      ],
+      "webhookId": "human-approval-placeholder"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PRODUCTION_BASE_URL + '/api/automation/approval-status'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "14",
+      "name": "Check Human Approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.approved}}",
+              "operation": "isTrue"
+            }
+          ]
+        }
+      },
+      "id": "15",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3080,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PRODUCTION_BASE_URL + '/api/automation/wp-publish'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "16",
+      "name": "Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3300,
+        -300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.REVALIDATE_URL}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ff-revalidate-secret",
+              "value": "={{$env.REVALIDATE_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify({paths:[\"/\",\"/news\"]})}}"
+      },
+      "id": "17",
+      "name": "Revalidate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        -300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.PRODUCTION_BASE_URL + '/api/automation/log'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify({...$json,status:'success'})}}"
+      },
+      "id": "18",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3740,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify({ok:true,idempotency_key:$json.idempotency_key})}}"
+      },
+      "id": "19",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        3960,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(i=>({json:{...i.json,status:'blocked_or_failed',alert:true}}));"
+      },
+      "id": "20",
+      "name": "Failure Normalizer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.HEALTH_ALERT_WEBHOOK_URL || ($env.PRODUCTION_BASE_URL + '/api/automation/alert')}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{$env.AUTOMATION_SECRET}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json)}}"
+      },
+      "id": "21",
+      "name": "Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        180
+      ],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Source Webhook": {
+      "main": [
+        [
+          {
+            "node": "Authenticate Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authenticate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate": {
+      "main": [
+        [
+          {
+            "node": "Is New?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is New?": {
+      "main": [
+        [
+          {
+            "node": "AI Assist",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Assist": {
+      "main": [
+        [
+          {
+            "node": "Fact Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fact Check": {
+      "main": [
+        [
+          {
+            "node": "Fact Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fact Gate": {
+      "main": [
+        [
+          {
+            "node": "SEO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failure Normalizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO": {
+      "main": [
+        [
+          {
+            "node": "Rights Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rights Check": {
+      "main": [
+        [
+          {
+            "node": "Rights Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rights Gate": {
+      "main": [
+        [
+          {
+            "node": "WordPress Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failure Normalizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WordPress Draft": {
+      "main": [
+        [
+          {
+            "node": "Human Approval Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Approval Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Human Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Human Approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Publish",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failure Normalizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish": {
+      "main": [
+        [
+          {
+            "node": "Revalidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revalidate": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failure Normalizer": {
+      "main": [
+        [
+          {
+            "node": "Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "versionId": "external-package-v1-prod-header-fixed",
+  "notes": "Football Factory editorial pipeline (FIRST SLICE). DO NOT activate until: (a) the production WordPress REST write client is configured with a restricted Application Password, (b) the staging n8n instance has replaced the placeholder webhookId on the 'Human Approval Wait' node with a real approval webhook URL, (c) /api/automation/{approval-status, wp-publish, log, alert} are implemented and authenticated, (d) duplicates idempotency + rejection tests pass."
+}
