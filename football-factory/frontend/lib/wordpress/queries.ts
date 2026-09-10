@@ -2,6 +2,14 @@
 // Minimal, explicit queries. Each query is a string constant so that
 // the client side never builds GraphQL at runtime.
 
+// SEO fields intentionally NOT selected: the local docker WordPress
+// Phase 3 stack does not have a SEO plugin installed, and WPGraphQL
+// rejects the whole query when an unknown field is selected. The
+// `seo` value is therefore null at runtime; buildPostMetadata and
+// buildNewsArticleJsonLd already handle that case via fallbacks
+// (post.title, post.excerpt, buildCanonical). Future SEO plugin
+// integration only needs to re-add this selection — no normalizer
+// or model changes are required.
 export const WP_QUERY_POSTS = /* GraphQL */ `
   query FFPosts($first: Int!) {
     posts(first: $first, where: { status: PUBLISH }) {
@@ -36,19 +44,6 @@ export const WP_QUERY_POSTS = /* GraphQL */ `
         }
         categories(first: 5) { nodes { id slug name description } }
         tags(first: 10) { nodes { id slug name description } }
-        seo {
-          title
-          metaDesc
-          canonical
-          metaRobotsNoindex
-          opengraphTitle
-          opengraphDescription
-          opengraphImage { sourceUrl }
-          twitterTitle
-          twitterDescription
-          twitterImage { sourceUrl }
-          schema { raw }
-        }
       }
     }
   }
@@ -87,19 +82,6 @@ export const WP_QUERY_POST_BY_SLUG = /* GraphQL */ `
       }
       categories(first: 5) { nodes { id slug name description } }
       tags(first: 10) { nodes { id slug name description } }
-      seo {
-        title
-        metaDesc
-        canonical
-        metaRobotsNoindex
-        opengraphTitle
-        opengraphDescription
-        opengraphImage { sourceUrl }
-        twitterTitle
-        twitterDescription
-        twitterImage { sourceUrl }
-        schema { raw }
-      }
     }
   }
 `;
