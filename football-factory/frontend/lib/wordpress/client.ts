@@ -6,7 +6,7 @@
 // available to the test runner.
 import "server-only";
 
-const DEFAULT_TIMEOUT_MS = 8_000;
+const DEFAULT_TIMEOUT_MS = 14_000;
 
 export type WordPressClientErrorKind =
   | "UNCONFIGURED"
