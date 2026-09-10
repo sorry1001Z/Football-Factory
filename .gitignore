@@ -28,3 +28,6 @@ Thumbs.db
 # Source archives (legacy; not part of the repo)
 *.zip
 
+# Local tooling downloaded by hand (cloudflared, etc.) — never tracked, never committed
+tools/
+

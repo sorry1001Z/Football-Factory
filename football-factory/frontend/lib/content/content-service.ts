@@ -218,24 +218,30 @@ export interface ArticleResult {
 }
 
 export async function getArticleBySlug(slug: string): Promise<ArticleResult> {
+  // Resolve the mock fallback item up-front — used in BOTH the
+  // WP-configured and WP-unconfigured paths as a graceful fallback
+  // for slugs that exist locally but not on the live CMS. We do NOT
+  // gate the WP call on its presence anymore: any slug is allowed to
+  // try WordPress first, and only fall back to the mock if WP does
+  // not return a normalized post (or any error path fires).
   const fallbackItem: NewsItem | null =
     mockNews.find((n) => n.slug === slug) ?? null;
 
-  if (!fallbackItem) {
-    return {
-      post: null,
-      newsItem: null,
-      source: {
-        origin: "unconfigured",
-        fetchedAt: new Date().toISOString(),
-        data: "unconfigured",
-        degradedReason: null,
-      },
-    };
-  }
-
   const client = getClient();
   if (!client.configured) {
+    // No live CMS configured. Mock is the only source we can use.
+    if (!fallbackItem) {
+      return {
+        post: null,
+        newsItem: null,
+        source: {
+          origin: "unconfigured",
+          fetchedAt: new Date().toISOString(),
+          data: "unconfigured",
+          degradedReason: null,
+        },
+      };
+    }
     return {
       post: null,
       newsItem: fallbackItem,
@@ -254,7 +260,23 @@ export async function getArticleBySlug(slug: string): Promise<ArticleResult> {
       variables: { slug },
     });
     const post = normalizeWordPressPost(data.post);
-    if (!post) {
+    if (post) {
+      return {
+        post,
+        newsItem: postToNewsItem(post),
+        source: {
+          origin: "wpgraphql",
+          fetchedAt: new Date().toISOString(),
+          data: "wpgraphql",
+          degradedReason: null,
+        },
+      };
+    }
+    // WP is reachable but didn't return a valid post for this slug.
+    // Honor the mock fallback if it exists; otherwise surface this as
+    // degraded/EMPTY_POST so the route can 404 without implying that
+    // the live CMS is unconfigured (it was successfully called).
+    if (fallbackItem) {
       return {
         post: null,
         newsItem: fallbackItem,
@@ -267,20 +289,40 @@ export async function getArticleBySlug(slug: string): Promise<ArticleResult> {
       };
     }
     return {
-      post,
-      newsItem: postToNewsItem(post),
+      post: null,
+      newsItem: null,
       source: {
-        origin: "wpgraphql",
+        origin: "degraded",
         fetchedAt: new Date().toISOString(),
-        data: "wpgraphql",
-        degradedReason: null,
+        data: "degraded",
+        degradedReason: "EMPTY_POST",
       },
     };
   } catch (err) {
+    // WP is configured but the request failed or timed out. Fall back
+    // to the mock item if present; otherwise the page should 404. We
+    // only surface `unconfigured` when the WP client throws an
+    // UNCONFIGURED race (e.g., the env was reloaded mid-request).
     if (isDegraded(err)) {
+      if (fallbackItem) {
+        return {
+          post: null,
+          newsItem: fallbackItem,
+          source: {
+            origin: "degraded",
+            fetchedAt: new Date().toISOString(),
+            data: "degraded",
+            degradedReason: reasonFor(err),
+          },
+        };
+      }
+      // Live CMS reachable in spirit but unreachable in this request;
+      // and the slug has no local fallback. Return null so the page
+      // can `notFound()` cleanly — without baking an origin that
+      // implies "WP succeeded, just empty".
       return {
         post: null,
-        newsItem: fallbackItem,
+        newsItem: null,
         source: {
           origin: "degraded",
           fetchedAt: new Date().toISOString(),
