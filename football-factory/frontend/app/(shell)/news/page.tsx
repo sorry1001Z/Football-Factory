@@ -18,8 +18,10 @@ import {
   SectionTitle,
   Empty,
   ErrorState,
-  ReservedSlot,
 } from "@/components/commercial/shell";
+import { InFeedAd } from "@/components/ads/ad-slot";
+import { AD_PRESETS } from "@/components/ads/presets";
+import { NewsAnalytics } from "@/components/analytics/client-trackers";
 
 export const revalidate = 300;
 
@@ -91,9 +93,14 @@ export default async function NewsListPage({ searchParams }: Props) {
             </nav>
           </>
         )}
-        <ReservedSlot kind="leaderboard" height={90} />
+        <InFeedAd config={AD_PRESETS["in-feed"]} />
+
+        <p style={{ marginTop: 18 }}>
+          <Link href="/">Browse latest news →</Link>
+        </p>
       </div>
       <Footer />
+      <NewsAnalytics />
     </main>
   );
 }

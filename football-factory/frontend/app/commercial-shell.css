@@ -569,3 +569,39 @@
   .cs-entity-crest { width: 56px; height: 56px; }
   .cs-internal-links { padding: 10px 12px; }
 }
+
+/* ===== Ad / Sponsor slots (R2 Wave 2D) ===== */
+.cs-ad {
+  margin: 22px 0;
+  background: var(--cs-bg);
+  border: 1px dashed var(--cs-line);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+.cs-ad-reserved {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--cs-muted);
+}
+.cs-ad-reserved small {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--cs-muted);
+}
+.cs-ad-mount {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  /* Live mount: the contract reserves this space for an SDK
+     to attach. No SDK is wired in this slice. */
+}
+.cs-ad[data-ad-state="live"] {
+  border-color: rgba(0, 122, 255, 0.25);
+}

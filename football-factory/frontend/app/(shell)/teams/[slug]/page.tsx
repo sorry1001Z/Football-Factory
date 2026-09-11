@@ -14,6 +14,9 @@ import {
   LeagueNav,
   Footer,
 } from "@/components/commercial/shell";
+import { FooterSponsor } from "@/components/ads/ad-slot";
+import { AD_PRESETS } from "@/components/ads/presets";
+import { TeamViewTracker } from "@/lib/analytics/trackers";
 
 export const revalidate = 300;
 
@@ -69,8 +72,10 @@ export default async function TeamPage({ params }: Props) {
       <LeagueNav />
       <div className="cs-container">
         <TeamHubBody hub={hub} />
+        <FooterSponsor config={AD_PRESETS["footer-sponsor"]} />
       </div>
       <Footer />
+      <TeamViewTracker slug={slug} />
     </main>
   );
 }

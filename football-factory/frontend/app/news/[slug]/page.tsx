@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { getArticleBySlug } from '@/lib/content';
 import { buildPostMetadata, buildNewsArticleJsonLd, buildCanonical } from '@/lib/seo/seo';
 import { mockNews } from '@/lib/mock-data';
+import { ArticleInlineAd } from "@/components/ads/ad-slot";
+import { AD_PRESETS } from "@/components/ads/presets";
+import { ArticleViewTracker } from '@/lib/analytics/trackers';
 
 export const revalidate = 300;
 
@@ -107,8 +110,10 @@ export default async function NewsPage({ params }: Props) {
             </ul>
           </section>
         ) : null}
+        <ArticleInlineAd config={AD_PRESETS["article-inline"]} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </article>
+      <ArticleViewTracker id={slug} />
     </main>
   );
 }

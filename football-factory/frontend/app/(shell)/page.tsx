@@ -25,9 +25,15 @@ import {
   EditorsPick,
   TeamHubStrip,
   Footer,
-  ReservedSlot,
   ErrorState,
 } from "@/components/commercial/shell";
+import {
+  LeaderboardAd,
+  InFeedAd,
+  FooterSponsor,
+} from "@/components/ads/ad-slot";
+import { AD_PRESETS } from "@/components/ads/presets";
+import { HomeAnalytics } from "@/components/analytics/client-trackers";
 
 export const revalidate = 300;
 
@@ -77,7 +83,7 @@ export default async function HomePage() {
           />
         )}
 
-        <ReservedSlot kind="leaderboard" height={90} />
+        <LeaderboardAd config={AD_PRESETS.leaderboard} />
 
         {latestOk ? (
           <LatestNewsGrid items={data.latest} />
@@ -87,6 +93,8 @@ export default async function HomePage() {
             retryHref="/"
           />
         )}
+
+        <InFeedAd config={AD_PRESETS["in-feed"]} />
 
         {data.leagueSections.map((s) => (
           <LeagueNewsSection
@@ -106,10 +114,11 @@ export default async function HomePage() {
         <EditorsPick items={data.editorsPick} />
         <TeamHubStrip items={data.teamHubStrip} />
 
-        <ReservedSlot kind="footer-sponsor" height={120} />
+        <FooterSponsor config={AD_PRESETS["footer-sponsor"]} />
       </div>
 
       <Footer />
+      <HomeAnalytics />
     </main>
   );
 }

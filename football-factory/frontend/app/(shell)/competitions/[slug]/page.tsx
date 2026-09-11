@@ -9,6 +9,9 @@ import {
   LeagueNav,
   Footer,
 } from "@/components/commercial/shell";
+import { FooterSponsor } from "@/components/ads/ad-slot";
+import { AD_PRESETS } from "@/components/ads/presets";
+import { CompetitionViewTracker } from "@/lib/analytics/trackers";
 
 export const revalidate = 300;
 
@@ -55,8 +58,10 @@ export default async function CompetitionPage({ params }: Props) {
       <LeagueNav />
       <div className="cs-container">
         <CompetitionHubBody hub={hub} />
+        <FooterSponsor config={AD_PRESETS["footer-sponsor"]} />
       </div>
       <Footer />
+      <CompetitionViewTracker slug={slug} />
     </main>
   );
 }

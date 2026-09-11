@@ -20,8 +20,8 @@ import {
   Empty,
   ErrorState,
   SectionTitle,
-  ReservedSlot,
 } from "@/components/commercial/shell";
+import { SearchEventTracker } from "@/lib/analytics/trackers";
 
 export const dynamic = "force-dynamic";
 
@@ -134,10 +134,9 @@ export default async function SearchPage({ searchParams }: Props) {
         <p style={{ marginTop: 18 }}>
           <Link href="/news">Browse latest news →</Link>
         </p>
-
-        <ReservedSlot kind="leaderboard" height={90} />
       </div>
       <Footer />
+      <SearchEventTracker query={query} />
     </main>
   );
 }
