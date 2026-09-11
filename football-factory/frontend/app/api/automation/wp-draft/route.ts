@@ -30,6 +30,10 @@ const WpDraftSchema = z.object({
   categories: z.array(z.number().int().positive()).max(50).optional(),
   tags: z.array(z.number().int().positive()).max(100).optional(),
   featured_media: z.number().int().positive().optional(),
+  // Optional: link this run to an editorial_items row so the publish
+  // path can verify approval state. When NULL, wp-publish will refuse
+  // to publish with `editorial_link_missing`.
+  editorial_item_id: z.string().uuid().optional(),
 });
 
 export async function POST(request: Request) {
@@ -84,12 +88,30 @@ export async function POST(request: Request) {
       featured_media: v.data.featured_media,
     });
     await runs.setStatus(v.data.run_id, "waiting_approval", { wp_post_id: post.id });
+    // If caller provided editorial_item_id, persist it on the run so the
+    // publish path can verify approval state. Best-effort: a failure
+    // here must NOT roll back the draft creation. We surface the error
+    // in the response payload but still return 201 for the draft.
+    let editorialLinkError: string | null = null;
+    if (v.data.editorial_item_id) {
+      try {
+        await getDb().query(
+          `UPDATE automation_runs
+              SET editorial_item_id = $2
+            WHERE id = $1`,
+          [v.data.run_id, v.data.editorial_item_id],
+        );
+      } catch (e) {
+        editorialLinkError = (e as Error)?.message ?? "editorial_link_failed";
+      }
+    }
     return NextResponse.json(
       {
         ok: true,
         run_id: v.data.run_id,
         wp_post_id: post.id,
         status: "draft",
+        ...(editorialLinkError ? { editorial_link_warning: editorialLinkError } : {}),
       },
       { status: 201 },
     );

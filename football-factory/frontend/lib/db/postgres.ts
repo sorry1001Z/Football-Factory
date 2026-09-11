@@ -112,6 +112,13 @@ function getPool(): Pool {
 }
 
 export function getDb(): Db {
+  // Test override path. When a test injects a stub via
+  // __setDbOverrideForTest(), getDb() returns the stub regardless of
+  // DATABASE_URL. This lets route tests exercise repository behavior
+  // without standing up a real PG. The test must call
+  // __resetDbOverrideForTest() in cleanup.
+  const override = globalThis.__FF_DB_OVERRIDE__;
+  if (override) return override as Db;
   const configured = Boolean(process.env.DATABASE_URL);
   return {
     configured,
@@ -137,6 +144,26 @@ export function getDb(): Db {
       }
     },
   };
+}
+
+/**
+ * Test-only: inject a Db stub that getDb() will return for the
+ * duration of the test. Restore with __resetDbOverrideForTest().
+ *
+ * Intentionally globalThis-scoped so it works across module instances
+ * in the test runtime.
+ */
+declare global {
+  // eslint-disable-next-line no-var
+  var __FF_DB_OVERRIDE__: Db | undefined;
+}
+
+export function __setDbOverrideForTest(db: Db): void {
+  globalThis.__FF_DB_OVERRIDE__ = db;
+}
+
+export function __resetDbOverrideForTest(): void {
+  globalThis.__FF_DB_OVERRIDE__ = undefined;
 }
 
 /**

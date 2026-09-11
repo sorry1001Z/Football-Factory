@@ -1,24 +1,33 @@
-// /api/automation/alert (FIRST SLICE)
+// /api/automation/alert (FIRST SLICE / 003)
 //
 // Auth:    x-automation-secret
-// Status:  501 NOT IMPLEMENTED. Telegram alerts are a follow-up slice.
-//          This endpoint is reserved so the n8n Alert node has a
-//          production-shape target during staging tests, but it does
-//          NOT forward alerts to Telegram yet.
+// Body:    { severity, source, message, context?, run_id? }
+//
+// Behavior:
+//   - Authenticate AUTOMATION_SECRET.
+//   - Validate body (severity enum: info/warning/error/critical).
+//   - Persist into the existing analytics_events table with
+//     event_name='automation_alert'. Severity, message, context, and
+//     run_id live in properties.
+//   - No external delivery (Telegram/Slack/Email). Persistence only.
 
 import "server-only";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readCappedBody } from "@/lib/security/body-cap";
 import { verifyAutomationSecret, authRejectResponse } from "@/lib/automation/auth";
+import { getDb } from "@/lib/db/postgres";
+import { AlertRepository } from "@/lib/auth/alert-repository";
+import { redactSecrets } from "@/lib/auth/redact-secrets";
 
 export const dynamic = "force-dynamic";
 
 const Schema = z.object({
   severity: z.enum(["info", "warning", "error", "critical"]),
   source: z.string().min(1).max(64),
-  message: z.string().min(1).max(1000),
+  message: z.string().min(1).max(2000),
   context: z.record(z.string(), z.unknown()).optional(),
+  run_id: z.string().uuid().optional(),
 });
 
 export async function POST(request: Request) {
@@ -42,8 +51,21 @@ export async function POST(request: Request) {
   if (!v.success) {
     return NextResponse.json({ ok: false, error: "validation_failed" }, { status: 400 });
   }
+
+  // Scrub secrets in context before persistence.
+  const safeContext = redactSecrets(v.data.context ?? {});
+
+  const repo = new AlertRepository(getDb());
+  const inserted = await repo.insert({
+    severity: v.data.severity,
+    source: v.data.source,
+    message: v.data.message,
+    context: safeContext,
+    run_id: v.data.run_id ?? null,
+  });
+
   return NextResponse.json(
-    { ok: false, error: "not_implemented", note: "alert is a follow-up slice" },
-    { status: 501 },
+    { ok: true, id: inserted.id },
+    { status: 200 },
   );
 }
