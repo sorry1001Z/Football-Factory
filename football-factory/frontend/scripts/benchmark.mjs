@@ -2,111 +2,143 @@
 /**
  * Football Factory — production benchmark.
  *
- * Adapted from the external Performance Pack (Pack 2).
+ * Adapted from:
+ *   - the external Performance Pack (Pack 2) — original
+ *   - the external Performance / Observability R2 pack (Round 2) —
+ *     JSON + Markdown dual output, route grouping, dependency tag,
+ *     cache:'no-store', configurable env-driven thresholds and outputs
+ *
+ * Refactored to import percentile()/summarize() from scripts/_stats.mjs.
  *
  * Usage:
  *   npm run benchmark
  *
+ * Env:
+ *   BASE_URL             (default: https://football-factory-three.vercel.app)
+ *   ROUNDS               (default: 5)
+ *   P95_THRESHOLD_MS     (default: 5000)
+ *   JSON_OUT             (default: benchmark.json)
+ *   MD_OUT               (default: benchmark.md)
+ *
  * Behavior:
- *   - Probes real routes only:
- *       /
- *       /news/phase-3-test
- *       /api/football/standings
- *       /api/health/wordpress?probe=1
- *   - For each route: 1 cold request + 4 warm requests.
- *   - Computes:
- *       cold_ms  (first request only)
- *       median   (warm)
- *       p95      (warm; if N >= 5)
- *       min      (warm)
- *       max      (warm)
- *   - Compares median to the published targets:
- *       homepage           <= 1500 ms
- *       article            <= 1500 ms
- *       cached standings   <= 1000 ms
- *       wp health          (no target; reported only)
- *   - Exits 0 if all targets met; 1 if any target missed; 2 on network errors.
- *   - Never prints credentials.
+ *   - Probes each route `ROUNDS` times. First request is cold; remaining
+ *     are warm and feed the percentile summary.
+ *   - Routes are tagged with `group` and `dependency` so the report
+ *     splits frontend vs upstream calls.
+ *   - Writes JSON to JSON_OUT (default benchmark.json).
+ *   - Writes Markdown to MD_OUT (default benchmark.md).
+ *   - Exits 0 if every route passes median target AND no p95 exceeds
+ *     P95_THRESHOLD_MS.
+ *   - Exits 1 if any median target is missed.
+ *   - Exits 2 if p95 exceeds P95_THRESHOLD_MS for any route.
+ *   - Never prints credentials. Body draining uses arrayBuffer(); no
+ *     cached connection reuse beyond the runtime's HTTP keepalive.
  */
+
+import fs from "node:fs";
+import { summarize, percentile } from "./_stats.mjs";
+
 const base = (process.env.BASE_URL || "https://football-factory-three.vercel.app").replace(/\/$/, "");
+const ROUNDS = Number(process.env.ROUNDS || 5);
+const P95_THRESHOLD_MS = Number(process.env.P95_THRESHOLD_MS || 5000);
+const JSON_OUT = process.env.JSON_OUT || "benchmark.json";
+const MD_OUT = process.env.MD_OUT || "benchmark.md";
 
-const routes = [
-  { path: "/", targetMs: 1500, label: "homepage" },
-  { path: "/news/phase-3-test", targetMs: 1500, label: "article" },
-  { path: "/api/football/standings", targetMs: 1000, label: "standings" },
-  { path: "/api/health/wordpress?probe=1", targetMs: null, label: "wp_health" },
-];
-
-const WARM_COUNT = 4;
-
-function pct(arr, p) {
-  if (arr.length === 0) return null;
-  const sorted = [...arr].sort((a, b) => a - b);
-  const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
-  return sorted[idx];
-}
+// route groups: { group: { route: { targetMs, dependency } } }
+// Median target semantics match the prior slice (homepage/article <= 1500 ms,
+// standings <= 1000 ms, wp health reported only).
+const ROUTE_GROUPS = {
+  public: {
+    "/":                                  { targetMs: 1500, dependency: "frontend" },
+    "/news/phase-3-test":                 { targetMs: 1500, dependency: "wordpress" },
+  },
+  api: {
+    "/api/football/standings":            { targetMs: 1000, dependency: "football-api" },
+    "/api/health/wordpress?probe=1":      { targetMs: null, dependency: "wordpress" },
+  },
+};
 
 async function timed(url) {
   const t0 = performance.now();
-  const r = await fetch(url, { redirect: "manual" });
-  // Drain body so connection reuse is realistic.
-  await r.text().catch(() => {});
-  return { ms: Math.round(performance.now() - t0), status: r.status };
-}
-
-const summary = [];
-let fails = 0;
-
-for (const r of routes) {
-  const url = base + r.path;
-  console.log(`\n--- ${r.label} (${r.path}) ---`);
-  // cold request
-  const cold = await timed(url);
-  console.log(`  cold   HTTP ${cold.status} (${cold.ms}ms)`);
-  // warm requests
-  const warm = [];
-  for (let i = 0; i < WARM_COUNT; i++) {
-    const w = await timed(url);
-    warm.push(w);
-    console.log(`  warm${i + 1}  HTTP ${w.status} (${w.ms}ms)`);
+  try {
+    const r = await fetch(url, { cache: "no-store", redirect: "manual" });
+    await r.arrayBuffer().catch(() => {});
+    return { ms: Math.round(performance.now() - t0), status: r.status, error: null };
+  } catch (e) {
+    return { ms: Math.round(performance.now() - t0), status: 0, error: String(e) };
   }
-  const warmMs = warm.map((w) => w.ms);
-  const median = pct(warmMs, 50);
-  const p95 = warm.length >= 5 ? pct(warmMs, 95) : null;
-  const min = Math.min(...warmMs);
-  const max = Math.max(...warmMs);
-  const meets = r.targetMs == null ? null : median <= r.targetMs;
-  if (meets === false) fails++;
-  console.log(
-    `  summary: median=${median}ms  min=${min}ms  max=${max}ms  p95=${p95 == null ? "n/a" : p95 + "ms"}  target=${r.targetMs == null ? "n/a" : r.targetMs + "ms"}  ${meets == null ? "" : meets ? "MEETS" : "MISSES"}`,
-  );
-  summary.push({
-    label: r.label,
-    path: r.path,
-    coldMs: cold.ms,
-    coldStatus: cold.status,
-    medianMs: median,
-    minMs: min,
-    maxMs: max,
-    p95Ms: p95,
-    targetMs: r.targetMs,
-    meets,
-  });
 }
 
-console.log("\n========================================");
-console.log("  BENCHMARK SUMMARY");
-console.log("========================================");
-for (const s of summary) {
-  const status = s.meets == null ? "n/a" : s.meets ? "MEETS" : "MISSES";
-  const target = s.targetMs == null ? "n/a" : s.targetMs + "ms";
-  console.log(
-    `  ${s.label.padEnd(10)} median=${String(s.medianMs).padStart(5)}ms  target=${target.padStart(7)}  ${status}`,
-  );
+const out = {
+  at: new Date().toISOString(),
+  base,
+  rounds: ROUNDS,
+  p95_threshold_ms: P95_THRESHOLD_MS,
+  groups: {},
+};
+
+let medianMiss = 0;
+let p95ThresholdMiss = 0;
+const consoleRows = [];
+
+for (const [group, routes] of Object.entries(ROUTE_GROUPS)) {
+  out.groups[group] = {};
+  for (const [route, cfg] of Object.entries(routes)) {
+    const url = base + route;
+    const samples = [];
+    for (let i = 0; i < ROUNDS; i++) {
+      const s = await timed(url);
+      samples.push({ ms: s.ms, status: s.status, error: s.error });
+    }
+    const warmMs = samples.slice(1).map((x) => x.ms);
+    const stats = warmMs.length ? summarize(warmMs) : { count: 0, p50: null, p95: null, min: null, max: null };
+    const cold = samples[0];
+    const medianMisses = cfg.targetMs != null && stats.p50 != null && stats.p50 > cfg.targetMs;
+    const p95Exceeds = stats.p95 != null && stats.p95 > P95_THRESHOLD_MS;
+    if (medianMisses) medianMiss++;
+    if (p95Exceeds) p95ThresholdMiss++;
+    out.groups[group][route] = {
+      cold_ms: cold.ms,
+      cold_status: cold.status,
+      stats,
+      target_ms: cfg.targetMs,
+      dependency: cfg.dependency,
+      median_misses: medianMisses,
+      p95_exceeds_threshold: p95Exceeds,
+    };
+    const consoleLine = `  [${group}] ${route.padEnd(40)} cold=${cold.ms}ms median=${stats.p50}ms p95=${stats.p95}ms target=${cfg.targetMs ?? "n/a"}ms dep=${cfg.dependency} ${medianMisses ? "MISS-MEDIAN" : ""} ${p95Exceeds ? "MISS-P95" : ""}`;
+    consoleRows.push(consoleLine);
+    console.log(consoleLine);
+  }
 }
-console.log();
-if (fails > 0) {
-  console.error(`FAIL: ${fails} route(s) missed their latency target`);
+
+out.summary = {
+  median_misses: medianMiss,
+  p95_threshold_misses: p95ThresholdMiss,
+};
+
+// JSON output
+fs.writeFileSync(JSON_OUT, JSON.stringify(out, null, 2));
+
+// Markdown output
+let md = `# Performance Benchmark\n\n- at: ${out.at}\n- base: ${base}\n- rounds: ${ROUNDS}\n- p95_threshold_ms: ${P95_THRESHOLD_MS}\n\n`;
+for (const [g, rs] of Object.entries(out.groups)) {
+  md += `## ${g}\n\n| route | dependency | cold_ms | median_ms | p95_ms | target_ms | status |\n|---|---|---|---|---|---|---|\n`;
+  for (const [r, v] of Object.entries(rs)) {
+    md += `| ${r} | ${v.dependency} | ${v.cold_ms} | ${v.stats.p50} | ${v.stats.p95} | ${v.target_ms ?? "n/a"} | ${v.median_misses ? "MISS-MEDIAN" : v.p95_exceeds_threshold ? "MISS-P95" : "OK"} |\n`;
+  }
+}
+md += `\n## summary\n\n- median_misses: ${medianMiss}\n- p95_threshold_misses: ${p95ThresholdMiss}\n`;
+fs.writeFileSync(MD_OUT, md);
+
+console.log(`\nWrote ${JSON_OUT} (${fs.statSync(JSON_OUT).size}b) and ${MD_OUT} (${fs.statSync(MD_OUT).size}b).`);
+
+if (p95ThresholdMiss > 0) {
+  console.error(`FAIL: ${p95ThresholdMiss} route(s) exceeded p95 threshold ${P95_THRESHOLD_MS}ms`);
+  process.exit(2);
+}
+if (medianMiss > 0) {
+  console.error(`FAIL: ${medianMiss} route(s) missed median target`);
   process.exit(1);
 }
 console.log("PASS");

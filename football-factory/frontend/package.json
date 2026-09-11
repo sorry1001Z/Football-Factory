@@ -15,6 +15,7 @@
     "smoke:seo": "node scripts/seo-check.mjs",
     "smoke:security": "node scripts/security-check.mjs",
     "benchmark": "node scripts/benchmark.mjs",
+    "benchmark:compare": "node scripts/benchmark-compare.mjs",
     "test:seo": "node --test scripts/__tests__/seo-contract.test.mjs",
     "test:scripts": "node --test \"scripts/__tests__/*.test.mjs\"",
     "test": "node --conditions=react-server --import tsx --test \"lib/football/__tests__/**/*.test.ts\" \"lib/**/__tests__/**/*.test.ts\""
