@@ -218,6 +218,7 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
           source_id: "src-1",
           wp_post_id: 99,
           stage: "approved",
+          rights_confirmed: true,
           approval_state: "approved",
           approved_by: "u1",
           approved_at: "2026-01-02T00:00:00Z",
@@ -371,6 +372,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
           source_id: "src-1",
           wp_post_id: 1,
           stage: "approved",
+          rights_confirmed: true,
           approval_state: "approved",
           approved_by: "u1",
           approved_at: "2026-01-02T00:00:00Z",
@@ -383,6 +385,44 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
     }),
     // setStatus UPDATE after successful publish.
     () => ({ rows: [], rowCount: 0 }),
+    // setStage: findById (current=approved)
+    () => ({
+      rows: [
+        {
+          id: "i1",
+          source_id: "src-1",
+          wp_post_id: 1,
+          stage: "approved",
+          rights_confirmed: true,
+          approval_state: "approved",
+          approved_by: "u1",
+          approved_at: "2026-01-02T00:00:00Z",
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-02T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+    // setStage UPDATE → row at stage="published"
+    () => ({
+      rows: [
+        {
+          id: "i1",
+          source_id: "src-1",
+          wp_post_id: 1,
+          stage: "published",
+          rights_confirmed: true,
+          approval_state: "approved",
+          approved_by: "u1",
+          approved_at: "2026-01-02T00:00:00Z",
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-02T00:00:01Z",
+        },
+      ],
+      rowCount: 1,
+    }),
   ]);
   __setDbOverrideForTest(db as unknown as Db);
   // Stub WordPressWriteClient.updatePost to return success.
@@ -437,6 +477,7 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
           source_id: "src-1",
           wp_post_id: 1,
           stage: "approved",
+          rights_confirmed: true,
           approval_state: "approved",
           approved_by: "u1",
           approved_at: "2026-01-02T00:00:00Z",
@@ -500,6 +541,7 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
           source_id: "src-1",
           wp_post_id: 1,
           stage: "approved",
+          rights_confirmed: true,
           approval_state: "approved",
           approved_by: "u1",
           approved_at: "2026-01-02T00:00:00Z",
@@ -563,6 +605,7 @@ test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
           source_id: "src-1",
           wp_post_id: 1,
           stage: "approved",
+          rights_confirmed: true,
           approval_state: "approved",
           approved_by: "u1",
           approved_at: "2026-01-02T00:00:00Z",

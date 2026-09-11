@@ -231,3 +231,289 @@ test("editorial-repo: listByApprovalState filters and orders", async () => {
   // only used at compile time.
   void (null as ApprovalState | null);
 });
+
+// --------------------------------------------------------------------------
+// PRE-N8N BACKEND — additional repository methods
+// --------------------------------------------------------------------------
+
+test("editorial-repo (PRE-N8N): findBySourceId returns null when missing", async () => {
+  const db = makeStubDb([
+    () => ({ rows: [], rowCount: 0 }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.findBySourceId("src-does-not-exist");
+  assert.equal(r, null);
+  assert.match(db.calls[0].sql, /WHERE source_id = \$1/);
+  assert.equal(db.calls[0].values[0], "src-does-not-exist");
+});
+
+test("editorial-repo (PRE-N8N): findBySourceId returns the row when present", async () => {
+  const db = makeStubDb([
+    () => ({
+      rows: [
+        {
+          id: "i-source-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "editorial_created",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.findBySourceId("src-1");
+  assert.ok(r);
+  assert.equal(r!.id, "i-source-1");
+});
+
+test("editorial-repo (PRE-N8N): linkToRun — first link returns linked=true", async () => {
+  const db = makeStubDb([
+    // SELECT current link
+    () => ({ rows: [{ editorial_item_id: null }], rowCount: 1 }),
+    // UPDATE returning the new value
+    () => ({ rows: [{ editorial_item_id: "ei-1" }], rowCount: 1 }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.linkToRun("run-1", "ei-1");
+  assert.equal(r.linked, true);
+  assert.equal(r.conflicting, false);
+  assert.equal(r.editorial_item_id, "ei-1");
+  assert.match(db.calls[1].sql, /UPDATE automation_runs/);
+});
+
+test("editorial-repo (PRE-N8N): linkToRun — already-linked matching id is idempotent", async () => {
+  const db = makeStubDb([
+    () => ({ rows: [{ editorial_item_id: "ei-1" }], rowCount: 1 }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.linkToRun("run-1", "ei-1");
+  assert.equal(r.linked, false);
+  assert.equal(r.conflicting, false);
+  assert.equal(r.editorial_item_id, "ei-1");
+});
+
+test("editorial-repo (PRE-N8N): linkToRun — already-linked to different id is conflicting", async () => {
+  const db = makeStubDb([
+    () => ({ rows: [{ editorial_item_id: "ei-other" }], rowCount: 1 }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.linkToRun("run-1", "ei-1");
+  assert.equal(r.linked, false);
+  assert.equal(r.conflicting, true);
+  assert.equal(r.editorial_item_id, "ei-other");
+});
+
+test("editorial-repo (PRE-N8N): setStage — forward transition succeeds + stage_history appended", async () => {
+  // Plan: findById returns current stage=editorial_created;
+  // then the UPDATE returns the new row with the appended metadata.
+  const db = makeStubDb([
+    // findById SELECT
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "editorial_created",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: { existing: true },
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+    // setStage UPDATE RETURNING
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "ai_assist",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {
+            existing: true,
+            stage_history: [
+              {
+                from: "editorial_created",
+                to: "ai_assist",
+                run_id: "run-1",
+                note: "FF_HOOK_4",
+              },
+            ],
+          },
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:01Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.setStage("i-1", "ai_assist", "run-1", "FF_HOOK_4");
+  assert.equal(r.stage, "ai_assist");
+  const hist = (r.metadata as { stage_history?: unknown[] }).stage_history;
+  assert.ok(Array.isArray(hist));
+  assert.equal(hist!.length, 1);
+});
+
+test("editorial-repo (PRE-N8N): setStage — repeat same stage is allowed (idempotent)", async () => {
+  const db = makeStubDb([
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "ai_assist",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "ai_assist",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.setStage("i-1", "ai_assist", "run-1", "repeat");
+  assert.equal(r.stage, "ai_assist");
+});
+
+test("editorial-repo (PRE-N8N): setStage — backward transition throws", async () => {
+  const db = makeStubDb([
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "fact_check",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  await assert.rejects(
+    () => repo.setStage("i-1", "ai_assist", "run-1"),
+    (e: unknown) => e instanceof Error && /Cannot transition/.test(e.message),
+  );
+});
+
+test("editorial-repo (PRE-N8N): setStage — terminal-to-forward throws", async () => {
+  const db = makeStubDb([
+    () => ({
+      rows: [
+        {
+          id: "i-1",
+          source_id: "src-1",
+          wp_post_id: null,
+          stage: "rejected",
+          approval_state: "rejected",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  await assert.rejects(
+    () => repo.setStage("i-1", "approved", "run-1"),
+    (e: unknown) => e instanceof Error && /terminal/.test(e.message),
+  );
+});
+
+test("editorial-repo (PRE-N8N): create inserts editorial_items row at stage=editorial_created", async () => {
+  // Plan:
+  //   INSERT RETURNING ... → 1 row
+  //   UPDATE metadata      → 1 row (because title is present in input)
+  //   findById (re-read)   → 1 row
+  const db = makeStubDb([
+    () => ({
+      rows: [
+        {
+          id: "ei-new",
+          source_id: "src-new",
+          wp_post_id: null,
+          stage: "editorial_created",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: {},
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+    () => ({ rows: [], rowCount: 0 }), // UPDATE metadata
+    () => ({
+      rows: [
+        {
+          id: "ei-new",
+          source_id: "src-new",
+          wp_post_id: null,
+          stage: "editorial_created",
+          approval_state: "pending",
+          approved_by: null,
+          approved_at: null,
+          metadata: { title: "My Title" },
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      rowCount: 1,
+    }),
+  ]);
+  const repo = new EditorialRepository(db as never);
+  const r = await repo.create({
+    source_id: "src-new",
+    stage: "editorial_created",
+    title: "My Title",
+  });
+  assert.equal(r.stage, "editorial_created");
+  assert.equal((r.metadata as { title: string }).title, "My Title");
+});
+

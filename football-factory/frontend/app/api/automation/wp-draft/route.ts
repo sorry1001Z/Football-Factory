@@ -101,6 +101,30 @@ export async function POST(request: Request) {
             WHERE id = $1`,
           [v.data.run_id, v.data.editorial_item_id],
         );
+        // Sync editorial_items.stage to draft_created → waiting_approval.
+        // Stage advance uses the published stage-machine; if the item is
+        // currently at a non-canonical stage (hand-edited), we accept the
+        // forward move per the stage-machine contract.
+        const { EditorialRepository } = await import("@/lib/auth/editorial-repository");
+        const editorial = new EditorialRepository(getDb());
+        const item = await editorial.findById(v.data.editorial_item_id);
+        if (item && item.stage !== "draft_created" && item.stage !== "waiting_approval") {
+          // setStage throws StageTransitionError for invalid moves; in
+          // that case we surface a warning but do NOT roll back the
+          // draft.
+          try {
+            await editorial.setStage(item.id, "draft_created", v.data.run_id, "FF_HOOK_9");
+            await editorial.setStage(
+              item.id,
+              "waiting_approval",
+              v.data.run_id,
+              "FF_HOOK_9",
+            );
+          } catch (e) {
+            editorialLinkError =
+              "stage_advance_warning: " + ((e as Error)?.message ?? "unknown");
+          }
+        }
       } catch (e) {
         editorialLinkError = (e as Error)?.message ?? "editorial_link_failed";
       }

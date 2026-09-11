@@ -1,10 +1,19 @@
-// Football Factory — POST /api/admin/editorial/[id]/approval (FIRST SLICE / 003)
+// Football Factory — POST /api/admin/editorial/[id]/approval (FIRST SLICE / 003 +
+// CROSS-ROUTE SAFETY PATCH)
 //
-// Human-approval mutation path. Sets approval_state on an editorial item.
+// Human-approval mutation path. Sets approval_state on an editorial item
+// AND advances the editorial stage in the same logical operation:
+//   - state = approved  → stage = approved (requires rights_confirmed=true)
+//   - state = rejected  → stage = rejected (no precondition)
+//
 // Editor/admin only. CSRF protected. Body-cap 1 MB. Zod validation.
 // Audit log row written.
 //
-// Body: { state: "approved" | "rejected", note?: string }
+// Rights precondition: this is the FIRST of two defense-in-depth gates.
+// Even if a caller can bypass wp-publish's rights check (or an admin
+// hand-edits an item), the admin-approval mutation itself refuses to
+// set approval_state='approved' unless rights_confirmed is true. The
+// only way to approve is to have first cleared media rights.
 //
 // This is the ONLY path that can flip approval_state to a non-pending
 // value. wp-publish refuses to publish unless approval_state == 'approved'.
@@ -81,7 +90,48 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
   }
 
+  // Defense-in-depth #1 — rights clearance precondition for approval.
+  // state='rejected' is unconditionally permitted (operators can still
+  // reject an item even if rights are not cleared). state='approved'
+  // is allowed ONLY when rights_confirmed is true.
+  if (v.data.state === "approved" && !existing.rights_confirmed) {
+    const rightsMeta =
+      (existing.metadata as { rights?: { state?: string } } | null)?.rights;
+    const rightsState = rightsMeta?.state ?? "missing";
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "rights_not_cleared_before_approve",
+        editorial_item_id: existing.id,
+        rights_state: rightsState,
+        rights_confirmed: false,
+      },
+      { status: 409 },
+    );
+  }
+
+  // Persist approval_state first via setApproval (existing helper).
   const updated = await repo.setApproval(id, v.data.state, g.session.userId);
+
+  // Sync editorial_items.stage to the matching canonical stage:
+  //   state=approved → stage=approved
+  //   state=rejected → stage=rejected
+  // The stage machine allows both as forward moves from any non-terminal
+  // stage (the stage machine treats rejected as a non-additive path).
+  //
+  // Residual risk: setApproval and setStage are two separate UPDATEs.
+  // If setStage fails AFTER setApproval succeeded, approval_state would
+  // already be flipped. We treat that as a recoverable error — the audit
+  // log shows the operator's intent, and an operator can re-attempt.
+  let stageAdvanceWarning: string | null = null;
+  const targetStage = v.data.state === "approved" ? "approved" : "rejected";
+  let finalStage = updated.stage; // falls back to setApproval's row stage
+  try {
+    const after = await repo.setStage(updated.id, targetStage, null, `admin_${v.data.state}`);
+    finalStage = after.stage;
+  } catch (e) {
+    stageAdvanceWarning = "stage_advance_warning: " + ((e as Error)?.message ?? "unknown");
+  }
 
   // Audit log entry. We write to audit_logs directly (not via
   // AutomationLogRepository) because the actor is a real user, not
@@ -103,6 +153,9 @@ export async function POST(request: Request, context: RouteContext) {
         previous_state: existing.approval_state,
         new_state: v.data.state,
         note: v.data.note ?? null,
+        previous_stage: existing.stage,
+        new_stage: updated.stage,
+        stage_advance_warning: stageAdvanceWarning,
       }),
     ],
   );
@@ -114,7 +167,9 @@ export async function POST(request: Request, context: RouteContext) {
       approval_state: updated.approval_state,
       approved_by: updated.approved_by,
       approved_at: updated.approved_at,
+      stage: finalStage,
       audit_logged: true,
+      ...(stageAdvanceWarning ? { stage_advance_warning: stageAdvanceWarning } : {}),
     },
     { status: 200 },
   );

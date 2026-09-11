@@ -1,4 +1,4 @@
-// /api/automation/wp-publish (FIRST SLICE / 003)
+// /api/automation/wp-publish (FIRST SLICE / 003 + CROSS-ROUTE SAFETY PATCH)
 //
 // Auth:    x-automation-secret
 // Body:    { run_id, wp_post_id }
@@ -12,14 +12,24 @@
 //      If NULL → 409 editorial_link_missing.
 //   5. Verify editorial_item.wp_post_id == input.wp_post_id. If not →
 //      409 wp_post_mismatch.
-//   6. Require editorial_item.approval_state == 'approved'. If not →
-//      409 approval_not_granted (with the actual state in the body).
-//   7. If automation_runs.status == 'success' for this run, return
-//      cached state (idempotent retry).
+//   6. HARD GATES (all required for publish):
+//        a. approval_state == 'approved'            → 409 approval_not_granted
+//        b. rights_confirmed == true                → 409 rights_not_cleared
+//        c. stage == 'approved'                     → 409 stage_not_approved
+//      Each gate is a *recoverable* 409 (we do NOT mark the run as
+//      'failed' for rights_not_cleared / stage_not_approved, so the same
+//      run can continue after legitimate rights clearance).
+//   7. Idempotency: if automation_runs.status == 'success' for this run,
+//      return cached state (no duplicate publish, no duplicate WP post).
+//      Additionally, if editorial_items.stage == 'published', also
+//      return cached state — same published item re-published from n8n.
 //   8. Call WordPressWriteClient.updatePost(id, { status: 'publish' }).
 //      On WP 4xx → 400 wp_<kind>. On WP timeout/network → 502.
 //   9. Set automation_runs.status = 'success'.
-//  10. Return the published post + the run id.
+//  10. Advance editorial_items.stage to 'published' (terminal) — but only
+//      after the WP call succeeds, so a transient WP failure does not
+//      prematurely mark the item as published.
+//  11. Return the published post + the run id.
 
 import "server-only";
 import { NextResponse } from "next/server";
@@ -71,6 +81,7 @@ export async function POST(request: Request) {
 
   const db = getDb();
   const runs = new AutomationRunRepository(db);
+  const items = new EditorialRepository(db);
   const run = await runs.get(run_id);
   if (!run) {
     return NextResponse.json({ ok: false, error: "run_not_found" }, { status: 404 });
@@ -93,8 +104,7 @@ export async function POST(request: Request) {
   }
 
   // Resolve editorial item deterministically.
-  const editorial = new EditorialRepository(db);
-  const item = await editorial.findByRunId(run_id);
+  const item = await items.findByRunId(run_id);
   if (!item) {
     await runs.setStatus(run_id, "failed", undefined, "editorial_link_missing");
     return conflict("editorial_link_missing", {
@@ -110,12 +120,76 @@ export async function POST(request: Request) {
     });
   }
   if (item.approval_state !== "approved") {
+    // approval_not_granted is terminal at the run-status level — flip
+    // the run to failed because operator review is required.
     await runs.setStatus(run_id, "failed", undefined, "approval_not_granted");
     return conflict("approval_not_granted", {
       approval_state: item.approval_state,
       editorial_item_id: item.id,
     });
   }
+
+  // HARD GATE #2 — rights clearance. rights_confirmed is the canonical
+  // boolean a rights-check route sets ONLY when:
+  //   (a) state == 'cleared' AND
+  //   (b) a rights provider is configured.
+  // The default for the column is false; so "missing" rights
+  // (never checked) returns the same 409 here. This blocks publishing
+  // for human-approved items whose rights were not cleared.
+  if (!item.rights_confirmed) {
+    const rightsMeta = (item.metadata as { rights?: { state?: string } } | null)?.rights;
+    const rightsState = rightsMeta?.state ?? "missing";
+    // Recoverable: do NOT flip automation_runs.status to 'failed'.
+    // The operator/automation caller can clear rights and re-invoke
+    // wp-publish on the same run.
+    return conflict("rights_not_cleared", {
+      editorial_item_id: item.id,
+      rights_state: rightsState,
+      rights_confirmed: false,
+    });
+  }
+
+  // HARD GATE #3 — editorial stage must be 'approved'. This guards
+  // against an admin approving an item whose stage is still earlier
+  // in the pipeline (e.g. seo_check). The admin-approval mutation
+  // also advances the stage to 'approved', so this check is normally
+  // passed; this is belt-and-suspenders for any caller that bypassed
+  // the admin route or hand-edited the stage column.
+  // HARD GATE #3 — editorial stage must be 'approved' to advance to
+  // 'published'. If the item is ALREADY 'published' from a prior
+  // successful publish (whose state was hand-edited or whose
+  // automation_runs row was reset), return idempotent 200 without
+  // re-publishing. The published-stage check is performed BEFORE the
+  // approved-stage guard so a 'published' row never reaches that gate
+  // (it would otherwise 409 as stage_not_approved).
+  const itemStagePre: string = item.stage;
+  if (itemStagePre === "published") {
+    return NextResponse.json(
+      {
+        ok: true,
+        run_id,
+        wp_post_id: item.wp_post_id ?? wp_post_id,
+        status: "publish",
+        idempotent: true,
+        note: "editorial item already published; returning cached state",
+        editorial_item_id: item.id,
+      },
+      { status: 200 },
+    );
+  }
+
+  if (item.stage !== "approved") {
+    return conflict("stage_not_approved", {
+      editorial_item_id: item.id,
+      stage: item.stage,
+    });
+  }
+
+  // Belt-and-suspenders: a defensive editor may hand-edit the run
+  // status column. The editorial row's stage is the source of truth;
+  // the early `published` check above already handled that case before
+  // reaching this point. No further idempotency fallback needed here.
+  void run;
 
   const wp = getWordPressWriteClient();
   if (!wp.configured) {
@@ -129,6 +203,12 @@ export async function POST(request: Request) {
   try {
     const post = await wp.updatePost(wp_post_id, { status: "publish" });
     await runs.setStatus(run_id, "success", { wp_post_id, wp_status: post.status });
+    // Stage advance to 'published' AFTER the WP call succeeds, so a
+    // transient WP failure does not prematurely mark the item as
+    // published. setStage enforces adjacency (approved → published is
+    // canonical forward), and the stage-machine blocks any further
+    // transitions out of 'published' (terminal).
+    await items.setStage(item.id, "published", run_id, "FF_HOOK_10");
     return NextResponse.json(
       {
         ok: true,
