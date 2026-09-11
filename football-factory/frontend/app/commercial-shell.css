@@ -1,0 +1,439 @@
+/* Football Factory — Commercial Frontend shell styles (R2 Wave 2A).
+ *
+ * Scope: everything here is namespaced under .commercial-shell so we
+ * do not collide with app/globals.css class names. Reuses existing
+ * CSS variables (--bg, --surface, --ink, --muted, --line, --red,
+ * --red-soft, --blue, --navy, --shadow, --radius).
+ *
+ * Responsive breakpoints:
+ *   - Desktop (>1024px): full grid layouts
+ *   - Tablet (>=640px and <=1024px): reduced columns
+ *   - Mobile (<640px): single column
+ *
+ * CLS safety:
+ *   - NewsCoverImage / HeroNewsImage already use aspect-ratio.
+ *   - This layer adds explicit min-height on cards and the match strip.
+ */
+
+.commercial-shell {
+  --cs-bg: var(--bg);
+  --cs-surface: var(--surface-solid, #fff);
+  --cs-ink: var(--ink);
+  --cs-muted: var(--muted);
+  --cs-line: var(--line);
+  --cs-red: var(--red);
+  --cs-red-soft: var(--red-soft);
+  --cs-blue: var(--blue);
+  --cs-navy: var(--navy);
+  --cs-radius: var(--radius, 14px);
+  --cs-shadow: var(--shadow);
+}
+
+.commercial-shell {
+  display: block;
+  width: 100%;
+  color: var(--cs-ink);
+  background: transparent;
+}
+
+/* Container */
+.cs-container {
+  width: min(1240px, calc(100% - 34px));
+  margin: auto;
+}
+
+/* Ticker */
+.cs-ticker {
+  height: 38px;
+  background: var(--cs-red);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 4vw;
+  overflow: hidden;
+}
+.cs-ticker-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.cs-ticker-rail {
+  display: flex;
+  gap: 28px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+.cs-ticker-rail a {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.cs-ticker-rail a:hover { text-decoration: underline; }
+
+/* Header */
+.cs-header {
+  height: 76px;
+  background: var(--cs-navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 0 4vw;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.cs-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  font-size: 18px;
+}
+.cs-brand-mark { font-size: 22px; }
+.cs-menu-button {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  margin-left: auto;
+  font-size: 18px;
+}
+.cs-main-nav {
+  display: flex;
+  gap: 24px;
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cs-main-nav a { color: inherit; opacity: 0.92; text-decoration: none; }
+.cs-main-nav a:hover { opacity: 1; color: var(--cs-red); }
+
+/* League nav */
+.cs-league-nav {
+  height: 48px;
+  background: var(--cs-surface);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 4vw;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--cs-line);
+}
+.cs-league-nav a {
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--cs-ink);
+  text-decoration: none;
+}
+.cs-league-nav a:hover { color: var(--cs-red); }
+
+/* Match strip */
+.cs-match-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin: 18px 0 8px;
+  padding: 4px 0 6px;
+}
+.cs-match {
+  min-width: 230px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+}
+.cs-match small { color: var(--cs-muted); font-size: 11px; }
+.cs-match b { font-size: 15px; }
+
+/* Hero */
+.cs-hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  margin: 18px 0 28px;
+}
+.cs-hero-side {
+  display: grid;
+  gap: 18px;
+}
+.cs-hero-lead {
+  display: grid;
+  grid-template-rows: auto auto;
+  background: var(--cs-surface);
+  border-radius: var(--cs-radius);
+  overflow: hidden;
+  border: 1px solid var(--cs-line);
+  box-shadow: var(--cs-shadow);
+}
+.cs-hero-lead-media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--cs-bg);
+}
+.cs-hero-lead-media > * { width: 100%; height: 100%; }
+.cs-hero-lead-body {
+  padding: 18px 22px 24px;
+}
+.cs-hero-lead-body h1 {
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 10px 0 12px;
+}
+.cs-hero-lead-body h1 a { color: inherit; text-decoration: none; }
+.cs-hero-lead-body p {
+  margin: 0 0 12px;
+  color: var(--cs-muted);
+  font-size: 16px;
+}
+
+/* Cards */
+.cs-card {
+  background: var(--cs-surface);
+  border-radius: var(--cs-radius);
+  overflow: hidden;
+  border: 1px solid var(--cs-line);
+  box-shadow: var(--cs-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.cs-card-media-link {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--cs-bg);
+}
+.cs-card-media-link > * { width: 100%; height: 100%; }
+.cs-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.cs-card h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+  line-height: 1.25;
+}
+.cs-card.cs-card-lead h3 { font-size: 28px; line-height: 1.12; }
+.cs-card.cs-card-compact h3 { font-size: 15px; }
+.cs-card h3 a { color: inherit; text-decoration: none; }
+.cs-card p { color: var(--cs-muted); font-size: 14px; margin: 0; }
+.cs-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--cs-red);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cs-time {
+  display: block;
+  color: var(--cs-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Sections */
+.cs-section { margin: 28px 0; }
+.cs-section-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--cs-line);
+  padding-bottom: 10px;
+}
+.cs-section-title h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.cs-section-title a {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cs-blue);
+  text-decoration: none;
+}
+.cs-section-title a:hover { text-decoration: underline; }
+
+/* News grid */
+.cs-news-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.cs-news-grid.cs-league-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cs-news-grid.cs-trending-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cs-news-grid.cs-editors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Two-column */
+.cs-two-col {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 22px;
+}
+
+/* Fixtures list */
+.cs-fixture-list {
+  background: var(--cs-surface);
+  border-radius: 12px;
+  border: 1px solid var(--cs-line);
+  overflow: hidden;
+}
+.cs-fixture-row {
+  display: grid;
+  grid-template-columns: 100px 1fr auto 1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cs-line);
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+}
+.cs-fixture-row:last-child { border-bottom: 0; }
+.cs-fixture-row:hover { background: var(--cs-bg); }
+
+/* Standings table */
+.cs-standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--cs-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+}
+.cs-standings-table th,
+.cs-standings-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--cs-line);
+}
+.cs-standings-table th { font-weight: 700; color: var(--cs-muted); }
+.cs-standings-table tr:last-child td { border-bottom: 0; }
+
+/* Team strip */
+.cs-team-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.cs-team-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--cs-surface);
+  border-radius: 12px;
+  border: 1px solid var(--cs-line);
+  text-decoration: none;
+  color: inherit;
+}
+.cs-team-tile:hover { border-color: var(--cs-red); }
+.cs-team-crest {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cs-bg);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--cs-muted);
+}
+.cs-team-crest img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+/* Reserved slot */
+.cs-slot {
+  margin: 22px 0;
+  background: var(--cs-bg);
+  border: 1px dashed var(--cs-line);
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--cs-muted);
+}
+.cs-slot small {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* Skeleton / states */
+.cs-skeleton {
+  background: linear-gradient(90deg, var(--cs-bg), var(--cs-surface), var(--cs-bg));
+  border-radius: 12px;
+}
+.cs-state {
+  padding: 26px;
+  background: var(--cs-surface);
+  border-radius: 12px;
+  border: 1px solid var(--cs-line);
+  color: var(--cs-muted);
+  font-size: 13px;
+}
+.cs-empty { color: var(--cs-muted); }
+.cs-error {
+  color: #8b1d2c;
+  background: var(--cs-red-soft);
+  border-color: rgba(255, 80, 80, 0.35);
+}
+.cs-error b { display: block; margin-bottom: 4px; }
+.cs-error p { margin: 4px 0 0; }
+.cs-error a { color: var(--cs-red); font-weight: 700; }
+
+/* Footer */
+.cs-footer {
+  background: var(--cs-navy);
+  color: white;
+  padding: 40px 4vw;
+  display: flex;
+  gap: 28px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+}
+.cs-footer nav { display: flex; gap: 18px; }
+.cs-footer nav a { color: inherit; opacity: 0.85; text-decoration: none; }
+.cs-footer nav a:hover { opacity: 1; color: var(--cs-red); }
+.cs-footer small { color: rgba(255,255,255,0.6); font-size: 12px; }
+
+/* ===== Tablet ===== */
+@media (max-width: 1024px) {
+  .cs-news-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cs-news-grid.cs-editors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cs-team-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 640px) {
+  .cs-header { gap: 12px; padding: 0 18px; }
+  .cs-main-nav { display: none; }
+  .cs-menu-button { display: block; }
+  .cs-league-nav { padding: 0 18px; }
+  .cs-hero { grid-template-columns: 1fr; }
+  .cs-hero-side { grid-template-columns: 1fr; }
+  .cs-news-grid,
+  .cs-news-grid.cs-league-grid,
+  .cs-news-grid.cs-trending-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cs-news-grid.cs-editors-grid { grid-template-columns: 1fr; }
+  .cs-two-col { grid-template-columns: 1fr; }
+  .cs-team-strip { grid-template-columns: repeat(2, 1fr); }
+  .cs-card h3 { font-size: 15px; }
+  .cs-card.cs-card-lead h3 { font-size: 22px; }
+  .cs-footer { flex-direction: column; align-items: flex-start; }
+  .cs-ticker { padding: 0 14px; }
+  .cs-hero-lead-body h1 { font-size: 26px; }
+  .cs-hero-lead-body p { font-size: 14px; }
+}
