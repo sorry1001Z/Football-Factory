@@ -169,6 +169,33 @@ export function evaluateBannerPersonEligibility(args: {
   if (!rel) {
     return makeReviewResult(person, ["PERSON_TEAM_UNKNOWN"], undefined, person.role);
   }
+  // TRANSFER_CONFIRMED with articleDate >= validFrom is the
+  // canonical case where the player has actually joined the new
+  // club by the article date. visualContext MUST be NEW_CLUB for
+  // this case — not CURRENT_CLUB — so the banner never implies
+  // the player is still at the previous club after the move is
+  // effective.
+  if (rel.status === "TRANSFER_CONFIRMED" && isActiveAt(rel, articleDate)) {
+    reasons.push("TRANSFER_CONFIRMED_NEW_CLUB");
+    return downgradeForStaleness(
+      makeEligibleResult(person, rel, "NEW_CLUB", reasons, "NEW_CLUB"),
+    );
+  }
+  // TRANSFER_PENDING: the player is NOT yet at the new club but
+  // IS still officially a member of their current club. The
+  // relationship record's teamId is the new (target) club — the
+  // caller is asking "is this person a current member of THIS
+  // club right now?" For a TRANSFER_PENDING, the answer is no,
+  // but the player is still a valid current-club subject for any
+  // banner about their current club (we mark them eligible as
+  // CURRENT_CLUB and the composer attaches the
+  // TRANSFER_PENDING_DO_NOT_IMPLY_NEW_CLUB warning).
+  if (rel.status === "TRANSFER_PENDING") {
+    reasons.push("TRANSFER_PENDING_NO_NEW_CLUB");
+    return downgradeForStaleness(
+      makeEligibleResult(person, rel, "CURRENT_CLUB", reasons, "CURRENT_CLUB"),
+    );
+  }
   if (isActiveAt(rel, articleDate)) {
     reasons.push("ACTIVE_AT_DATE");
     return downgradeForStaleness(

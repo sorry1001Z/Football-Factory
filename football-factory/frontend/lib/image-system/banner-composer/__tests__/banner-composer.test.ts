@@ -200,7 +200,7 @@ test("composeBanner: TRANSFER_CONFIRMED before effective date does NOT show as n
   assert.equal(out.selectedPeople.length, 0);
 });
 
-test("composeBanner: TRANSFER_CONFIRMED after effective date allows NEW_CLUB", () => {
+test("composeBanner: TRANSFER_CONFIRMED after effective date => NEW_CLUB", () => {
   const TRANSFER_CONFIRMED_PAST: PersonTeamRelationship = {
     personId: "person:saka",
     teamId: TEAM_MU,
@@ -209,11 +209,13 @@ test("composeBanner: TRANSFER_CONFIRMED after effective date allows NEW_CLUB", (
     validFrom: "2024-01-01",
     verifiedAt: "2024-08-25T00:00:00Z",
   };
+  // articleDate 2024-09-01 > validFrom 2024-01-01 => player has
+  // effectively joined the new club. visualContext MUST be NEW_CLUB.
   const out = composeBanner(
     input("CURRENT_NEWS", [candidate("person:saka", TRANSFER_CONFIRMED_PAST)]),
   );
   assert.equal(out.selectedPeople.length, 1);
-  assert.equal(out.selectedPeople[0].visualContext, "CURRENT_CLUB");
+  assert.equal(out.selectedPeople[0].visualContext, "NEW_CLUB");
 });
 
 // ============================================================================

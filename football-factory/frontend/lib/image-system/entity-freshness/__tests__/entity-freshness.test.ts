@@ -353,6 +353,70 @@ test("evaluateBannerPersonEligibility: TRANSFER_CONFIRMED player + CURRENT_NEWS 
   assert.ok(r.reasons.includes("FORMER_AT_DATE"));
 });
 
+// ============================================================================
+// Transfer visualContext truth table — CURRENT_NEWS branch
+// ============================================================================
+
+test("TRUTH TABLE: TRANSFER_PENDING + CURRENT_NEWS => ELIGIBLE as CURRENT_CLUB", () => {
+  const r = evaluateBannerPersonEligibility({
+    person: person("person:mbappe", TEAM_LIVERPOOL, "Mbappe"),
+    articleType: "CURRENT_NEWS",
+    articleDate: "2025-06-15", // before validFrom 2025-07-01
+    teamIds: [TEAM_LIVERPOOL],
+    roster: ROSTER,
+  });
+  assert.equal(r.decision, "ELIGIBLE");
+  assert.equal(r.visualContext, "CURRENT_CLUB");
+});
+
+test("TRUTH TABLE: TRANSFER_CONFIRMED + CURRENT_NEWS + articleDate < validFrom => NOT_ELIGIBLE (no current membership at new club yet)", () => {
+  const r = evaluateBannerPersonEligibility({
+    person: person("person:saka", TEAM_BARCELONA, "Saka"),
+    articleType: "CURRENT_NEWS",
+    articleDate: "2025-06-15", // before validFrom 2025-07-01
+    teamIds: [TEAM_BARCELONA],
+    roster: ROSTER,
+  });
+  assert.equal(r.decision, "NOT_ELIGIBLE");
+  assert.notEqual(r.visualContext, "NEW_CLUB");
+});
+
+test("TRUTH TABLE: TRANSFER_CONFIRMED + CURRENT_NEWS + articleDate == validFrom => ELIGIBLE as NEW_CLUB", () => {
+  const r = evaluateBannerPersonEligibility({
+    person: person("person:saka", TEAM_BARCELONA, "Saka"),
+    articleType: "CURRENT_NEWS",
+    articleDate: "2025-07-01", // exactly validFrom
+    teamIds: [TEAM_BARCELONA],
+    roster: ROSTER,
+  });
+  assert.equal(r.decision, "ELIGIBLE");
+  assert.equal(r.visualContext, "NEW_CLUB");
+});
+
+test("TRUTH TABLE: TRANSFER_CONFIRMED + CURRENT_NEWS + articleDate > validFrom => ELIGIBLE as NEW_CLUB", () => {
+  const r = evaluateBannerPersonEligibility({
+    person: person("person:saka", TEAM_BARCELONA, "Saka"),
+    articleType: "CURRENT_NEWS",
+    articleDate: "2025-07-15", // after validFrom 2025-07-01
+    teamIds: [TEAM_BARCELONA],
+    roster: ROSTER,
+  });
+  assert.equal(r.decision, "ELIGIBLE");
+  assert.equal(r.visualContext, "NEW_CLUB");
+});
+
+test("TRUTH TABLE: CURRENT_NEWS for new club before effective date does NOT represent player as new-club member", () => {
+  const r = evaluateBannerPersonEligibility({
+    person: person("person:saka", TEAM_BARCELONA, "Saka"),
+    articleType: "CURRENT_NEWS",
+    articleDate: "2025-06-15",
+    teamIds: [TEAM_BARCELONA],
+    roster: ROSTER,
+  });
+  assert.equal(r.eligible, false);
+  assert.notEqual(r.visualContext, "NEW_CLUB");
+});
+
 test("evaluateBannerPersonEligibility: current MANAGER + CURRENT_NEWS => ELIGIBLE", () => {
   const r = evaluateBannerPersonEligibility({
     person: { ...person("person:ten_hag", TEAM_MU, "Ten Hag"), role: "MANAGER" },
