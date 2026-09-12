@@ -23,6 +23,9 @@ const targets = [
   "quality.ts",
   "publish-gate.ts",
   "contracts.ts",
+  "intent.ts",
+  "internal-links.ts",
+  "suggestions.ts",
 ];
 
 const FORBIDDEN = /\b(football|team|player|league|match)\b/gi;
@@ -43,6 +46,21 @@ const ALLOWED_IDENTIFIERS: RegExp[] = [
   /\/team\/|\/player\/|\/league\/|\/match\/|\/football\//g,
 ];
 
+/**
+ * Strip the contents of string literals from `line` so we don't
+ * trip on harmless words like "match" inside a `"High-confidence
+ * entity match"` error message.
+ */
+function stripStringLiterals(line: string): string {
+  // Replace single-quoted, double-quoted, and backtick content
+  // with spaces of the same length (so character offsets in the
+  // remaining code are preserved).
+  return line
+    .replace(/'(?:\\.|[^'\\])*'/g, (m) => " ".repeat(m.length))
+    .replace(/"(?:\\.|[^"\\])*"/g, (m) => " ".repeat(m.length))
+    .replace(/`(?:\\.|[^`\\])*`/g, (m) => " ".repeat(m.length));
+}
+
 function isAllowedHit(line: string, hit: string): boolean {
   for (const re of ALLOWED_IDENTIFIERS) {
     re.lastIndex = 0;
@@ -58,9 +76,17 @@ test("domain-neutral: generic core has no domain hardcoding", () => {
     const lines = src.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      // Allow comments only when they describe the test itself.
-      if (line.trim().startsWith("//") || line.trim().startsWith("*")) continue;
-      const m = line.match(FORBIDDEN);
+      // Allow comments (//, /*, *, */, /**) and JSDoc text lines.
+      const trimmed = line.trim();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*/") ||
+        (trimmed.startsWith("/**") && trimmed.endsWith("*/"))
+      ) continue;
+      const code = stripStringLiterals(line);
+      const m = code.match(FORBIDDEN);
       if (m) {
         for (const hit of m) {
           if (!isAllowedHit(line, hit)) {

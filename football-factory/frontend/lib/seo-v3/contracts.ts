@@ -5,6 +5,15 @@
 // advisory service layer; production rendering stays in
 // `lib/seo/seo.ts`.
 
+import type {
+  IntentRule,
+  IntentPattern,
+  IntentClassification,
+} from "./intent";
+import type { InternalLinkTarget } from "./internal-links";
+
+export type { IntentRule, IntentPattern, IntentClassification };
+
 export type EntityRef = {
   id: string;
   type: string;
@@ -20,32 +29,9 @@ export type EntityRelation = {
   [k: string]: unknown;
 };
 
-export type IntentRule = {
-  id: string;
-  locale?: string;
-  patterns: Array<{ phrase: string; weight?: number }> | string[];
-  negativePatterns?: string[];
-  intent: string;
-  entityType?: string;
-  entityId?: string;
-  landingPageType: string;
-  priority?: number;
-  [k: string]: unknown;
-};
-
 export type SchemaExtension = Record<string, unknown> & {
   "@type": string;
   "@id"?: string;
-};
-
-export type InternalLinkTarget = {
-  url: string;
-  label: string;
-  confidence: number;
-  entityId: string;
-  entityType: string;
-  priority?: number;
-  [k: string]: unknown;
 };
 
 /**
