@@ -37,12 +37,19 @@
 
 import fs from "node:fs";
 import { summarize, percentile } from "./_stats.mjs";
+import {
+  checkCacheHeader,
+  checkHttpsUrlPolicy,
+  checkSecurityHeaders,
+  readinessJson,
+} from "./hardening.mjs";
 
 const base = (process.env.BASE_URL || "https://football-factory-three.vercel.app").replace(/\/$/, "");
 const ROUNDS = Number(process.env.ROUNDS || 5);
 const P95_THRESHOLD_MS = Number(process.env.P95_THRESHOLD_MS || 5000);
 const JSON_OUT = process.env.JSON_OUT || "benchmark.json";
 const MD_OUT = process.env.MD_OUT || "benchmark.md";
+const SECURITY_OUT = process.env.SECURITY_OUT || "benchmark-security.json";
 
 // route groups: { group: { route: { targetMs, dependency } } }
 // Median target semantics match the prior slice (homepage/article <= 1500 ms,
@@ -66,6 +73,31 @@ async function timed(url) {
     return { ms: Math.round(performance.now() - t0), status: r.status, error: null };
   } catch (e) {
     return { ms: Math.round(performance.now() - t0), status: 0, error: String(e) };
+  }
+}
+
+/**
+ * Capture response headers on a single fetch (used to feed the
+ * R2.1 Wave A hardening checks — security-header probe, cache
+ * parser, HTTPS URL scheme check). The probe does NOT influence
+ * the existing p50/p95 statistics; it is purely additive.
+ */
+async function captureHeaders(url) {
+  try {
+    const r = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      cache: "no-store",
+      headers: { "user-agent": "ff-benchmark-security/1.0" },
+    });
+    const headers = {};
+    r.headers.forEach((v, k) => {
+      headers[String(k).toLowerCase()] = String(v);
+    });
+    await r.arrayBuffer().catch(() => {});
+    return { ok: true, headers, status: r.status };
+  } catch (err) {
+    return { ok: false, error: String(err && err.message ? err.message : err), headers: {}, status: 0 };
   }
 }
 
@@ -116,6 +148,27 @@ out.summary = {
   median_misses: medianMiss,
   p95_threshold_misses: p95ThresholdMiss,
 };
+
+// R2.1 Wave A — additive security + cache + HTTPS probe. Captured
+// once from the homepage cold request. Does NOT influence p50/p95.
+try {
+  const probe = await captureHeaders(base + "/");
+  const secChecks = probe.ok ? checkSecurityHeaders(probe.headers) : [];
+  const cacheCheck = probe.ok ? checkCacheHeader(probe.headers["cache-control"] ?? "") : null;
+  const httpsCheck = checkHttpsUrlPolicy(base);
+  const all = cacheCheck ? [...secChecks, cacheCheck, httpsCheck] : [...secChecks, httpsCheck];
+  const rj = readinessJson(all);
+  rj.target_url = base;
+  rj.probe_status = probe.status;
+  fs.writeFileSync(SECURITY_OUT, JSON.stringify(rj, null, 2));
+  out.security_probe = {
+    output: SECURITY_OUT,
+    counts: rj.counts,
+    probe_status: probe.status,
+  };
+} catch (err) {
+  out.security_probe = { output: SECURITY_OUT, error: String(err && err.message ? err.message : err) };
+}
 
 // JSON output
 fs.writeFileSync(JSON_OUT, JSON.stringify(out, null, 2));
