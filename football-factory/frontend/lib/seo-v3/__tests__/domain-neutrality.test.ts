@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(import.meta.url);
 const root = resolve(dirname(here), "..");
+// Generic core ONLY — football-specific code lives under adapters/
+// and is allowed to contain domain terms (Wave C).
 const targets = [
   "canonical.ts",
   "indexing.ts",
