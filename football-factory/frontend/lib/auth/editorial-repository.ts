@@ -90,6 +90,88 @@ export class EditorialRepository {
     return r.rows;
   }
 
+  /**
+   * Filtered + paginated list for the admin UI. The brief explicitly
+   * bans raw SQL fragments from user input — every filter value is
+   * bound as a parameter. The sort key is a deterministic whitelist.
+   *
+   * The `search` filter is bound through `buildSearchFragment()` in
+   * `lib/admin/adapter.ts` which produces a parameterized clause.
+   */
+  async listFiltered(input: {
+    stage: string | null;
+    approvalState: ApprovalState | null;
+    searchFragment: { clause: string; params: string[] } | null;
+    sortKey:
+      | "updated_at_desc"
+      | "updated_at_asc"
+      | "created_at_desc"
+      | "created_at_asc";
+    limit: number;
+    offset: number;
+  }): Promise<{ items: EditorialItem[]; total: number }> {
+    const sortClause =
+      input.sortKey === "updated_at_asc"
+        ? "updated_at ASC"
+        : input.sortKey === "created_at_desc"
+          ? "created_at DESC"
+          : input.sortKey === "created_at_asc"
+            ? "created_at ASC"
+            : "updated_at DESC";
+
+    // Build WHERE: 1=1 + optional stage + optional approval_state
+    // + optional search fragment.
+    const where: string[] = ["1=1"];
+    const params: unknown[] = [];
+    let p = 1;
+    if (input.stage) {
+      where.push(`stage = $${p++}`);
+      params.push(input.stage);
+    }
+    if (input.approvalState) {
+      where.push(`approval_state = $${p++}`);
+      params.push(input.approvalState);
+    }
+    if (input.searchFragment) {
+      // searchFragment.clause uses $1 — we shift its placeholder to
+      // match the current param index.
+      const shift = p - 1;
+      const shifted = input.searchFragment.clause.replace(
+        /\$(\d+)/g,
+        (_m, idx) => `$${Number(idx) + shift}`,
+      );
+      where.push(`(${shifted.slice(4)})`); // strip leading " AND "
+      params.push(...input.searchFragment.params);
+      p += input.searchFragment.params.length;
+    }
+    const whereClause = where.join(" AND ");
+
+    // Total count first (cheap aggregate).
+    const cnt = await this.db.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM editorial_items WHERE ${whereClause}`,
+      params,
+    );
+    const total = Number(cnt.rows[0]?.count ?? "0");
+
+    // Page items.
+    const lim = Math.max(1, Math.min(100, input.limit));
+    const off = Math.max(0, input.offset);
+    const itemParams = [...params, lim, off];
+    const limitPlaceholder = `$${itemParams.length - 1}`;
+    const offsetPlaceholder = `$${itemParams.length}`;
+    const r = await this.db.query<EditorialItem>(
+      `SELECT id, source_id, wp_post_id, stage, approval_state,
+              approved_by, approved_at, rights_confirmed, metadata,
+              created_at, updated_at
+         FROM editorial_items
+        WHERE ${whereClause}
+        ORDER BY ${sortClause}
+        LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
+      itemParams,
+    );
+    return { items: r.rows, total };
+  }
+
   async setApproval(
     id: string,
     state: Exclude<ApprovalState, "pending">,

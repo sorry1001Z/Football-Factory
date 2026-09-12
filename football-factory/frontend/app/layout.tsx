@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './admin-shell.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { getSiteUrl } from '@/lib/seo/seo';
