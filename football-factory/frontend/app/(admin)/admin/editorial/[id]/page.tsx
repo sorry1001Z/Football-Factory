@@ -40,6 +40,12 @@ export default async function AdminEditorialDetailPage({
       <AdminShellHeader currentPath="/admin/editorial" />
       <main className="admin-shell-main">
         <AdminDetail item={item} />
+        {/* Wave D: link to the read-only SEO suggestions panel. */}
+        <p>
+          <a href={`/admin/editorial/${id}/seo-suggestions`}>
+            View SEO suggestions (read-only)
+          </a>
+        </p>
       </main>
     </div>
   );
