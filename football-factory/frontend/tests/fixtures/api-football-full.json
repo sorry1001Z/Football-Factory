@@ -1,0 +1,280 @@
+{
+  "teams": [
+    {
+      "team": {
+        "id": 100,
+        "name": "Blue FC",
+        "country": "England"
+      }
+    },
+    {
+      "team": {
+        "id": 200,
+        "name": "Red FC",
+        "country": "Spain"
+      }
+    }
+  ],
+  "players": [
+    {
+      "player": {
+        "id": 10,
+        "name": "Current Player",
+        "birth": {
+          "date": "2000-01-01"
+        },
+        "nationality": "England"
+      },
+      "statistics": [
+        {
+          "games": {
+            "position": "Forward"
+          }
+        }
+      ]
+    },
+    {
+      "player": {
+        "id": 11,
+        "name": "Loan Player",
+        "birth": {
+          "date": "1999-02-02"
+        },
+        "nationality": "France"
+      },
+      "statistics": [
+        {
+          "games": {
+            "position": "Midfielder"
+          }
+        }
+      ]
+    }
+  ],
+  "squads": [
+    {
+      "team": {
+        "id": 100,
+        "name": "Blue FC"
+      },
+      "players": [
+        {
+          "id": 10,
+          "name": "Current Player",
+          "position": "Forward"
+        }
+      ]
+    },
+    {
+      "team": {
+        "id": 200,
+        "name": "Red FC"
+      },
+      "players": [
+        {
+          "id": 11,
+          "name": "Loan Player",
+          "position": "Midfielder"
+        }
+      ]
+    }
+  ],
+  "coaches": [
+    {
+      "id": 50,
+      "name": "Current Manager",
+      "career": [
+        {
+          "team": {
+            "id": 100,
+            "name": "Blue FC"
+          },
+          "start": "2026-01-01",
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Former Manager",
+      "career": [
+        {
+          "team": {
+            "id": 100,
+            "name": "Blue FC"
+          },
+          "start": "2024-01-01",
+          "end": "2025-12-31"
+        }
+      ]
+    }
+  ],
+  "transfers": [
+    {
+      "player": {
+        "id": 11,
+        "name": "Loan Player"
+      },
+      "date": "2026-07-01",
+      "type": "Loan",
+      "teams": {
+        "out": {
+          "id": 300,
+          "name": "Old FC"
+        },
+        "in": {
+          "id": 200,
+          "name": "Red FC"
+        }
+      }
+    },
+    {
+      "player": {
+        "id": 12,
+        "name": "Free Agent"
+      },
+      "date": "2026-06-01",
+      "type": "Free",
+      "teams": {
+        "out": {
+          "id": 300,
+          "name": "Old FC"
+        },
+        "in": null
+      }
+    },
+    {
+      "player": {
+        "id": 13,
+        "name": "Unknown Transfer"
+      },
+      "date": null,
+      "type": "Permanent",
+      "teams": {
+        "out": {
+          "id": 100,
+          "name": "Blue FC"
+        },
+        "in": {
+          "id": 200,
+          "name": "Red FC"
+        }
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "fixture": {
+        "id": 9001,
+        "date": "2026-09-20T19:00:00Z",
+        "status": {
+          "short": "NS"
+        }
+      },
+      "league": {
+        "id": 39,
+        "name": "Premier League"
+      },
+      "teams": {
+        "home": {
+          "id": 100,
+          "name": "Blue FC"
+        },
+        "away": {
+          "id": 200,
+          "name": "Red FC"
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      }
+    }
+  ],
+  "standings": [
+    {
+      "league": {
+        "id": 39,
+        "name": "Premier League",
+        "standings": [
+          [
+            {
+              "rank": 1,
+              "team": {
+                "id": 100,
+                "name": "Blue FC"
+              },
+              "points": 12,
+              "goalsDiff": 8,
+              "all": {
+                "played": 4
+              }
+            },
+            {
+              "rank": 2,
+              "team": {
+                "id": 200,
+                "name": "Red FC"
+              },
+              "points": 10,
+              "goalsDiff": 5,
+              "all": {
+                "played": 4
+              }
+            }
+          ]
+        ]
+      }
+    }
+  ],
+  "injuries": [
+    {
+      "player": {
+        "id": 10,
+        "name": "Current Player",
+        "type": "Muscle",
+        "reason": "Hamstring"
+      },
+      "team": {
+        "id": 100,
+        "name": "Blue FC"
+      },
+      "fixture": {
+        "id": 9001
+      }
+    }
+  ],
+  "lineups": [
+    {
+      "team": {
+        "id": 100,
+        "name": "Blue FC"
+      },
+      "formation": "4-3-3",
+      "coach": {
+        "id": 50,
+        "name": "Current Manager"
+      },
+      "startXI": [
+        {
+          "player": {
+            "id": 10,
+            "name": "Current Player",
+            "number": 9,
+            "pos": "F"
+          }
+        }
+      ],
+      "substitutes": [
+        {
+          "player": {
+            "id": 14,
+            "name": "Bench Player",
+            "number": 19,
+            "pos": "F"
+          }
+        }
+      ]
+    }
+  ]
+}
