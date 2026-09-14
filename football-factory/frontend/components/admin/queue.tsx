@@ -16,6 +16,7 @@ import type {
   EditorialSortKey,
 } from "@/lib/admin/contracts";
 import { EMPTY_FILTERS, PAGE_SIZE_DEFAULT, SORT_KEYS } from "@/lib/admin/contracts";
+import { formatAdminDateAttr, formatAdminDateText } from "./date-format";
 
 export interface EditorialFiltersState {
   search: string;
@@ -227,7 +228,9 @@ export function AdminQueue({
                   </td>
                   <td>{it.wp_post_id ?? "—"}</td>
                   <td>
-                    <time dateTime={it.updated_at}>{it.updated_at}</time>
+                    <time dateTime={formatAdminDateAttr(it.updated_at)}>
+                      {formatAdminDateText(it.updated_at)}
+                    </time>
                   </td>
                 </tr>
               );

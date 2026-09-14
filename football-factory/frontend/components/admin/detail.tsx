@@ -12,6 +12,7 @@ import { useState, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AdminTimeline } from "./timeline";
 import type { EditorialItem } from "@/lib/auth/editorial-repository";
+import { formatAdminDateText } from "./date-format";
 
 export function AdminDetail({ item }: { item: EditorialItem }) {
   const router = useRouter();
@@ -227,7 +228,7 @@ export function AdminDetail({ item }: { item: EditorialItem }) {
           <dt>Approved by</dt>
           <dd>{item.approved_by ?? "—"}</dd>
           <dt>Approved at</dt>
-          <dd>{item.approved_at ?? "—"}</dd>
+          <dd>{formatAdminDateText(item.approved_at)}</dd>
         </dl>
       </header>
 

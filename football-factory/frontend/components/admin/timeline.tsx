@@ -10,6 +10,7 @@
 
 import { useEffect, useState, useCallback, useTransition } from "react";
 import type { AuditEvent } from "@/lib/admin/contracts";
+import { formatAdminDateAttr, formatAdminDateText } from "./date-format";
 
 export function AdminTimeline({ editorialItemId }: { editorialItemId: string }) {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -84,8 +85,11 @@ export function AdminTimeline({ editorialItemId }: { editorialItemId: string }) 
     <ol className="admin-timeline" aria-label="Audit timeline">
       {events.map((ev) => (
         <li key={ev.id} className="admin-timeline-item">
-          <time className="admin-timeline-time" dateTime={ev.at}>
-            {ev.at}
+          <time
+            className="admin-timeline-time"
+            dateTime={formatAdminDateAttr(ev.at)}
+          >
+            {formatAdminDateText(ev.at)}
           </time>
           <span className={`admin-badge action-${ev.action}`}>{ev.action}</span>
           <span className="admin-timeline-summary">{ev.summary}</span>
