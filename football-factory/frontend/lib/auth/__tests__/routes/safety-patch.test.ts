@@ -98,12 +98,21 @@ function editorialRow(overrides: Partial<{
   };
 }
 
-function runRow(overrides: Partial<{ id: string; status: string }> = {}) {
+function runRow(overrides: Partial<{
+  id: string;
+  status: string;
+  output: unknown;
+}> = {}) {
   return {
     id: RUN_ID,
     status: "running",
     input: {},
-    output: {},
+    // Default authoritative WP draft id. wp-publish's new linkage gate
+    // reads run.output.wp_post_id as the source of truth; tests that
+    // intend to exercise other branches override this (e.g. set
+    // output: {} for run_wp_id_missing, or output: {wp_post_id: 99}
+    // for wp_post_mismatch).
+    output: { wp_post_id: 1 },
     idempotency_key: "k-1",
     ...overrides,
   };
@@ -248,6 +257,285 @@ test("wp-publish: approved + rights_state=rejected (cleared never true) → 409"
       const body = (await r.json()) as { error: string; rights_state: string };
       assert.equal(body.error, "rights_not_cleared");
       assert.equal(body.rights_state, "rejected");
+    },
+  );
+});
+
+// ----------------------------------------------------------------------
+// Linkage contract: run.output.wp_post_id is the AUTHORITATIVE source for
+// the WP draft id; the request body wp_post_id is a cross-check only.
+// editorial_items.wp_post_id is intentionally ignored (it's never written
+// by any code path; wp-draft writes automation_runs.output.wp_post_id).
+// ----------------------------------------------------------------------
+
+test("wp-publish: run.output.wp_post_id missing → 409 run_wp_id_missing (no fallback)", async () => {
+  await withDb(
+    [
+      // runRow() with output: {} — no wp_post_id
+      () => ({ rows: [runRow({ output: {} })], rowCount: 1 }),
+      // findByRunId first SELECT editorial_item_id FROM automation_runs
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      // findByRunId second call (findById) SELECT ... FROM editorial_items
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "approved",
+          }),
+        ],
+        rowCount: 1,
+      }),
+      // runs.setStatus('failed', 'run_wp_id_missing')
+      () => ({ rows: [], rowCount: 0 }),
+    ],
+    async () => {
+      const r = await POST(
+        makeRequest(
+          { run_id: RUN_ID, wp_post_id: 1 },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      const body = (await r.json()) as {
+        error: string;
+        run_id: string;
+        request_wp_post_id: number;
+      };
+      assert.equal(body.error, "run_wp_id_missing");
+      assert.equal(body.run_id, RUN_ID);
+      assert.equal(body.request_wp_post_id, 1);
+    },
+  );
+});
+
+test("wp-publish: run.output.wp_post_id not a positive integer → 409 run_wp_id_missing", async () => {
+  await withDb(
+    [
+      () => ({ rows: [runRow({ output: { wp_post_id: "not-a-number" } })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      // findByRunId calls findById after the first SELECT returns an id
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "approved",
+          }),
+        ],
+        rowCount: 1,
+      }),
+      () => ({ rows: [], rowCount: 0 }),
+    ],
+    async () => {
+      const r = await POST(
+        makeRequest(
+          { run_id: RUN_ID, wp_post_id: 1 },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      const body = (await r.json()) as { error: string };
+      assert.equal(body.error, "run_wp_id_missing");
+    },
+  );
+});
+
+test("wp-publish: request wp_post_id differs from run.output.wp_post_id → 409 wp_post_mismatch (fail-closed)", async () => {
+  await withDb(
+    [
+      // run.output.wp_post_id=99, but request sends wp_post_id=1
+      () => ({ rows: [runRow({ output: { wp_post_id: 99 } })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      // findById (called by findByRunId)
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "approved",
+          }),
+        ],
+        rowCount: 1,
+      }),
+      // setStatus('failed', 'wp_post_mismatch')
+      () => ({ rows: [], rowCount: 0 }),
+    ],
+    async () => {
+      const r = await POST(
+        makeRequest(
+          { run_id: RUN_ID, wp_post_id: 1 },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      const body = (await r.json()) as {
+        error: string;
+        run_wp_post_id: number;
+        request_wp_post_id: number;
+        editorial_item_id: string;
+      };
+      assert.equal(body.error, "wp_post_mismatch");
+      assert.equal(body.run_wp_post_id, 99);
+      assert.equal(body.request_wp_post_id, 1);
+      assert.equal(body.editorial_item_id, EDITORIAL_ID);
+    },
+  );
+});
+
+test("wp-publish: request wp_post_id matches run.output.wp_post_id → passes linkage gate (next gate fires)", async () => {
+  // Both wp_post_id are 16 (matches Phase 15 production state). The
+  // linkage gate passes; other gates are still checked (approval /
+  // rights / stage). Here we exercise a NOT-approved item to verify
+  // the linkage gate fires BEFORE the approval gate (i.e. it doesn't
+  // skip the linkage check).
+  await withDb(
+    [
+      () => ({ rows: [runRow({ output: { wp_post_id: 16 } })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      // findById (called by findByRunId)
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null, // editorial_items.wp_post_id still null per contract
+            approval_state: "pending",
+            rights_confirmed: true,
+            stage: "approved",
+          }),
+        ],
+        rowCount: 1,
+      }),
+      // setStatus('failed', 'approval_not_granted')
+      () => ({ rows: [], rowCount: 0 }),
+    ],
+    async () => {
+      const r = await POST(
+        makeRequest(
+          { run_id: RUN_ID, wp_post_id: 16 },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      const body = (await r.json()) as { error: string };
+      assert.equal(body.error, "approval_not_granted");
+    },
+  );
+});
+
+test("wp-publish: run linked to a DIFFERENT editorial_item_id → 409 editorial_link_missing (deterministic linkage)", async () => {
+  // run.editorial_item_id points to a different editorial item than
+  // the one the caller is asking about. The findByRunId lookup
+  // returns null (no item for that other id), so the gate returns
+  // editorial_link_missing — the existing fail-closed semantics from
+  // migration 003.
+  await withDb(
+    [
+      () => ({ rows: [runRow()], rowCount: 1 }),
+      // run.editorial_item_id != EDITORIAL_ID → findByRunId returns null
+      () => ({
+        rows: [{ editorial_item_id: "00000000-0000-0000-0000-000000000000" }],
+        rowCount: 1,
+      }),
+      // setStatus('failed', 'editorial_link_missing')
+      () => ({ rows: [], rowCount: 0 }),
+    ],
+    async () => {
+      const r = await POST(
+        makeRequest(
+          { run_id: RUN_ID, wp_post_id: 1 },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      const body = (await r.json()) as { error: string };
+      assert.equal(body.error, "editorial_link_missing");
+    },
+  );
+});
+
+test("wp-publish: run.output.wp_post_id=16 (Phase 15 production) + all gates PASS → publish allowed", async () => {
+  // Mirrors the Phase 15 production state:
+  //   - run.output.wp_post_id = 16
+  //   - editorial_items.wp_post_id = null (per production contract)
+  //   - approval_state = approved
+  //   - rights_confirmed = true
+  //   - stage = approved
+  await withDb(
+    [
+      () => ({ rows: [runRow({ output: { wp_post_id: 16 } })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      // findById (called by findByRunId)
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "approved",
+            metadata: { rights: { state: "cleared" } },
+          }),
+        ],
+        rowCount: 1,
+      }),
+      // setStatus UPDATE (success)
+      () => ({ rows: [], rowCount: 0 }),
+      // setStage findById
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "approved",
+          }),
+        ],
+        rowCount: 1,
+      }),
+      // setStage UPDATE
+      () => ({
+        rows: [
+          editorialRow({
+            wp_post_id: null,
+            approval_state: "approved",
+            rights_confirmed: true,
+            stage: "published",
+          }),
+        ],
+        rowCount: 1,
+      }),
+    ],
+    async () => {
+      setWordPressWriteClientFactoryForTest(() => ({
+        configured: true,
+        async updatePost(id: number) {
+          assert.equal(id, 16, "WP updatePost must use the AUTHORITATIVE id from run.output.wp_post_id");
+          return { id, status: "publish", link: "https://x", slug: "x" };
+        },
+        async createPost() { throw new Error("not used"); },
+        async trashPost() { throw new Error("not used"); },
+      }));
+      try {
+        const r = await POST(
+          makeRequest(
+            { run_id: RUN_ID, wp_post_id: 16 },
+            { "x-automation-secret": OK_SECRET },
+          ),
+        );
+        assert.equal(r.status, 200);
+        const body = (await r.json()) as {
+          wp_post_id: number;
+          status: string;
+          editorial_item_id: string;
+        };
+        assert.equal(body.wp_post_id, 16);
+        assert.equal(body.status, "publish");
+        assert.equal(body.editorial_item_id, EDITORIAL_ID);
+      } finally {
+        resetWordPressWriteClientFactoryForTest();
+      }
     },
   );
 });

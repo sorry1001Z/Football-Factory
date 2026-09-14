@@ -10,8 +10,11 @@
 //   4. Resolve editorial item deterministically via
 //      automation_runs.editorial_item_id (added in migration 003).
 //      If NULL → 409 editorial_link_missing.
-//   5. Verify editorial_item.wp_post_id == input.wp_post_id. If not →
-//      409 wp_post_mismatch.
+//   5. WP draft linkage: the authoritative WP draft id lives on
+//      automation_runs.output.wp_post_id (written by wp-draft).
+//      The request body wp_post_id is treated ONLY as a cross-check.
+//      If run.output.wp_post_id is missing or invalid → 409 run_wp_id_missing.
+//      If request.wp_post_id !== run.output.wp_post_id → 409 wp_post_mismatch.
 //   6. HARD GATES (all required for publish):
 //        a. approval_state == 'approved'            → 409 approval_not_granted
 //        b. rights_confirmed == true                → 409 rights_not_cleared
@@ -111,14 +114,45 @@ export async function POST(request: Request) {
       reason: "automation_runs.editorial_item_id is NULL; cannot publish without an approved editorial item",
     });
   }
-  if (item.wp_post_id === null || item.wp_post_id !== wp_post_id) {
-    await runs.setStatus(run_id, "failed", undefined, "wp_post_mismatch");
-    return conflict("wp_post_mismatch", {
-      editorial_item_id: item.id,
-      editorial_wp_post_id: item.wp_post_id,
+
+  // WP draft linkage gate. The AUTHORITATIVE source for the WP draft
+  // id is automation_runs.output.wp_post_id (written by wp-draft
+  // when the draft was created). The request body wp_post_id is
+  // treated as a cross-check only — we never trust it by itself,
+  // never fall back to editorial_items.wp_post_id (which is not
+  // written by any code path), and we never silently substitute it.
+  //
+  // Fail-closed semantics:
+  //   - run.output.wp_post_id missing / not a positive integer
+  //     → 409 run_wp_id_missing (the run is misconfigured)
+  //   - request.wp_post_id !== run.output.wp_post_id
+  //     → 409 wp_post_mismatch (caller is talking about a different
+  //       WP post than the run actually created; refuse rather than
+  //       silently publishing a foreign post)
+  const runOutput = (run.output ?? {}) as { wp_post_id?: unknown };
+  const authoritativeWpId = runOutput.wp_post_id;
+  if (
+    typeof authoritativeWpId !== "number" ||
+    !Number.isInteger(authoritativeWpId) ||
+    authoritativeWpId <= 0
+  ) {
+    await runs.setStatus(run_id, "failed", undefined, "run_wp_id_missing");
+    return conflict("run_wp_id_missing", {
+      reason:
+        "automation_runs.output.wp_post_id is missing or invalid; the WP draft id must come from wp-draft, not from the request body",
+      run_id,
       request_wp_post_id: wp_post_id,
     });
   }
+  if (authoritativeWpId !== wp_post_id) {
+    await runs.setStatus(run_id, "failed", undefined, "wp_post_mismatch");
+    return conflict("wp_post_mismatch", {
+      editorial_item_id: item.id,
+      run_wp_post_id: authoritativeWpId,
+      request_wp_post_id: wp_post_id,
+    });
+  }
+
   if (item.approval_state !== "approved") {
     // approval_not_granted is terminal at the run-status level — flip
     // the run to failed because operator review is required.
@@ -168,7 +202,7 @@ export async function POST(request: Request) {
       {
         ok: true,
         run_id,
-        wp_post_id: item.wp_post_id ?? wp_post_id,
+        wp_post_id: authoritativeWpId,
         status: "publish",
         idempotent: true,
         note: "editorial item already published; returning cached state",
@@ -201,8 +235,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const post = await wp.updatePost(wp_post_id, { status: "publish" });
-    await runs.setStatus(run_id, "success", { wp_post_id, wp_status: post.status });
+    // Use the AUTHORITATIVE wp_post_id (validated from run.output.wp_post_id
+    // by the linkage gate above). The request-body wp_post_id has already
+    // been cross-checked against authoritativeWpId and confirmed equal.
+    const post = await wp.updatePost(authoritativeWpId, { status: "publish" });
+    await runs.setStatus(run_id, "success", { wp_post_id: authoritativeWpId, wp_status: post.status });
     // Stage advance to 'published' AFTER the WP call succeeds, so a
     // transient WP failure does not prematurely mark the item as
     // published. setStage enforces adjacency (approved → published is
@@ -213,7 +250,7 @@ export async function POST(request: Request) {
       {
         ok: true,
         run_id,
-        wp_post_id,
+        wp_post_id: authoritativeWpId,
         status: post.status,
         editorial_item_id: item.id,
       },

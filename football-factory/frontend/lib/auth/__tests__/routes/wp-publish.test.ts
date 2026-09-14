@@ -195,8 +195,12 @@ test("wp-publish: editorial link missing (run.editorial_item_id NULL) → 409 ed
 });
 
 test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", async () => {
-  // Plan: run.get + findByRunId returns item with wp_post_id=99; the
-  // request asks for wp_post_id=1.
+  // Plan: run.get returns run with output.wp_post_id=99 (the
+  // authoritative source under the new contract). Request sends
+  // wp_post_id=1 → run_wp_post_id(99) !== request_wp_post_id(1)
+  // → 409 wp_post_mismatch. The route reads run.output.wp_post_id
+  // as authoritative; editorial_items.wp_post_id is intentionally
+  // ignored per the linkage contract.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -204,7 +208,7 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 99 },
           idempotency_key: "k1",
         },
       ],
@@ -216,6 +220,9 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
         {
           id: "i1",
           source_id: "src-1",
+          // editorial_items.wp_post_id is irrelevant under the new
+          // contract — we read run.output.wp_post_id as the source
+          // of truth. Set it to 99 here too for completeness.
           wp_post_id: 99,
           stage: "approved",
           rights_confirmed: true,
@@ -249,6 +256,9 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
 
 test("wp-publish: approval_state=pending → 409 approval_not_granted", async () => {
   // Plan: run.get, findByRunId, findById (returns pending).
+  // Under the new linkage contract, run.output.wp_post_id is the
+  // authoritative source — must be set or the linkage gate fires
+  // first with run_wp_id_missing.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -256,7 +266,7 @@ test("wp-publish: approval_state=pending → 409 approval_not_granted", async ()
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
@@ -300,6 +310,7 @@ test("wp-publish: approval_state=pending → 409 approval_not_granted", async ()
 });
 
 test("wp-publish: approval_state=rejected → 409 approval_not_granted", async () => {
+  // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -307,7 +318,7 @@ test("wp-publish: approval_state=rejected → 409 approval_not_granted", async (
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
@@ -351,6 +362,9 @@ test("wp-publish: approval_state=rejected → 409 approval_not_granted", async (
 });
 
 test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async () => {
+  // Under the new linkage contract, run.output.wp_post_id is the
+  // authoritative source — must be set or the linkage gate fires
+  // first with run_wp_id_missing.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -358,7 +372,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
@@ -456,6 +470,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
 });
 
 test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
+  // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -463,7 +478,7 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
@@ -520,6 +535,7 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
 });
 
 test("wp-publish: WP network error → 502 with kind=network", async () => {
+  // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -527,7 +543,7 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
@@ -584,6 +600,7 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
 });
 
 test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
+  // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
     () => ({
       rows: [
@@ -591,7 +608,7 @@ test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
           id: "r1",
           status: "running",
           input: {},
-          output: {},
+          output: { wp_post_id: 1 },
           idempotency_key: "k1",
         },
       ],
