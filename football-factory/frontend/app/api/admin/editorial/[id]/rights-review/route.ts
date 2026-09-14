@@ -18,6 +18,7 @@
 
 import "server-only";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   requireAdminOrEditor,
@@ -225,6 +226,27 @@ export async function POST(request: Request, context: RouteContext) {
   // Re-read the row to confirm the persisted state and return authoritative
   // values to the operator UI.
   const after = await repo.findById(existing.id);
+
+  // Invalidate Next.js Router Cache for the affected admin routes so
+  // that `router.refresh()` after this mutation returns fresh data
+  // (without this, the client may briefly observe the pre-mutation
+  // RSC payload, causing the UI to "revert" to the old state).
+  //
+  // The try/catch is intentional: `revalidatePath` requires the
+  // Next.js request context (the static-generation store). When this
+  // route is invoked through Next.js (production / Vercel), the calls
+  // succeed and the Router Cache is invalidated. When this route is
+  // invoked directly from a Node test harness (no request context),
+  // the calls throw "static generation store missing" — that is
+  // harmless and we ignore it, because the test harness does not
+  // depend on the Router Cache.
+  try {
+    revalidatePath(`/admin/editorial/${existing.id}`, "page");
+    revalidatePath("/admin/editorial", "page");
+    revalidatePath("/admin", "page");
+  } catch {
+    // best-effort cache invalidation; safe to ignore outside Next.js
+  }
 
   return NextResponse.json(
     {
