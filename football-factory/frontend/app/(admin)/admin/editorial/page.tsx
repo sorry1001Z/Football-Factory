@@ -1,8 +1,11 @@
 // Football Factory — /admin/editorial queue page (R2 Wave 2C).
 //
 // Server-rendered shell; the queue is client-driven.
+//
+// SSR pattern (force-dynamic + Suspense): see app/(admin)/admin/page.tsx.
 
 import "server-only";
+import { Suspense } from "react";
 import { AdminShellHeader } from "@/components/admin/shell-header";
 import { AdminQueue } from "@/components/admin/queue";
 import { getDb } from "@/lib/db/postgres";
@@ -47,20 +50,34 @@ async function loadInitial(): Promise<EditorialListResponse | null> {
   }
 }
 
-export default async function AdminEditorialPage() {
+function AdminEditorialQueueFallback() {
+  return (
+    <p className="admin-empty" aria-live="polite">
+      Loading queue…
+    </p>
+  );
+}
+
+async function AdminEditorialPageLoader() {
   const initial = await loadInitial();
+  return initial ? (
+    <AdminQueue initial={initial} />
+  ) : (
+    <p role="alert" className="admin-error">
+      Could not load the queue. Sign in as admin/editor first.
+    </p>
+  );
+}
+
+export default function AdminEditorialPage() {
   return (
     <div className="admin-shell admin-shell-root">
       <AdminShellHeader currentPath="/admin/editorial" />
       <main className="admin-shell-main">
         <h1>Editorial queue</h1>
-        {initial ? (
-          <AdminQueue initial={initial} />
-        ) : (
-          <p role="alert" className="admin-error">
-            Could not load the queue. Sign in as admin/editor first.
-          </p>
-        )}
+        <Suspense fallback={<AdminEditorialQueueFallback />}>
+          <AdminEditorialPageLoader />
+        </Suspense>
       </main>
     </div>
   );
