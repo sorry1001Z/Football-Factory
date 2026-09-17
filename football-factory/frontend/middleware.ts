@@ -50,18 +50,18 @@ const cspReportOnly = [
 ].join("; ");
 
 export function middleware(request: NextRequest) {
-  // Clone the response headers so we can attach the report-only header
-  // without mutating the original request.
-  const responseHeaders = new Headers(request.headers);
+  // Use NextResponse.next() with explicit response headers. Modifying
+  // REQUEST headers would only forward to downstream handlers; the CSP
+  // response header MUST be set on the response object to reach the
+  // browser.
+  const response = NextResponse.next();
+
   // Defensive: strip X-Powered-By if it slipped through next.config.
-  responseHeaders.delete("x-powered-by");
+  response.headers.delete("x-powered-by");
   // Set CSP report-only (we do NOT enforce yet).
-  responseHeaders.set("Content-Security-Policy-Report-Only", cspReportOnly);
-  return NextResponse.next({
-    request: {
-      headers: responseHeaders,
-    },
-  });
+  response.headers.set("Content-Security-Policy-Report-Only", cspReportOnly);
+
+  return response;
 }
 
 /**
