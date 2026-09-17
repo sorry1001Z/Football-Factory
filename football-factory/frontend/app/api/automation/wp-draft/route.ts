@@ -14,8 +14,21 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readCappedBody } from "@/lib/security/body-cap";
 import { verifyAutomationSecret, authRejectResponse } from "@/lib/automation/auth";
+import {
+  assertAutomationEnabled,
+  automationDisabledResponse,
+} from "@/lib/automation/kill-switch";
+import {
+  AUTOMATION_RL,
+  consumeAutomationRateLimit,
+  rateLimitedResponse,
+} from "@/lib/automation/rate-limit-helpers";
+import {
+  decideWpDraft,
+} from "@/lib/automation/wp-draft-idempotency";
 import { getDb } from "@/lib/db/postgres";
 import { AutomationRunRepository } from "@/lib/auth/repositories";
+import { AutomationLogRepository } from "@/lib/auth/automation-log-repository";
 import {
   WordPressWriteClient,
   WordPressWriteError,
@@ -39,6 +52,14 @@ const WpDraftSchema = z.object({
 export async function POST(request: Request) {
   const a = verifyAutomationSecret(request);
   if (!a.ok) return authRejectResponse(a);
+
+  // Step 2: kill-switch. Fail-closed when AUTOMATION_ENABLED != "true".
+  const ks = assertAutomationEnabled();
+  if (!ks.ok) return automationDisabledResponse();
+
+  // Step 3: per-instance rate limit. Conservative limit: 10 drafts / 60s / IP.
+  const rl = consumeAutomationRateLimit(request, AUTOMATION_RL.wpDraft);
+  if (!rl.ok) return rateLimitedResponse(rl.resetMs);
 
   const body = await readCappedBody(request, "automation");
   if (!body.ok) {
@@ -64,9 +85,41 @@ export async function POST(request: Request) {
     );
   }
   const runs = new AutomationRunRepository(getDb());
+  const logs = new AutomationLogRepository(getDb());
   const run = await runs.get(v.data.run_id);
   if (!run) {
     return NextResponse.json({ ok: false, error: "run_not_found" }, { status: 404 });
+  }
+
+  // Idempotency: if this run already produced a wp_post_id, and the
+  // editorial linkage is consistent, reuse it WITHOUT calling WP.
+  const decision = decideWpDraft(
+    run.output ?? null,
+    run.editorial_item_id ?? null,
+    v.data.editorial_item_id,
+  );
+  if (!decision.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: decision.error,
+        ...("details" in decision ? decision.details : {}),
+      },
+      { status: decision.status },
+    );
+  }
+  if (decision.reuse) {
+    return NextResponse.json(
+      {
+        ok: true,
+        run_id: v.data.run_id,
+        wp_post_id: decision.wp_post_id,
+        status: "draft",
+        idempotent: true,
+        note: "wp-draft idempotency: run.output.wp_post_id reused",
+      },
+      { status: 200 },
+    );
   }
 
   const wp = new WordPressWriteClient();

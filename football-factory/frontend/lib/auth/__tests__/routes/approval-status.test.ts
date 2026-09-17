@@ -3,7 +3,8 @@
 // Uses the Db override path (lib/db/postgres __setDbOverrideForTest)
 // to drive the route through repository behavior without a real PG.
 
-import test from "node:test";
+import { __resetRateLimiterForTest } from "@/lib/security/rate-limit";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { POST } from "@/app/api/automation/approval-status/route";
 import {
@@ -14,6 +15,7 @@ import {
 
 const OK_SECRET = "x".repeat(64);
 process.env.AUTOMATION_SECRET = OK_SECRET;
+process.env.AUTOMATION_ENABLED = "true"; // Slice 5 hardening: kill-switch defaults off
 
 type Row = Record<string, unknown>;
 
@@ -49,6 +51,9 @@ function makeRequest(body: unknown, headers: Record<string, string> = {}): Reque
     },
   );
 }
+
+
+beforeEach(() => { __resetRateLimiterForTest(); });
 
 test("approval-status: missing x-automation-secret → 401", async () => {
   const db = makeStubDb([]);

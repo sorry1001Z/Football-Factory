@@ -185,6 +185,7 @@ export class AutomationRunRepository {
     status: string;
     input: unknown;
     output: unknown;
+    editorial_item_id: string | null;
     idempotency_key: string;
   } | null> {
     const r = await this.db.query<{
@@ -192,9 +193,10 @@ export class AutomationRunRepository {
       status: string;
       input: unknown;
       output: unknown;
+      editorial_item_id: string | null;
       idempotency_key: string;
     }>(
-      `SELECT id, status, input, output, idempotency_key
+      `SELECT id, status, input, output, editorial_item_id, idempotency_key
          FROM automation_runs
         WHERE id = $1
         LIMIT 1`,

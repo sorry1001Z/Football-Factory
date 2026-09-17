@@ -6,7 +6,8 @@
 //   admin/editorial approval: rights precondition, stage advance, reject path.
 //   stage-machine: terminal protection (rejected/published can not advance).
 
-import test from "node:test";
+import { __resetRateLimiterForTest } from "@/lib/security/rate-limit";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { POST } from "@/app/api/automation/wp-publish/route";
 import { POST as Hook9 } from "@/app/api/automation/wp-draft/route";
@@ -27,6 +28,7 @@ import {
 
 const OK_SECRET = "x".repeat(64);
 process.env.AUTOMATION_SECRET = OK_SECRET;
+process.env.AUTOMATION_ENABLED = "true"; // Slice 5 hardening: kill-switch defaults off
 process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test?sslmode=require";
 process.env.WORDPRESS_REST_URL = "https://example.test/wp-json/wp/v2";
 process.env.WORDPRESS_APP_USER = "u";
@@ -102,6 +104,7 @@ function runRow(overrides: Partial<{
   id: string;
   status: string;
   output: unknown;
+  editorial_item_id: string | null;
 }> = {}) {
   return {
     id: RUN_ID,
@@ -113,6 +116,7 @@ function runRow(overrides: Partial<{
     // output: {} for run_wp_id_missing, or output: {wp_post_id: 99}
     // for wp_post_mismatch).
     output: { wp_post_id: 1 },
+    editorial_item_id: null,
     idempotency_key: "k-1",
     ...overrides,
   };
@@ -134,6 +138,9 @@ async function withDb<T>(
 // ----------------------------------------------------------------------
 // A. wp-publish — rights gate
 // ----------------------------------------------------------------------
+
+
+beforeEach(() => { __resetRateLimiterForTest(); });
 
 test("wp-publish: approved + rights_confirmed=false → 409 rights_not_cleared", async () => {
   await withDb(
@@ -480,6 +487,7 @@ test("wp-publish: run.output.wp_post_id=16 (Phase 15 production) + all gates PAS
         ],
         rowCount: 1,
       }),
+      () => ({ rows: [{ id: 999 }], rowCount: 1 }),
       // setStatus UPDATE (success)
       () => ({ rows: [], rowCount: 0 }),
       // setStage findById
@@ -546,6 +554,7 @@ test("wp-publish: approved + rights_confirmed=true + stage=approved → publish 
       () => ({ rows: [runRow()], rowCount: 1 }),
       () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
       () => ({ rows: [editorialRow({ rights_confirmed: true })], rowCount: 1 }),
+      () => ({ rows: [{ id: 999 }], rowCount: 1 }),
       // setStatus UPDATE
       () => ({ rows: [], rowCount: 0 }),
       // setStage findById
@@ -772,7 +781,7 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
   // enough entries for that flow.
   await withDb(
     [
-      () => ({ rows: [runRow()], rowCount: 1 }), // runs.get (1)
+      () => ({ rows: [runRow({ editorial_item_id: EDITORIAL_ID, output: {} })], rowCount: 1 }), // runs.get (1)
       () => ({ rows: [], rowCount: 0 }),        // UPDATE automation_runs (wp_post_id)
       // setStage findById (current=seo_check)
       () => ({

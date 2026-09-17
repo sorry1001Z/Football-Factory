@@ -39,8 +39,22 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readCappedBody } from "@/lib/security/body-cap";
 import { verifyAutomationSecret, authRejectResponse } from "@/lib/automation/auth";
+import {
+  assertAutomationEnabled,
+  automationDisabledResponse,
+} from "@/lib/automation/kill-switch";
+import {
+  AUTOMATION_RL,
+  consumeAutomationRateLimit,
+  rateLimitedResponse,
+} from "@/lib/automation/rate-limit-helpers";
+import {
+  recordWpPublishAttempt,
+  recordWpPublishResult,
+} from "@/lib/automation/wp-publish-audit";
 import { getDb } from "@/lib/db/postgres";
 import { AutomationRunRepository } from "@/lib/auth/repositories";
+import { AutomationLogRepository } from "@/lib/auth/automation-log-repository";
 import { EditorialRepository } from "@/lib/auth/editorial-repository";
 import {
   WordPressWriteError,
@@ -61,6 +75,16 @@ function conflict(error: string, extra?: Record<string, unknown>) {
 export async function POST(request: Request) {
   const a = verifyAutomationSecret(request);
   if (!a.ok) return authRejectResponse(a);
+
+  // Step 2: kill-switch check. Server env must explicitly enable
+  // mutation-capable automation; defaults to disabled if missing.
+  const ks = assertAutomationEnabled();
+  if (!ks.ok) return automationDisabledResponse();
+
+  // Step 3: per-instance rate limit. In-memory only; not a global
+  // guarantee. Conservative limit: 10 publishes / 60s / IP.
+  const rl = consumeAutomationRateLimit(request, AUTOMATION_RL.wpPublish);
+  if (!rl.ok) return rateLimitedResponse(rl.resetMs);
 
   const body = await readCappedBody(request, "automation");
   if (!body.ok) {
@@ -85,6 +109,7 @@ export async function POST(request: Request) {
   const db = getDb();
   const runs = new AutomationRunRepository(db);
   const items = new EditorialRepository(db);
+  const logs = new AutomationLogRepository(db);
   const run = await runs.get(run_id);
   if (!run) {
     return NextResponse.json({ ok: false, error: "run_not_found" }, { status: 404 });
@@ -219,6 +244,24 @@ export async function POST(request: Request) {
     });
   }
 
+  // Pre-mutation audit: insert "wp_publish_attempt" record BEFORE any
+  // WordPress mutation. If this insert fails, refuse the publish and
+  // never call WordPress.
+  const preAudit = await recordWpPublishAttempt(logs, {
+    editorial_item_id: item.id,
+    wp_post_id: authoritativeWpId,
+    request_wp_post_id: wp_post_id,
+    request_id: null,
+    ip_hash: null,
+  });
+  if (!preAudit.ok) {
+    return NextResponse.json(
+      { ok: false, error: "audit_log_unavailable" },
+      { status: 503 },
+    );
+  }
+  void preAudit.id;
+
   // Belt-and-suspenders: a defensive editor may hand-edit the run
   // status column. The editorial row's stage is the source of truth;
   // the early `published` check above already handled that case before
@@ -246,6 +289,19 @@ export async function POST(request: Request) {
     // canonical forward), and the stage-machine blocks any further
     // transitions out of 'published' (terminal).
     await items.setStage(item.id, "published", run_id, "FF_HOOK_10");
+    // Post-mutation audit: try-best, do NOT roll back on failure.
+    const postAudit = await recordWpPublishResult(
+      logs,
+      {
+        editorial_item_id: item.id,
+        wp_post_id: authoritativeWpId,
+        request_wp_post_id: wp_post_id,
+        wp_status: post.status,
+        request_id: null,
+        ip_hash: null,
+      },
+      true,
+    );
     return NextResponse.json(
       {
         ok: true,
@@ -253,6 +309,7 @@ export async function POST(request: Request) {
         wp_post_id: authoritativeWpId,
         status: post.status,
         editorial_item_id: item.id,
+        ...(postAudit.ok ? {} : { audit_log_degraded: true }),
       },
       { status: 200 },
     );
@@ -260,9 +317,24 @@ export async function POST(request: Request) {
     if (e instanceof WordPressWriteError) {
       const msg = e.kind; // timeout | network | http_4xx | http_5xx | invalid_json | not_configured
       await runs.setStatus(run_id, "failed", undefined, msg);
+      // Post-mutation audit (failure). Try-best; surface degraded if
+      // the audit insert itself fails.
+      const postAudit = await recordWpPublishResult(
+        logs,
+        {
+          editorial_item_id: item.id,
+          wp_post_id: authoritativeWpId,
+          request_wp_post_id: wp_post_id,
+          failure_kind: msg,
+          failure_http: e.status ?? null,
+          request_id: null,
+          ip_hash: null,
+        },
+        false,
+      );
       const status = e.kind === "http_4xx" ? 400 : 502;
       return NextResponse.json(
-        { ok: false, error: msg, status: e.status ?? null },
+        { ok: false, error: msg, status: e.status ?? null, ...(postAudit.ok ? {} : { audit_log_degraded: true }) },
         { status },
       );
     }

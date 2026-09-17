@@ -84,3 +84,15 @@ export function clientKeyForUser(request: Request, userId?: string): string {
 export function clientKeyForIp(request: Request): string {
   return `ip:${ipOf(request)}`;
 }
+
+/**
+ * Test-only: wipe the in-memory rate-limit state. Tests share the
+ * singleton across the Node process, so accumulated entries from
+ * previous tests can trigger 429 spuriously. Tests must call this in
+ * setup() if they exercise the limiter.
+ */
+export function __resetRateLimiterForTest(): void {
+  if (globalThis.__FF_RATE_LIMITER__) {
+    globalThis.__FF_RATE_LIMITER__.clear();
+  }
+}

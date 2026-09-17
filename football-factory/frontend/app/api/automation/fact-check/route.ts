@@ -25,6 +25,16 @@ import {
   verifyAutomationSecret,
   authRejectResponse,
 } from "@/lib/automation/auth";
+import {
+  assertAutomationEnabled,
+  automationDisabledResponse,
+} from "@/lib/automation/kill-switch";
+import {
+  AUTOMATION_RL,
+  consumeAutomationRateLimit,
+  rateLimitedResponse,
+} from "@/lib/automation/rate-limit-helpers";
+
 import { getDb } from "@/lib/db/postgres";
 import { AutomationRunRepository } from "@/lib/auth/repositories";
 import { EditorialRepository } from "@/lib/auth/editorial-repository";
@@ -58,6 +68,14 @@ function claimsHash(claims: string[] | undefined, content: string | undefined): 
 export async function POST(request: Request) {
   const a = verifyAutomationSecret(request);
   if (!a.ok) return authRejectResponse(a);
+
+  // Step 2: kill-switch check. Fail-closed when AUTOMATION_ENABLED != "true".
+  const ks = assertAutomationEnabled();
+  if (!ks.ok) return automationDisabledResponse();
+
+  // Step 3: per-instance rate limit (factCheck per route config).
+  const rl = consumeAutomationRateLimit(request, AUTOMATION_RL.factCheck);
+  if (!rl.ok) return rateLimitedResponse(rl.resetMs);
 
   const body = await readCappedBody(request, "automation");
   if (!body.ok) {

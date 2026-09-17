@@ -19,7 +19,8 @@
 //
 // The WordPressWriteClient is mocked by stubbing its prototype methods.
 
-import test from "node:test";
+import { __resetRateLimiterForTest } from "@/lib/security/rate-limit";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { POST } from "@/app/api/automation/wp-publish/route";
 import {
@@ -38,6 +39,7 @@ import {
 
 const OK_SECRET = "x".repeat(64);
 process.env.AUTOMATION_SECRET = OK_SECRET;
+process.env.AUTOMATION_ENABLED = "true"; // Slice 5 hardening: kill-switch defaults off
 process.env.WORDPRESS_REST_URL = "https://example.test/wp-json/wp/v2";
 process.env.WORDPRESS_APP_USER = "u";
 process.env.WORDPRESS_APP_PASSWORD = "p".repeat(24);
@@ -75,8 +77,11 @@ function makeRequest(body: unknown, headers: Record<string, string> = {}): Reque
   });
 }
 
+
+beforeEach(() => { __resetRateLimiterForTest(); });
+
 test("wp-publish: missing x-automation-secret → 401", async () => {
-  const db = makeStubDb([]);
+  const db = makeStubDb([]);    
   __setDbOverrideForTest(db as unknown as Db);
   try {
     const r = await POST(
@@ -89,7 +94,7 @@ test("wp-publish: missing x-automation-secret → 401", async () => {
 });
 
 test("wp-publish: wrong secret → 401", async () => {
-  const db = makeStubDb([]);
+  const db = makeStubDb([]);    
   __setDbOverrideForTest(db as unknown as Db);
   try {
     const r = await POST(
@@ -106,7 +111,7 @@ test("wp-publish: wrong secret → 401", async () => {
 
 test("wp-publish: run not found → 404", async () => {
   // Plan: 1st query (run.get) returns null.
-  const db = makeStubDb([() => ({ rows: [], rowCount: 0 })]);
+  const db = makeStubDb([() => ({ rows: [], rowCount: 0 })]);    
   __setDbOverrideForTest(db as unknown as Db);
   try {
     const r = await POST(
@@ -126,7 +131,7 @@ test("wp-publish: run not found → 404", async () => {
 test("wp-publish: run already success → 200 idempotent (no duplicate publish)", async () => {
   // Plan: 1st query (run.get) returns status='success' with wp_post_id in output.
   const db = makeStubDb([
-    () => ({
+        () => ({
       rows: [
         {
           id: "r1",
@@ -162,7 +167,7 @@ test("wp-publish: editorial link missing (run.editorial_item_id NULL) → 409 ed
   // EditorialRepository.findByRunId queries: 1st SELECT editorial_item_id
   // returns NULL.
   const db = makeStubDb([
-    () => ({
+        () => ({
       rows: [
         {
           id: "r1",
@@ -202,7 +207,7 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
   // as authoritative; editorial_items.wp_post_id is intentionally
   // ignored per the linkage contract.
   const db = makeStubDb([
-    () => ({
+        () => ({
       rows: [
         {
           id: "r1",
@@ -215,6 +220,7 @@ test("wp-publish: editorial item wp_post_id mismatch → 409 wp_post_mismatch", 
       rowCount: 1,
     }),
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // findByRunId's internal findById SELECT — same row, full editorial row.
     () => ({
       rows: [
         {
@@ -260,7 +266,7 @@ test("wp-publish: approval_state=pending → 409 approval_not_granted", async ()
   // authoritative source — must be set or the linkage gate fires
   // first with run_wp_id_missing.
   const db = makeStubDb([
-    () => ({
+        () => ({
       rows: [
         {
           id: "r1",
@@ -273,6 +279,7 @@ test("wp-publish: approval_state=pending → 409 approval_not_granted", async ()
       rowCount: 1,
     }),
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // findByRunId's internal findById SELECT — same row, full editorial row.
     () => ({
       rows: [
         {
@@ -312,7 +319,7 @@ test("wp-publish: approval_state=pending → 409 approval_not_granted", async ()
 test("wp-publish: approval_state=rejected → 409 approval_not_granted", async () => {
   // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
-    () => ({
+        () => ({
       rows: [
         {
           id: "r1",
@@ -325,6 +332,7 @@ test("wp-publish: approval_state=rejected → 409 approval_not_granted", async (
       rowCount: 1,
     }),
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // findByRunId's internal findById SELECT — same row, full editorial row.
     () => ({
       rows: [
         {
@@ -366,6 +374,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
   // authoritative source — must be set or the linkage gate fires
   // first with run_wp_id_missing.
   const db = makeStubDb([
+    // 1. run.get
     () => ({
       rows: [
         {
@@ -373,12 +382,15 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
           status: "running",
           input: {},
           output: { wp_post_id: 1 },
+          editorial_item_id: "i1",
           idempotency_key: "k1",
         },
       ],
       rowCount: 1,
     }),
+    // 2. findByRunId SELECT editorial_item_id
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // 3. findById SELECT editorial row
     () => ({
       rows: [
         {
@@ -397,9 +409,12 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
       ],
       rowCount: 1,
     }),
-    // setStatus UPDATE after successful publish.
+    // 4. PRE-AUDIT INSERT wp_publish_attempt
+    () => ({ rows: [{ id: 999 }], rowCount: 1 }),
+    // 5. (WordPress updatePost - no DB)
+    // 6. setStatus UPDATE success
     () => ({ rows: [], rowCount: 0 }),
-    // setStage: findById (current=approved)
+    // 7. setStage findById SELECT
     () => ({
       rows: [
         {
@@ -418,7 +433,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
       ],
       rowCount: 1,
     }),
-    // setStage UPDATE → row at stage="published"
+    // 8. setStage UPDATE RETURNING
     () => ({
       rows: [
         {
@@ -437,6 +452,8 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
       ],
       rowCount: 1,
     }),
+    // 9. POST-AUDIT INSERT wp_publish_succeeded
+    () => ({ rows: [{ id: 1000 }], rowCount: 1 }),
   ]);
   __setDbOverrideForTest(db as unknown as Db);
   // Stub WordPressWriteClient.updatePost to return success.
@@ -472,6 +489,7 @@ test("wp-publish: approval_state=approved + WP succeeds → 200 publish", async 
 test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
   // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
+    // 1. run.get
     () => ({
       rows: [
         {
@@ -479,12 +497,15 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
           status: "running",
           input: {},
           output: { wp_post_id: 1 },
+          editorial_item_id: "i1",
           idempotency_key: "k1",
         },
       ],
       rowCount: 1,
     }),
+    // 2. findByRunId SELECT editorial_item_id
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // 3. findById SELECT editorial row
     () => ({
       rows: [
         {
@@ -503,7 +524,13 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
       ],
       rowCount: 1,
     }),
+    // 4. PRE-AUDIT INSERT wp_publish_attempt
+    () => ({ rows: [{ id: 999 }], rowCount: 1 }),
+    // 5. (WordPress updatePost — throws)
+    // 6. setStatus UPDATE failed
     () => ({ rows: [], rowCount: 0 }),
+    // 7. POST-AUDIT INSERT wp_publish_failed
+    () => ({ rows: [{ id: 1000 }], rowCount: 1 }),
   ]);
   __setDbOverrideForTest(db as unknown as Db);
   setWordPressWriteClientFactoryForTest(() => ({
@@ -537,6 +564,7 @@ test("wp-publish: WP timeout → 502 with kind=timeout", async () => {
 test("wp-publish: WP network error → 502 with kind=network", async () => {
   // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
+    // 1. run.get
     () => ({
       rows: [
         {
@@ -544,12 +572,15 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
           status: "running",
           input: {},
           output: { wp_post_id: 1 },
+          editorial_item_id: "i1",
           idempotency_key: "k1",
         },
       ],
       rowCount: 1,
     }),
+    // 2. findByRunId SELECT editorial_item_id
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // 3. findById SELECT editorial row
     () => ({
       rows: [
         {
@@ -568,7 +599,13 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
       ],
       rowCount: 1,
     }),
+    // 4. PRE-AUDIT INSERT wp_publish_attempt
+    () => ({ rows: [{ id: 999 }], rowCount: 1 }),
+    // 5. (WordPress updatePost — throws)
+    // 6. setStatus UPDATE failed
     () => ({ rows: [], rowCount: 0 }),
+    // 7. POST-AUDIT INSERT wp_publish_failed
+    () => ({ rows: [{ id: 1000 }], rowCount: 1 }),
   ]);
   __setDbOverrideForTest(db as unknown as Db);
   setWordPressWriteClientFactoryForTest(() => ({
@@ -602,6 +639,7 @@ test("wp-publish: WP network error → 502 with kind=network", async () => {
 test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
   // Under the new linkage contract, run.output.wp_post_id must be set.
   const db = makeStubDb([
+    // 1. run.get
     () => ({
       rows: [
         {
@@ -609,12 +647,15 @@ test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
           status: "running",
           input: {},
           output: { wp_post_id: 1 },
+          editorial_item_id: "i1",
           idempotency_key: "k1",
         },
       ],
       rowCount: 1,
     }),
+    // 2. findByRunId SELECT editorial_item_id
     () => ({ rows: [{ editorial_item_id: "i1" }], rowCount: 1 }),
+    // 3. findById SELECT editorial row
     () => ({
       rows: [
         {
@@ -633,7 +674,13 @@ test("wp-publish: WP 4xx → 400 with kind=http_4xx", async () => {
       ],
       rowCount: 1,
     }),
+    // 4. PRE-AUDIT INSERT wp_publish_attempt
+    () => ({ rows: [{ id: 999 }], rowCount: 1 }),
+    // 5. (WordPress updatePost — throws)
+    // 6. setStatus UPDATE failed
     () => ({ rows: [], rowCount: 0 }),
+    // 7. POST-AUDIT INSERT wp_publish_failed
+    () => ({ rows: [{ id: 1000 }], rowCount: 1 }),
   ]);
   __setDbOverrideForTest(db as unknown as Db);
   setWordPressWriteClientFactoryForTest(() => ({

@@ -15,7 +15,8 @@
 //   - association_mismatch (409) — run.editorial_item_id != body.editorial_item_id
 //   - idempotency on stable hash
 
-import test from "node:test";
+import { __resetRateLimiterForTest } from "@/lib/security/rate-limit";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { POST as Hook3 } from "@/app/api/automation/editorial-item/route";
 import { POST as Hook4 } from "@/app/api/automation/ai-assist/route";
@@ -30,6 +31,7 @@ import {
 
 const OK_SECRET = "x".repeat(64);
 process.env.AUTOMATION_SECRET = OK_SECRET;
+process.env.AUTOMATION_ENABLED = "true"; // Slice 5 hardening: kill-switch defaults off
 process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test?sslmode=require";
 
 const RUN_ID = "a1e32f5a-06ff-40ff-a1f0-148cf33e09d7";
@@ -116,6 +118,9 @@ function withDb<T>(plan: Array<() => unknown>, fn: (db: Db) => Promise<T>): Prom
 // ----------------------------------------------------------------------
 // FF_HOOK_3 — editorial-item create
 // ----------------------------------------------------------------------
+
+
+beforeEach(() => { __resetRateLimiterForTest(); });
 
 test("FF_HOOK_3: missing secret → 401", async () => {
   await withDb([], async () => {
