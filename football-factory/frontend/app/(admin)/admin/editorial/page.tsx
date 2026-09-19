@@ -6,6 +6,7 @@
 
 import "server-only";
 import { Suspense } from "react";
+import Link from "next/link";
 import { AdminShellHeader } from "@/components/admin/shell-header";
 import { AdminQueue } from "@/components/admin/queue";
 import { getDb } from "@/lib/db/postgres";
@@ -75,6 +76,11 @@ export default function AdminEditorialPage() {
       <AdminShellHeader currentPath="/admin/editorial" />
       <main className="admin-shell-main">
         <h1>Editorial queue</h1>
+        <p>
+          <Link href="/admin/editorial/new" data-testid="admin-new-pilot-link">
+            New Editorial Pilot (operator-driven)
+          </Link>
+        </p>
         <Suspense fallback={<AdminEditorialQueueFallback />}>
           <AdminEditorialPageLoader />
         </Suspense>
