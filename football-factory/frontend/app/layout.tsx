@@ -4,22 +4,36 @@ import './admin-shell.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { getSiteUrl } from '@/lib/seo/seo';
+import {
+  BRAND_NAME,
+  BRAND_DESCRIPTION,
+  BRAND_ICON_PATH,
+  BRAND_TITLE_TEMPLATE,
+} from '@/lib/brand';
 
 const siteUrl = getSiteUrl();
-const title = 'Football Factory';
-const description =
-  'ข่าวฟุตบอล ผลบอล โปรแกรมการแข่งขัน บทวิเคราะห์ และข้อมูลทีมแบบรวดเร็ว';
+const title = BRAND_NAME;
+const description = BRAND_DESCRIPTION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: title, template: '%s · Football Factory' },
+  title: { default: title, template: BRAND_TITLE_TEMPLATE },
   description,
-  applicationName: 'Football Factory',
+  applicationName: BRAND_NAME,
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: BRAND_ICON_PATH, type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/favicon.png',
+  },
   openGraph: {
     title,
     description,
     url: siteUrl,
-    siteName: 'Football Factory',
+    siteName: BRAND_NAME,
     locale: 'th_TH',
     type: 'website',
   },

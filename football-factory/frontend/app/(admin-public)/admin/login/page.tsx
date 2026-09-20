@@ -1,4 +1,4 @@
-// Football Factory — /admin/login (public sign-in page).
+// FF90 — /admin/login (public sign-in page).
 //
 // Lives in the (admin-public) route group so it does NOT inherit the
 // auth gate from app/(admin)/layout.tsx. Submits to the existing
@@ -10,10 +10,15 @@
 //
 // No DB query, no protected data, no auth check on this page itself.
 
+import Image from "next/image";
 import { LoginForm } from "@/components/admin/login-form";
+import {
+  BRAND_NAME,
+  BRAND_LOGO_MARK_PATH,
+} from "@/lib/brand";
 
 export const metadata = {
-  title: "Sign in · Admin · Football Factory",
+  title: `Sign in · Admin · ${BRAND_NAME}`,
   robots: { index: false, follow: false },
 };
 
@@ -22,5 +27,25 @@ export default function AdminLoginPage({
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  return <LoginForm searchParams={searchParams} />;
+  return (
+    <>
+      <div
+        className="admin-login-logo"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          padding: "24px 0 0",
+        }}
+      >
+        <Image
+          src={BRAND_LOGO_MARK_PATH}
+          alt={BRAND_NAME}
+          height={56}
+          width={260}
+          priority
+        />
+      </div>
+      <LoginForm searchParams={searchParams} />
+    </>
+  );
 }

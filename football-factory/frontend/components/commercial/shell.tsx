@@ -28,11 +28,17 @@ import type {
   CommercialStanding,
 } from "@/lib/commercial/contracts";
 import { explainDegraded } from "@/lib/commercial/adapter";
+import Image from "next/image";
 import {
   HeroNewsImage,
   NewsCoverImage,
   ArticleEditorialImage,
 } from "@/components/image/rights-image";
+import {
+  BRAND_NAME,
+  BRAND_HOME_LABEL,
+  BRAND_LOGO_MARK_PATH,
+} from "@/lib/brand";
 
 // ---------------------------------------------------------------------------
 // Atoms
@@ -118,9 +124,14 @@ export function BreakingNewsTicker({ items }: { items: CommercialNews[] }) {
 export function MainHeader() {
   return (
     <header className="cs-header">
-      <Link href="/" className="cs-brand" aria-label="Football Factory home">
-        <span className="cs-brand-mark" aria-hidden>⚽</span>
-        <strong>FOOTBALL FACTORY</strong>
+      <Link href="/" className="cs-brand" aria-label={BRAND_HOME_LABEL}>
+        <Image
+          src={BRAND_LOGO_MARK_PATH}
+          alt={BRAND_NAME}
+          height={48}
+          width={220}
+          className="csBrandLogo"
+        />
       </Link>
       <button
         type="button"
@@ -427,7 +438,13 @@ export function TeamHubStrip({
 export function Footer() {
   return (
     <footer className="cs-footer">
-      <strong>FOOTBALL FACTORY</strong>
+      <Image
+          src={BRAND_LOGO_MARK_PATH}
+          alt={BRAND_NAME}
+          height={48}
+          width={220}
+          className="csFooterLogo"
+        />
       <nav aria-label="Footer">
         <Link href="/about">About</Link>
         <Link href="/contact">Contact</Link>

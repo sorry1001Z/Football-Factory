@@ -5,6 +5,7 @@
 
 import type { Metadata } from "next";
 import type { WordPressPost, WordPressSeo } from "@/lib/wordpress/types";
+import { BRAND_NAME, BRAND_PUBLISHER_NAME, BRAND_LOGO_MARK_PATH } from "@/lib/brand";
 
 export function getSiteUrl(): string {
   if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_SITE_URL) {
@@ -33,7 +34,7 @@ interface SeoFromPostInput {
 export function buildPostMetadata(input: SeoFromPostInput): Metadata {
   const { post, path, fallbackTitle, fallbackDescription, fallbackImage } = input;
   const seo: WordPressSeo | null = post.seo;
-  const title = seo?.title?.trim() || post.title?.trim() || fallbackTitle || "Football Factory";
+  const title = seo?.title?.trim() || post.title?.trim() || fallbackTitle || BRAND_NAME;
   const description =
     seo?.description?.trim() ||
     post.excerpt?.trim() ||
@@ -81,11 +82,11 @@ export function buildNewsArticleJsonLd(post: WordPressPost, path: string) {
       "@type": "Person",
       name: post.author.name,
       url: post.author.slug ? buildCanonical(`/author/${post.author.slug}`) : undefined,
-    } : { "@type": "Organization", name: "Football Factory" },
+    } : { "@type": "Organization", name: BRAND_PUBLISHER_NAME },
     publisher: {
       "@type": "Organization",
-      name: "Football Factory",
-      logo: { "@type": "ImageObject", url: `${getSiteUrl()}/logo.png` },
+      name: BRAND_PUBLISHER_NAME,
+      logo: { "@type": "ImageObject", url: `${getSiteUrl()}${BRAND_LOGO_MARK_PATH}` },
     },
     image: post.featuredImage?.url ? [post.featuredImage.url] : undefined,
     articleSection: post.categories[0]?.name,

@@ -1,9 +1,15 @@
-// Football Factory — Admin shell header (R2 Wave 2C).
+// FF90 — Admin shell header (LOCAL ONLY — visual-only rebranded).
 //
-// Server-rendered top header for the admin sections.
+// Server-rendered top header for the admin sections. Brand text only —
+// no auth/identity/secret material.
 
 import "server-only";
 import Link from "next/link";
+import Image from "next/image";
+import {
+  BRAND_NAME,
+  BRAND_LOGO_MARK_PATH,
+} from "@/lib/brand";
 
 export function AdminShellHeader({ currentPath }: { currentPath: string }) {
   const links: Array<{ href: string; label: string }> = [
@@ -12,7 +18,15 @@ export function AdminShellHeader({ currentPath }: { currentPath: string }) {
   ];
   return (
     <header className="admin-shell-header">
-      <strong>Football Factory · Admin</strong>
+      <Link href="/admin" className="admin-shell-brand" aria-label={BRAND_NAME}>
+        <Image
+          src={BRAND_LOGO_MARK_PATH}
+          alt={BRAND_NAME}
+          height={36}
+          width={170}
+          className="adminShellLogo"
+        />
+      </Link>
       <nav aria-label="Admin navigation">
         <ul>
           {links.map((l) => {
