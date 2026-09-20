@@ -44,10 +44,15 @@ function ipHashOf(req: Request): string | null {
 
 function siteUrlOf(req: Request): string {
   const h = req.headers;
+  // Public canonical domain is FF90.online with the www subdomain.
+  // The env var NEXT_PUBLIC_SITE_URL is the source-of-truth override;
+  // we fall back to the canonical https://www.ff90.online. The reset
+  // email body and the reset URL both come from this value, so it
+  // is the operator's knob to control the reset link origin.
   return (
     (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_SITE_URL) ||
     h.get("origin") ||
-    "https://ff90.online"
+    "https://www.ff90.online"
   );
 }
 
