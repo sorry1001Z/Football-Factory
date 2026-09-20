@@ -105,6 +105,11 @@ export function LoginForm({
             {pending ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        <p className="admin-help-text">
+          <a className="admin-link" href="/admin/forgot-password">
+            ลืมรหัสผ่าน?
+          </a>
+        </p>
         {error ? (
           <p role="alert" className="admin-error" aria-live="polite">
             {error}

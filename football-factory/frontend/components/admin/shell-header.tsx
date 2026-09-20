@@ -15,6 +15,7 @@ export function AdminShellHeader({ currentPath }: { currentPath: string }) {
   const links: Array<{ href: string; label: string }> = [
     { href: "/admin", label: "Overview" },
     { href: "/admin/editorial", label: "Editorial queue" },
+    { href: "/admin/security", label: "Security" },
   ];
   return (
     <header className="admin-shell-header">
