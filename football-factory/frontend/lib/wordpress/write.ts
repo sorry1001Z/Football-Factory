@@ -49,6 +49,16 @@ export type WpPost = {
   slug?: string;
 };
 
+export type WpMedia = {
+  id: number;
+  source_url?: string;
+  media_type?: string;
+  mime_type?: string;
+  alt_text?: string;
+  caption?: { rendered?: string };
+  title?: { rendered?: string };
+};
+
 export class WordPressWriteError extends Error {
   public readonly status: number | null;
   public readonly kind:
@@ -180,6 +190,117 @@ export class WordPressWriteClient {
           : {}),
       },
     });
+  }
+
+  /**
+   * Upload a media file to WordPress via the REST /wp/v2/media endpoint.
+   *
+   * This is a multipart/form-data upload (NOT JSON). The caller is
+   * responsible for providing the binary buffer + filename + mime.
+   *
+   * The WordPress REST API requires `?rest_route=/wp/v2/media` style
+   * upload semantics: the request must include a Content-Disposition
+   * header with the filename, and the multipart body must contain the
+   * file as one of the parts.
+   *
+   * Returns the created WpMedia object including its `id` (use that
+   * to set featured_media on a post).
+   */
+  async uploadMedia(input: {
+    buffer: Uint8Array;
+    filename: string;
+    mimeType: string;
+    title?: string;
+    altText?: string;
+    caption?: string;
+  }): Promise<WpMedia> {
+    if (!this.base || !this.user || !this.password) {
+      throw new WordPressWriteError(
+        "not_configured",
+        "WordPress write not configured",
+      );
+    }
+    // Construct multipart/form-data manually. We avoid FormData here
+    // because Node's built-in fetch + FormData in the server bundle
+    // requires explicit Blob handling; manual construction keeps
+    // the dependency surface minimal.
+    const boundary =
+      "----FF90MediaBoundary" +
+      Math.random().toString(36).slice(2, 10) +
+      Date.now().toString(36);
+    const enc = new TextEncoder();
+    const parts: Uint8Array[] = [];
+    const push = (s: string) => parts.push(enc.encode(s));
+    const pushBytes = (b: Uint8Array) => parts.push(b);
+    // file part
+    push(`--${boundary}\r\n`);
+    push(
+      `Content-Disposition: form-data; name="file"; filename="${input.filename.replace(/"/g, "")}"\r\n`,
+    );
+    push(`Content-Type: ${input.mimeType}\r\n\r\n`);
+    pushBytes(input.buffer);
+    push("\r\n");
+    // alt_text, caption, title parts
+    if (input.altText) {
+      push(`--${boundary}\r\n`);
+      push(`Content-Disposition: form-data; name="alt_text"\r\n\r\n`);
+      push(`${input.altText}\r\n`);
+    }
+    if (input.caption) {
+      push(`--${boundary}\r\n`);
+      push(`Content-Disposition: form-data; name="caption"\r\n\r\n`);
+      push(`${input.caption}\r\n`);
+    }
+    if (input.title) {
+      push(`--${boundary}\r\n`);
+      push(`Content-Disposition: form-data; name="title"\r\n\r\n`);
+      push(`${input.title}\r\n`);
+    }
+    push(`--${boundary}--\r\n`);
+    const totalLen = parts.reduce((a, p) => a + p.byteLength, 0);
+    const body = new Uint8Array(totalLen);
+    let off = 0;
+    for (const p of parts) {
+      body.set(p, off);
+      off += p.byteLength;
+    }
+    const basic = Buffer.from(`${this.user}:${this.password}`, "utf8").toString(
+      "base64",
+    );
+    const url = `${this.base.replace(/\/+$/, "")}/media`;
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: {
+          authorization: `Basic ${basic}`,
+          accept: "application/json",
+          "content-type": `multipart/form-data; boundary=${boundary}`,
+          "content-disposition": `attachment; filename="${input.filename.replace(/"/g, "")}"`,
+        },
+        body,
+        signal: AbortSignal.timeout(this.timeoutMs),
+        // @ts-expect-error -- duplex required by Node fetch when streaming binary upload
+        duplex: "half",
+      });
+    } catch (e) {
+      const msg = (e as Error)?.message ?? "";
+      if (/timeout|abort/i.test(msg)) {
+        throw new WordPressWriteError("timeout", `wp_timeout: ${this.timeoutMs}ms`);
+      }
+      throw new WordPressWriteError("network", "wp_network_error");
+    }
+    const text = await res.text().catch(() => "");
+    if (!res.ok) {
+      const kind = res.status >= 500 ? "http_5xx" : "http_4xx";
+      throw new WordPressWriteError(kind, `wp_http_${res.status}`, res.status);
+    }
+    if (!text) return {} as WpMedia;
+    try {
+      return JSON.parse(text) as WpMedia;
+    } catch {
+      throw new WordPressWriteError("invalid_json", "wp_invalid_json");
+    }
   }
 
   /**

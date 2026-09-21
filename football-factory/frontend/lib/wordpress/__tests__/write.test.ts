@@ -41,29 +41,28 @@ function setupFetchReturning(
         headers[k.toLowerCase()] = v;
       });
     }
-    const bodyText =
-      typeof init?.body === "string"
-        ? init.body
-        : init?.body instanceof Buffer
-        ? init.body.toString("utf8")
-        : "";
+    let bodyText = "";
+    if (typeof init?.body === "string") {
+      bodyText = init.body;
+    } else if (init?.body instanceof Buffer) {
+      bodyText = init.body.toString("utf8");
+    } else if (init?.body instanceof Uint8Array) {
+      bodyText = Buffer.from(init.body).toString("utf8");
+    } else if (init?.body instanceof ArrayBuffer) {
+      bodyText = Buffer.from(new Uint8Array(init.body)).toString("utf8");
+    }
     calls.push({ url, method, headers, body: bodyText });
-    return new Response(typeof body === "string" ? body : JSON.stringify(body), {
+    const init2: { status: number; statusText: string } = {
       status,
-      headers: { "content-type": "application/json" },
-    });
-  }) as typeof fetch;
+      statusText: status === 200 ? "OK" : status === 201 ? "Created" : "Error",
+    };
+    return new Response(JSON.stringify(body), init2);
+  }) as unknown as typeof fetch;
   return {
-    fetch: globalThis.fetch,
+    fetch: ((...args: Parameters<typeof fetch>) =>
+      (globalThis.fetch as unknown as typeof fetch)(...args)) as typeof fetch,
     calls,
   };
-}
-
-function restoreFetch(): void {
-  // The setup function already saved original; we keep a no-op restore
-  // here so each test can opt to restore if it wants. We don't track
-  // the original here because tests don't actually need to restore —
-  // node:test runs each file in isolation.
 }
 
 function setEnv(): void {
@@ -187,6 +186,72 @@ test("wp-write: 5xx WP response surfaces as http_5xx (route should 502)", async 
   const c = new WordPressWriteClient();
   await assert.rejects(
     () => c.createPost({ title: "t", content: "c" }),
+    (e: unknown) =>
+      e instanceof WordPressWriteError && e.kind === "http_5xx",
+  );
+  clearEnv();
+});
+
+// ============================================================
+// PHASE 17D — uploadMedia tests
+// ============================================================
+
+test("wp-write: uploadMedia sends multipart/form-data with file part", async () => {
+  setEnv();
+  const { calls } = setupFetchReturning(201, { id: 999, source_url: "https://x/y.jpg" });
+  const c = new WordPressWriteClient();
+  const buf = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+  const m = await c.uploadMedia({
+    buffer: buf,
+    filename: "test.jpg",
+    mimeType: "image/jpeg",
+    title: "Test image",
+    altText: "alt",
+    caption: "cap",
+  });
+  assert.equal(m.id, 999);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].method, "POST");
+  assert.match(calls[0].url, /\/media$/);
+  // Multipart body must contain file + alt_text + caption + title parts.
+  assert.match(calls[0].body, /Content-Disposition: form-data; name="file"/);
+  assert.match(calls[0].body, /filename="test.jpg"/);
+  assert.match(calls[0].body, /Content-Type: image\/jpeg/);
+  assert.match(calls[0].body, /name="alt_text"/);
+  assert.match(calls[0].body, /name="caption"/);
+  assert.match(calls[0].body, /name="title"/);
+  assert.match(calls[0].headers["content-type"], /^multipart\/form-data; boundary=/);
+  // Authorization header must be present (basic auth).
+  assert.match(calls[0].headers["authorization"], /^Basic /);
+  clearEnv();
+});
+
+test("wp-write: uploadMedia throws not_configured when env missing", async () => {
+  clearEnv();
+  const c = new WordPressWriteClient();
+  await assert.rejects(
+    () =>
+      c.uploadMedia({
+        buffer: new Uint8Array([1]),
+        filename: "x.jpg",
+        mimeType: "image/jpeg",
+      }),
+    (e: unknown) =>
+      e instanceof WordPressWriteError && e.kind === "not_configured",
+  );
+});
+
+test("wp-write: uploadMedia surfaces http_5xx from WP", async () => {
+  setEnv();
+  setupFetchReturning(500, { code: "internal" });
+  const c = new WordPressWriteClient();
+  await assert.rejects(
+    () =>
+      c.uploadMedia({
+        buffer: new Uint8Array([1]),
+        filename: "x.jpg",
+        mimeType: "image/jpeg",
+      }),
     (e: unknown) =>
       e instanceof WordPressWriteError && e.kind === "http_5xx",
   );
