@@ -253,9 +253,108 @@ export function AdminResumePipeline({ item }: Props) {
     }
   }
 
+  /**
+   * Update the existing WP draft (id 18) with expanded title /
+   * excerpt / body / slug / seo fields. Uses the existing
+   * PATCH /api/admin/posts endpoint. Hard rule: status stays as
+   * "draft" — we do NOT publish or schedule. featured_media and
+   * categories are NOT touched by this button.
+   */
+  async function handleUpdateArticle() {
+    setError(null);
+    if (!title.trim()) {
+      setError("title is required for article update");
+      return;
+    }
+    if (!content.trim()) {
+      setError("body content is required for article update");
+      return;
+    }
+    if (!wpPostId) {
+      setError("no WP draft exists for this item yet — create the draft first");
+      return;
+    }
+    setBusy(true);
+    try {
+      // PATCH uses the existing /api/admin/posts admin route.
+      // We pass slug + excerpt + title + content. status is NOT
+      // set (the route keeps the existing draft status).
+      const payload: Record<string, unknown> = {
+        id: wpPostId,
+        title: title.trim(),
+        content: content,
+        ...(slug.trim() ? { slug: slug.trim() } : {}),
+        ...(description.trim() ? { excerpt: description.trim() } : {}),
+      };
+      const r = await postJson<{ ok: boolean; post?: { id: number } }>(
+        "/api/admin/posts",
+        payload,
+      );
+      appendLog(
+        `ARTICLE UPDATE: wp_post_id=${r.post?.id ?? wpPostId} ok=${r.ok}`,
+      );
+      startTransition(() => router.refresh());
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Upload a Featured Image for the existing WP draft. The operator
+   * selects a file from disk (any JPEG/PNG/WebP up to 12MB). The
+   * component forwards it to POST /api/admin/posts/media which
+   * uploads to WP and atomically sets featured_media on the draft.
+   */
+  async function handleUploadFeaturedImage(ev: React.ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    if (!wpPostId) {
+      setError("no WP draft exists for this item yet — create the draft first");
+      return;
+    }
+    const file = ev.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file, file.name);
+      fd.append("post_id", String(wpPostId));
+      fd.append(
+        "alt_text",
+        "Exterior view of the Etihad Stadium, home of Manchester City Football Club",
+      );
+      fd.append(
+        "caption",
+        "Etihad Stadium, home of Manchester City Football Club (illustrative venue image)",
+      );
+      fd.append("title", "Etihad Stadium");
+      const res = await fetch("/api/admin/posts/media", {
+        method: "POST",
+        credentials: "same-origin",
+        body: fd,
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(`http_${res.status}: ${text}`);
+      }
+      appendLog(`FEATURED IMAGE: uploaded; response=${text}`);
+      startTransition(() => router.refresh());
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const canRunSeo = !busy && !pending && title.trim() !== "" && content.trim() !== "";
   const canCreateWpDraft =
     !busy && !pending && title.trim() !== "" && content.trim() !== "";
+  const canUpdateArticle =
+    !busy && !pending && wpPostId !== null && title.trim() !== "" && content.trim() !== "";
+  const canUploadFeaturedImage = !busy && !pending && wpPostId !== null;
 
   return (
     <section
@@ -369,6 +468,33 @@ export function AdminResumePipeline({ item }: Props) {
           >
             Create WP Draft
           </button>
+          <button
+            type="button"
+            className="admin-button"
+            disabled={!canUpdateArticle}
+            onClick={() => {
+              void handleUpdateArticle();
+            }}
+            data-testid="admin-resume-article-update"
+          >
+            Update Article (title/body/slug)
+          </button>
+          <label
+            className="admin-button admin-resume-upload-label"
+            data-disabled={!canUploadFeaturedImage}
+          >
+            Upload Featured Image
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={!canUploadFeaturedImage}
+              onChange={(ev) => {
+                void handleUploadFeaturedImage(ev);
+              }}
+              data-testid="admin-resume-featured-upload"
+              style={{ display: "none" }}
+            />
+          </label>
         </div>
         <p className="admin-help">
           No publish button. No schedule button. No auto-approval. No

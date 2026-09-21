@@ -71,6 +71,33 @@ test("admin resume: exposes Create WP Draft button", () => {
   assert.match(src, /data-testid="admin-resume-wp-draft"/);
 });
 
+test("admin resume: exposes Update Article button (Phase 17D)", () => {
+  const src = readSrc(RESUME_COMP);
+  assert.match(src, /Update Article/);
+  assert.match(src, /data-testid="admin-resume-article-update"/);
+});
+
+test("admin resume: exposes Featured Image upload control (Phase 17D)", () => {
+  const src = readSrc(RESUME_COMP);
+  assert.match(src, /Upload Featured Image/);
+  assert.match(src, /data-testid="admin-resume-featured-upload"/);
+});
+
+test("admin resume: Update Article PATCHes /api/admin/posts (no create, no publish)", () => {
+  const src = readSrc(RESUME_COMP);
+  // Calls PATCH via the existing /api/admin/posts endpoint.
+  assert.match(src, /\/api\/admin\/posts/);
+  // The payload does NOT set status — keeps the existing draft.
+  const stripped = src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((l) => l.replace(/\/\/.*$/, ""))
+    .join("\n");
+  // No status: "publish" or status: "pending" anywhere in code.
+  assert.doesNotMatch(stripped, /status:\s*"publish"/);
+  assert.doesNotMatch(stripped, /status:\s*"pending"/);
+});
+
 // ============================================================
 // TARGETS THE EXISTING [id] — NO NEW ITEM CREATED
 // ============================================================
