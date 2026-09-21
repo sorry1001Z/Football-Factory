@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { AdminShellHeader } from "@/components/admin/shell-header";
 import { AdminDetail } from "@/components/admin/detail";
+import { AdminResumePipeline } from "@/components/admin/resume-pipeline";
 import { getDb } from "@/lib/db/postgres";
 import { EditorialRepository } from "@/lib/auth/editorial-repository";
 
@@ -52,6 +53,9 @@ async function AdminEditorialDetailLoader({
   return (
     <>
       <AdminDetail item={item} />
+      {/* Phase 17C: resume controls target the existing editorial item.
+          No new editorial_item is created here. */}
+      <AdminResumePipeline item={item} />
       {/* Wave D: link to the read-only SEO suggestions panel. */}
       <p>
         <a href={`/admin/editorial/${id}/seo-suggestions`}>
