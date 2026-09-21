@@ -1,0 +1,14 @@
+{
+  "news_type": "ANALYSIS",
+  "source_url": "https://www.bbc.com/sport/football/articles/mci-sun-tactical-2026-09-21",
+  "source_title": "Tactical Analysis: How Maresca's high line stretched Sunderland",
+  "publisher": "BBC Sport",
+  "published_at": "2026-09-21T09:00:00Z",
+  "competition": "Premier League",
+  "teams": ["Manchester City", "Sunderland"],
+  "people": ["Enzo Maresca"],
+  "source_text": "Maresca's choice to push his defensive line ten yards higher than usual paid dividends in transition. The two goals City scored from high turnovers (Cherki 29', Semenyo 57') both came from regains inside the Sunderland half. Sunderland's first goal came from a direct ball over the top, exposing the space behind the line. The numbers: 73% possession for City, 12 shots to 9, xG 3.1 to 1.6.",
+  "source_type": "reputable_media",
+  "requested_by": "ff90-test-fixture",
+  "optional_metadata": {"fixture_id": "pl-2026-09-20-mci-sun-tactical"}
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/editorial.schema.json",
+  "title": "FF90 Editorial Payload",
+  "description": "Editorial fields produced by FF90-02 and consumed by FF90-04. Reused by the admin UI for resume.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["run_id", "editorial_item_id", "news_type", "title_th", "body_th"],
+  "properties": {
+    "run_id": {"type": "string", "format": "uuid"},
+    "editorial_item_id": {"type": "string", "format": "uuid"},
+    "source_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "news_type": {
+      "type": "string",
+      "enum": ["RESULT", "PREVIEW", "ANALYSIS", "TRANSFER", "BREAKING"]
+    },
+    "title_th": {"type": "string", "minLength": 1, "maxLength": 500},
+    "subtitle_th": {"type": "string", "maxLength": 500},
+    "excerpt_th": {"type": "string", "maxLength": 1000},
+    "body_th": {"type": "string", "minLength": 1, "maxLength": 30000},
+    "slug": {"type": "string", "pattern": "^[a-z0-9-]{3,64}$"},
+    "fact_provider_status": {"type": "string", "enum": ["not_configured", "configured", "pending", "ok", "error"]},
+    "fact_check_state": {"type": "string", "enum": ["pending_manual", "cleared", "rejected", "missing", "flagged"]},
+    "image_prompt": {"type": "object"},
+    "binary_data": {"type": "string"},
+    "image_meta": {
+      "type": "object",
+      "properties": {
+        "alt_text": {"type": "string", "maxLength": 500},
+        "caption": {"type": "string", "maxLength": 1000},
+        "credit_line": {"type": "string", "maxLength": 500},
+        "source_kind": {"type": "string", "enum": ["licensed_photo", "licensed_graphic", "ai_generated"]},
+        "source_url": {"type": "string"},
+        "original_url": {"type": "string"},
+        "author": {"type": "string"},
+        "license": {"type": "string"},
+        "license_url": {"type": "string"},
+        "attribution": {"type": "string"},
+        "provider": {"type": "string"},
+        "provider_request_id": {"type": "string"}
+      }
+    }
+  }
+}

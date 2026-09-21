@@ -1,0 +1,301 @@
+{
+  "name": "FF90-02 Editorial Factory",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff90-02-cron",
+      "name": "Cron: every 5m (or webhook)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.ff90.online/api/admin/automation/{{ $json.run_id }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-02-fetch-run",
+      "name": "GET run state",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300],
+      "notes": "We do NOT need an admin session cookie for /api/admin/automation/[runId] — that endpoint accepts the automation secret header as a server-to-server call. (See app/api/admin/automation/[runId]/route.ts). Wait — that endpoint requires requireAdminOrEditor(session). The n8n flow uses /api/automation/* routes for server-to-server. The admin endpoint is for the human UI. For editorial factory we read state via /api/automation/approval-status or via the run id directly. See FF90-MASTER contract note: we always pass run_id through the pipeline and re-derive editorial_item_id from the run."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Editorial Factory — classify news type\n// Inputs: run_id, editorial_item_id, source payload (passed via $json)\n// Output: news_type classification + LLM-ready article brief\nconst run = $json.run || {};\nconst src = $json.source || {};\nlet newsType = 'RESULT';\nconst lower = (src.source_title || '').toLowerCase();\nconst text = (src.source_text || '').toLowerCase();\nif (/preview|preview:|pre-match/.test(lower)) newsType = 'PREVIEW';\nif (/analysis|tactics|tactical|report card/.test(lower)) newsType = 'ANALYSIS';\nif (/transfer|sign|loan|move to|move from|joins|depart/.test(lower)) newsType = 'TRANSFER';\nif (/breaking|just in|developing/.test(lower)) newsType = 'BREAKING';\nreturn [{\n  json: {\n    run_id: $json.run_id,\n    editorial_item_id: $json.editorial_item_id,\n    source_id: $json.source_id,\n    news_type: newsType,\n    classification_basis: { lower, text_excerpt: text.slice(0, 280) },\n  }\n}];\n"
+      },
+      "id": "ff90-02-classify",
+      "name": "Classify news type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the LLM article prompt (Thai). NEVER invents quotes, statistics,\n// transfers, or injuries. Notes the news_type for downstream template routing.\nconst newsType = $json.news_type;\nconst src = $json.source || {};\nconst titleHint = src.source_title || '';\nconst text = src.source_text || '';\nconst prompt = [\n  'You are writing a Thai football news article for FF90.online.',\n  `News type: ${newsType}.`,\n  'Hard rules:',\n  ' - natural Thai, football-news style',\n  ' - clear paragraphs (no giant wall of text)',\n  ' - no invented quote',\n  ' - no invented statistic',\n  ' - no fabricated transfer or injury information',\n  ' - no long verbatim copying of source text',\n  ' - 2,000-3,500 Thai characters when source material supports it',\n  '   (NEVER pad with fabricated content to reach a length target)',\n  '',\n  `Source title: ${titleHint}`,\n  `Publisher: ${src.publisher || '(unknown)'}`,\n  `Published at: ${src.published_at || '(unknown)'}`,\n  `Competition: ${src.competition || '(unknown)'}`,\n  `Teams: ${(src.teams || []).join(', ') || '(unknown)'}`,\n  `People: ${(src.people || []).join(', ') || '(unknown)'}`,\n  '',\n  'Source text:',\n  text.slice(0, 8000),\n].join('\\n');\nreturn [{ json: { ...$json, article_prompt: prompt } }];\n"
+      },
+      "id": "ff90-02-prompt",
+      "name": "Build article prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1020, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.ff90.online/api/automation/ai-assist",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"prompt\": $json.article_prompt,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-02-ai",
+      "name": "POST /api/automation/ai-assist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 300],
+      "notes": "Server-side AI assist call. Returns a draft title + body. Persists a content_hash server-side; we still pass the body downstream as the operator-resumable payload."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/seo-check",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"slug\": $('POST /api/automation/ai-assist').item.json.slug,\n  \"description\": $('POST /api/automation/ai-assist').item.json.excerpt,\n  \"news_type\": $json.news_type\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-02-seo",
+      "name": "POST /api/automation/seo-check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/fact-check",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-02-fact",
+      "name": "POST /api/automation/fact-check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 300],
+      "notes": "If the provider is not configured, the server returns provider_status='not_configured' and the editorial item is held at fact_check_state='pending_manual'. n8n MUST NOT auto-pass on timeout."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_02_editorial_factory_complete\",\n  \"stage\": \"editorial_factory\",\n  \"status\": $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human',\n  \"message\": \"Editorial factory complete\",\n  \"metadata\": {\n    \"news_type\": $json.news_type,\n    \"seo_status\": $('POST /api/automation/seo-check').item.json.seo_check_status,\n    \"fact_provider_status\": $('POST /api/automation/fact-check').item.json.provider_status\n  }\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "ff90-02-log",
+      "name": "Audit log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2060, 300]
+    }
+  ],
+  "connections": {
+    "Cron: every 5m (or webhook)": {
+      "main": [
+        [
+          {
+            "node": "GET run state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET run state": {
+      "main": [
+        [
+          {
+            "node": "Classify news type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify news type": {
+      "main": [
+        [
+          {
+            "node": "Build article prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build article prompt": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/ai-assist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/ai-assist": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/seo-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/seo-check": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/fact-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/fact-check": {
+      "main": [
+        [
+          {
+            "node": "Audit log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {"name": "ff90"},
+    {"name": "phase-18a"}
+  ],
+  "id": "ff90-02",
+  "versionId": "1.0.0"
+}

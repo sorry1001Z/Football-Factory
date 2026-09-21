@@ -1,0 +1,262 @@
+{
+  "name": "FF90-01 Source Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff90-01-cron",
+      "name": "Cron: every 15m (or webhook)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "notes": "POLL trigger. In production replace with a webhook for ad-hoc intakes. Inputs are normalized source jobs queued externally."
+    },
+    {
+      "parameters": {
+        "jsCode": "// FF90-01 Source Intake — Input normalizer\n// Accepts a normalized job shape and produces a canonical source record.\n// NEVER fabricates timestamps; if the source has no published_at, we\n// mark it null and the downstream dedupe step decides.\nconst item = items[0].json;\nconst canonical = {\n  canonical_url: typeof item.source_url === 'string' ? item.source_url.trim() : '',\n  source_title: typeof item.source_title === 'string' ? item.source_title : '',\n  publisher: typeof item.publisher === 'string' ? item.publisher : '',\n  published_at: typeof item.published_at === 'string' ? item.published_at : null,\n  competition: typeof item.competition === 'string' ? item.competition : '',\n  teams: Array.isArray(item.teams) ? item.teams : [],\n  people: Array.isArray(item.people) ? item.people : [],\n  source_text: typeof item.source_text === 'string' ? item.source_text : '',\n  source_type: typeof item.source_type === 'string' ? item.source_type : 'other',\n  raw: item,\n};\n// Compute source_id deterministically from canonical_url + source_title.\nconst crypto = require('crypto');\nconst h = crypto.createHash('sha256');\nh.update(canonical.canonical_url || canonical.source_title || '');\nh.update('\\u0000');\nh.update(canonical.published_at || '');\ncanonical.source_id = 'src:' + h.digest('hex').slice(0, 48);\nreturn [{ json: canonical }];\n"
+      },
+      "id": "ff90-01-normalize",
+      "name": "Normalize source",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.ff90.online/api/automation/deduplicate",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"idempotency_key\": \"ff90-01:\" + $json.source_id,\n  \"workflow\": \"FF90-01-source-intake\",\n  \"payload\": {\n    \"source_id\": $json.source_id,\n    \"canonical_url\": $json.canonical_url,\n    \"source_title\": $json.source_title\n  }\n}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-01-dedupe",
+      "name": "POST /api/automation/deduplicate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [780, 300],
+      "notes": "Reuses the existing automation dedupe endpoint. Returns run_id which we use for the editorial hook downstream."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.duplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-01-isdup",
+      "name": "Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1060, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Duplicate path: stop safely. No editorial item is created.\n// Surface a clean status to the audit log + admin UI.\nreturn [{\n  json: {\n    status: 'duplicate',\n    source_id: items[0].json.source_id,\n    run_id: $('POST /api/automation/deduplicate').item.json.run_id,\n    stage: 'source_intake',\n    error_code: null,\n    retryable: false,\n    timestamp: new Date().toISOString(),\n  }\n}];\n"
+      },
+      "id": "ff90-01-dup-end",
+      "name": "STOP: duplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/editorial-item",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $('POST /api/automation/deduplicate').item.json.run_id,\n  \"source_id\": $json.source_id,\n  \"title\": $json.source_title,\n  \"source_url\": $json.canonical_url,\n  \"source_name\": $json.publisher,\n  \"metadata\": {\n    \"source_type\": $json.source_type,\n    \"published_at\": $json.published_at,\n    \"competition\": $json.competition,\n    \"teams\": $json.teams,\n    \"people\": $json.people,\n    \"source_intake_run_at\": new Date().toISOString()\n  }\n}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-01-hook3",
+      "name": "POST /api/automation/editorial-item",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 440],
+      "notes": "Creates (or reuses) the editorial_item via the existing automation hook. Returns editorial_item_id, stage=editorial_created."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $('POST /api/automation/deduplicate').item.json.run_id,\n  \"action\": \"ff90_01_source_intake_complete\",\n  \"stage\": \"source_intake\",\n  \"status\": \"success\",\n  \"message\": \"FF90-01 source intake complete\",\n  \"metadata\": {\n    \"source_id\": $json.source_id,\n    \"editorial_item_id\": $('POST /api/automation/editorial-item').item.json.editorial_item_id,\n    \"source_type\": $json.source_type\n  }\n}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ff90-01-log",
+      "name": "Audit log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1620, 440]
+    }
+  ],
+  "connections": {
+    "Cron: every 15m (or webhook)": {
+      "main": [
+        [
+          {
+            "node": "Normalize source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize source": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/deduplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/deduplicate": {
+      "main": [
+        [
+          {
+            "node": "Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "STOP: duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST /api/automation/editorial-item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/editorial-item": {
+      "main": [
+        [
+          {
+            "node": "Audit log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ff90"
+    },
+    {
+      "name": "phase-18a"
+    }
+  ],
+  "meta": {
+    "instanceId": "ff90-automation"
+  },
+  "id": "ff90-01",
+  "versionId": "1.0.0"
+}

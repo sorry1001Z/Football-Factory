@@ -1,0 +1,14 @@
+{
+  "news_type": "PREVIEW",
+  "source_url": "https://www.premierleague.com/match/9409",
+  "source_title": "Match Preview: Liverpool vs Arsenal",
+  "publisher": "Premier League",
+  "published_at": "2026-09-22T08:00:00Z",
+  "competition": "Premier League",
+  "teams": ["Liverpool", "Arsenal"],
+  "people": ["Arne Slot", "Mikel Arteta"],
+  "source_text": "Liverpool host Arsenal at Anfield on Saturday afternoon. Both sides are unbeaten in their last four league outings. Slot may rotate after the midweek European fixture. Arteta's side have conceded only two goals in six matches.",
+  "source_type": "official_league",
+  "requested_by": "ff90-test-fixture",
+  "optional_metadata": {"fixture_id": "pl-2026-09-23-liv-ars"}
+}

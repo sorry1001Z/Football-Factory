@@ -1,0 +1,141 @@
+{
+  "name": "FF90-05 Human Review Gate",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {"field": "minutes", "minutesInterval": 5}
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff90-05-cron",
+      "name": "Cron: every 5m (also fires on human webhook)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Resolve publish_mode from env or explicit config.\n// FAIL-CLOSED: missing or unknown → manual_review.\nconst modeRaw = ($env.PUBLISH_MODE || 'manual_review').toString().trim().toLowerCase();\nconst allowed = ['manual_review', 'timeout_auto', 'full_auto'];\nconst mode = allowed.includes(modeRaw) ? modeRaw : 'manual_review';\nreturn [{ json: { ...$json, publish_mode: mode } }];\n"
+      },
+      "id": "ff90-05-mode",
+      "name": "Resolve publish mode",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "notes": "Phase 18A: PUBLISH_MODE must be 'manual_review'. Any other value is overridden to manual_review. Timeout_auto and full_auto are kept for future activation but are NEVER honored in this slice."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the human-review notification payload. The adapter writes it\n// to the FF90 admin notification record; if a Telegram/email/LINE\n// channel is configured, the adapter also delivers. We do NOT log\n// any credentials; channel routing happens server-side.\nconst payload = {\n  headline_th: $json.headline_th || '',\n  qa_article: $json.qa_article || 'PASS',\n  qa_fact: $json.qa_fact || 'HOLD',\n  qa_seo: $json.qa_seo || 'PASS',\n  qa_cover: $json.qa_cover || 'HOLD',\n  qa_image_rights: $json.qa_image_rights || 'PASS',\n  qa_wp_draft: $json.qa_wp_draft || 'PASS',\n  qa_desktop: $json.qa_desktop || 'PASS',\n  qa_mobile: $json.qa_mobile || 'PASS',\n  wp_post_id: $json.wp_post_id || null,\n  actions: ['APPROVE', 'REJECT', 'OPEN_PREVIEW'],\n  publish_mode: $json.publish_mode,\n};\nreturn [{ json: { ...$json, review_payload: payload } }];\n"
+      },
+      "id": "ff90-05-notify",
+      "name": "Build notification payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/alert",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"severity\": \"info\",\n  \"source\": \"ff90-05-human-review-gate\",\n  \"message\": \"FF90 NEWS READY FOR REVIEW\",\n  \"context\": $json.review_payload,\n  \"run_id\": $json.run_id\n}",
+        "options": {"timeout": 15000, "response": {"response": {"responseFormat": "json"}}}
+      },
+      "id": "ff90-05-alert",
+      "name": "POST /api/automation/alert (review-ready)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 300],
+      "notes": "Persists to analytics_events. The admin UI reads these to surface 'Review ready' on the editorial item. A future Telegram adapter (separate workflow) can also subscribe to this same alert."
+    },
+    {
+      "parameters": {
+        "jsCode": "// WAIT for explicit human decision. In manual_review mode this\n// is the terminal node of FF90-05. The wait is bounded only by\n// a periodic re-poll — there is NO timeout auto-pass.\nreturn [{\n  json: {\n    ...$json,\n    waiting_since: new Date().toISOString(),\n    waiting_until: null,\n    auto_pass_after: null,\n    mode_in_effect: 'manual_review',\n    note: 'No timeout auto-pass in manual_review mode. The item stays at status=waiting_human_review and wp_post_status=draft indefinitely until the operator approves or rejects via /admin/editorial/[id] or an explicit /api/admin/editorial/[id]/approval call. This is enforced by the server (which rejects timeout_auto_pass when publish_mode=manual_review) and by the workflow (which has no wait-for-response timer).',\n  },\n}];\n"
+      },
+      "id": "ff90-05-wait",
+      "name": "Wait for explicit human decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 300],
+      "notes": "manual_review: WAIT indefinitely. NO 1-hour auto-pass. Item remains at status=waiting_human_review and wp_post_status=draft until the operator issues an explicit decision through the existing /api/admin/editorial/[id]/approval endpoint (admin session) or /api/automation/approval-status (which is read-only)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "conditions": [
+            {"leftValue": "={{ $json.review_decision }}", "rightValue": "approved", "operator": {"type": "string", "operation": "equals"}}
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-05-decision",
+      "name": "Human decision?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// APPROVE branch. Approval_method=manual. Status flips to ready_to_publish\n// but THIS WORKFLOW NEVER CALLS wp-publish — that is an explicit operator\n// action only. The future full_auto mode would invoke wp-publish from here.\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'approved',\n    approval_method: 'manual',\n    approved_at: new Date().toISOString(),\n    wp_publish_called: false,\n    note: 'Phase 18A: APPROVE marks the item ready for publish but does NOT auto-publish. Operator must invoke wp-publish separately.',\n  },\n}];\n"
+      },
+      "id": "ff90-05-approved",
+      "name": "APPROVE branch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1840, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "// REJECT branch. Record reason; do not publish.\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'rejected',\n    status: 'held_for_revision',\n    reject_reason: $json.review_reason || 'unspecified',\n    rejected_at: new Date().toISOString(),\n  },\n}];\n"
+      },
+      "id": "ff90-05-rejected",
+      "name": "REJECT branch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1840, 440]
+    }
+  ],
+  "connections": {
+    "Cron: every 5m (also fires on human webhook)": {
+      "main": [[{"node": "Resolve publish mode", "type": "main", "index": 0}]]
+    },
+    "Resolve publish mode": {
+      "main": [[{"node": "Build notification payload", "type": "main", "index": 0}]]
+    },
+    "Build notification payload": {
+      "main": [[{"node": "POST /api/automation/alert (review-ready)", "type": "main", "index": 0}]]
+    },
+    "POST /api/automation/alert (review-ready)": {
+      "main": [[{"node": "Wait for explicit human decision", "type": "main", "index": 0}]]
+    },
+    "Wait for explicit human decision": {
+      "main": [[{"node": "Human decision?", "type": "main", "index": 0}]]
+    },
+    "Human decision?": {
+      "main": [
+        [{"node": "APPROVE branch", "type": "main", "index": 0}],
+        [{"node": "REJECT branch", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "ff90"}, {"name": "phase-18a"}],
+  "id": "ff90-05",
+  "versionId": "1.0.0"
+}

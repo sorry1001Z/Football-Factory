@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/review.schema.json",
+  "title": "FF90 Human Review Notification",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["headline_th", "wp_post_id", "publish_mode"],
+  "properties": {
+    "headline_th": {"type": "string", "minLength": 1, "maxLength": 500},
+    "qa_article": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_fact": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_seo": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_cover": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_image_rights": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_wp_draft": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_desktop": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "qa_mobile": {"type": "string", "enum": ["PASS", "FAIL", "HOLD", "NOT_CONFIGURED"]},
+    "wp_post_id": {"type": "integer", "minimum": 1},
+    "actions": {"type": "array", "items": {"type": "string", "enum": ["APPROVE", "REJECT", "OPEN_PREVIEW"]}},
+    "publish_mode": {"type": "string", "enum": ["manual_review", "timeout_auto", "full_auto"]}
+  }
+}

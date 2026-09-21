@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/source.schema.json",
+  "title": "FF90 Source Intake Input",
+  "description": "Normalized source job accepted by FF90-MASTER webhook and FF90-01. NEVER include credentials, AUTOMATION_SECRET, or session cookies in this payload.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["source_url"],
+  "properties": {
+    "source_url": {"type": "string", "format": "uri", "minLength": 8, "maxLength": 2048},
+    "source_title": {"type": "string", "minLength": 1, "maxLength": 500},
+    "publisher": {"type": "string", "maxLength": 256},
+    "published_at": {
+      "oneOf": [
+        {"type": "string", "format": "date-time"},
+        {"type": "null"}
+      ]
+    },
+    "competition": {"type": "string", "maxLength": 256},
+    "teams": {"type": "array", "items": {"type": "string", "maxLength": 256}, "maxItems": 8},
+    "people": {"type": "array", "items": {"type": "string", "maxLength": 256}, "maxItems": 16},
+    "source_text": {"type": "string", "maxLength": 80000},
+    "source_type": {
+      "type": "string",
+      "enum": ["official_club", "official_league", "official_federation", "reputable_media", "other"],
+      "default": "other"
+    },
+    "requested_by": {"type": "string", "maxLength": 256},
+    "optional_metadata": {"type": "object"}
+  }
+}

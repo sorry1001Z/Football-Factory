@@ -1,0 +1,14 @@
+{
+  "news_type": "BREAKING",
+  "source_url": "https://www.bbc.com/sport/football/breaking-2026-09-22",
+  "source_title": "Breaking: Manager leaves club by mutual consent",
+  "publisher": "BBC Sport",
+  "published_at": "2026-09-22T14:15:00Z",
+  "competition": "Premier League",
+  "teams": ["Club Name"],
+  "people": ["Manager Name"],
+  "source_text": "BREAKING: A Premier League club has confirmed that their manager has left the club by mutual consent. An interim coaching team will take charge for the upcoming fixture.",
+  "source_type": "reputable_media",
+  "requested_by": "ff90-test-fixture",
+  "optional_metadata": {"fixture_id": "breaking-2026-09-22-anon"}
+}

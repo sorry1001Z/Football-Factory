@@ -1,0 +1,14 @@
+{
+  "news_type": "TRANSFER",
+  "source_url": "https://www.bbc.com/sport/football/transfer-news/sample-2026-09",
+  "source_title": "Transfer: Midfielder agrees personal terms with new club",
+  "publisher": "BBC Sport",
+  "published_at": "2026-09-22T11:00:00Z",
+  "competition": "Premier League",
+  "teams": ["Source Club", "Destination Club"],
+  "people": ["Player Name", "Director of Football"],
+  "source_text": "A midfielder has agreed personal terms with a Premier League club. The transfer is subject to a medical and work permit. The fee has not been disclosed by either club. The deal is expected to be completed within the week.",
+  "source_type": "reputable_media",
+  "requested_by": "ff90-test-fixture",
+  "optional_metadata": {"fixture_id": "transfer-2026-09-22-anon"}
+}

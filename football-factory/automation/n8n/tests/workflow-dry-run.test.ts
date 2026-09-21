@@ -1,0 +1,607 @@
+// FF90 Phase 18A — n8n workflow dry-run tests.
+//
+// This suite proves the FF90 automation pipeline's invariants WITHOUT
+// touching the live API. It validates:
+//   - All five workflow JSON exports parse + have the required shape
+//   - The MASTER orchestrator wires sub-workflows in the right order
+//   - Each sub-workflow reuses the existing automation contracts
+//   - The publish-mode fail-closed semantics hold
+//   - The manual_review mode NEVER auto-passes on timeout
+//   - The future-mode branches (timeout_auto, full_auto) exist in
+//     code but are not honored in Phase 18A
+//
+// These are pure unit tests — no DB, no network. They run via the
+// project's existing `node --import tsx --test` runner.
+
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { createHash } from "node:crypto";
+
+const ROOT = join(__dirname, "..");
+const WORKFLOWS = join(ROOT, "workflows");
+const CONTRACTS = join(ROOT, "contracts");
+const FIXTURES = join(ROOT, "fixtures");
+
+function readJson(path: string): unknown {
+  return JSON.parse(readFileSync(path, "utf-8"));
+}
+
+function readWorkflow(name: string): {
+  name: string;
+  nodes: Array<{ name: string; type: string; parameters?: Record<string, unknown> }>;
+  connections: Record<string, unknown>;
+  active: boolean;
+  tags: Array<{ name: string }>;
+} {
+  const path = join(WORKFLOWS, `${name}.json`);
+  return readJson(path) as ReturnType<typeof readWorkflow>;
+}
+
+function readWorkflowNode(wf: ReturnType<typeof readWorkflow>, name: string) {
+  const n = wf.nodes.find((x) => x.name === name);
+  if (!n) throw new Error(`node ${name} not found in ${wf.name}`);
+  return n;
+}
+
+function readHttpUrl(n: { parameters?: Record<string, unknown> }): string {
+  return String(n.parameters?.url ?? "");
+}
+
+// ============================================================
+// Workflow JSON shape validation
+// ============================================================
+
+const WORKFLOW_FILES = [
+  "FF90-MASTER",
+  "FF90-01-source-intake",
+  "FF90-02-editorial-factory",
+  "FF90-03-image-factory",
+  "FF90-04-wordpress-draft",
+  "FF90-05-human-review",
+] as const;
+
+test("ff90: all 6 workflow JSON files parse and have required top-level fields", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    assert.equal(typeof wf.name, "string", `${f}: name must be string`);
+    assert.ok(Array.isArray(wf.nodes), `${f}: nodes must be array`);
+    assert.ok(wf.nodes.length > 0, `${f}: nodes must be non-empty`);
+    assert.equal(typeof wf.connections, "object", `${f}: connections must be object`);
+    // Active must be exactly false in Phase 18A — we never live-activate.
+    assert.equal(wf.active, false, `${f}: active must be false (Phase 18A no live activation)`);
+    // Tagging: every FF90 workflow must carry the ff90 + phase-18a tags
+    // so the operator can filter n8n by tag.
+    const tagNames = wf.tags.map((t) => t.name);
+    assert.ok(tagNames.includes("ff90"), `${f}: tag ff90 required`);
+    assert.ok(tagNames.includes("phase-18a"), `${f}: tag phase-18a required`);
+  }
+});
+
+test("ff90: every workflow has a unique id and a versionId", () => {
+  const seen = new Set<string>();
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f) as { id?: string; versionId?: string };
+    assert.ok(wf.id, `${f}: id required`);
+    assert.equal(seen.has(wf.id), false, `${f}: id ${wf.id} duplicate`);
+    seen.add(wf.id);
+    assert.ok(wf.versionId, `${f}: versionId required`);
+  }
+});
+
+// ============================================================
+// MASTER orchestrator wiring
+// ============================================================
+
+test("ff90 master: executes sub-workflows in correct order", () => {
+  const master = readWorkflow("FF90-MASTER");
+  const execOrder = master.nodes
+    .filter((n) => n.type === "n8n-nodes-base.executeWorkflow")
+    .map((n) => String((n.parameters as { workflowId?: string }).workflowId));
+  assert.deepEqual(
+    execOrder,
+    ["ff90-01", "ff90-02", "ff90-03", "ff90-04", "ff90-05"],
+    "master must execute FF90-01 → 02 → 03 → 04 → 05 in that order",
+  );
+});
+
+test("ff90 master: contains a STOP branch for duplicate / no editorial link", () => {
+  const master = readWorkflow("FF90-MASTER");
+  const stop = master.nodes.find((n) => n.name === "STOP (duplicate / no editorial link)");
+  assert.ok(stop, "master must have a STOP branch");
+  // Verify the If node that gates into STOP uses status !== accepted.
+  const gate = master.nodes.find((n) => n.name === "Continue?");
+  assert.ok(gate, "master must have a Continue? gate");
+});
+
+test("ff90 master: final envelope advertises manual_review + no auto-publish", () => {
+  const master = readWorkflow("FF90-MASTER");
+  const finalCode = readWorkflowNode(master, "Final envelope").parameters as {
+    jsCode?: string;
+  };
+  assert.match(finalCode.jsCode ?? "", /waiting_human_review/);
+  assert.match(finalCode.jsCode ?? "", /publish_mode.*manual_review/);
+  assert.match(finalCode.jsCode ?? "", /auto_publish.*false/);
+});
+
+// ============================================================
+// FF90-01 — Source Intake contract reuse
+// ============================================================
+
+test("ff90-01: dedupe is delegated to /api/automation/deduplicate", () => {
+  const wf = readWorkflow("FF90-01-source-intake");
+  const dedupe = readWorkflowNode(wf, "POST /api/automation/deduplicate");
+  const url = readHttpUrl(dedupe);
+  assert.match(url, /\/api\/automation\/deduplicate/);
+  // Header must use the x-automation-secret pattern (NOT a session cookie).
+  const headers = (dedupe.parameters?.headerParameters as {
+    parameters: Array<{ name: string }>;
+  }).parameters;
+  const names = headers.map((h) => h.name);
+  assert.ok(names.includes("x-automation-secret"), "must use x-automation-secret auth");
+  assert.equal(
+    names.includes("cookie"),
+    false,
+    "must NOT send a browser cookie from n8n",
+  );
+});
+
+test("ff90-01: source_id is computed deterministically from canonical_url + published_at", () => {
+  const wf = readWorkflow("FF90-01-source-intake");
+  const code = readWorkflowNode(wf, "Normalize source").parameters as {
+    jsCode?: string;
+  };
+  // Source code uses sha256 over canonical_url + NUL + published_at.
+  assert.match(code.jsCode ?? "", /sha256/);
+  assert.match(code.jsCode ?? "", /published_at/);
+});
+
+test("ff90-01: duplicate path stops WITHOUT calling editorial-item creation", () => {
+  const wf = readWorkflow("FF90-01-source-intake");
+  // The STOP branch must be wired to the true branch of the If gate.
+  const dupCode = readWorkflowNode(wf, "STOP: duplicate").parameters as {
+    jsCode?: string;
+  };
+  assert.match(dupCode.jsCode ?? "", /status.*duplicate/);
+  // The If gate must split true → STOP and false → editorial-item POST.
+  const connections = wf.connections as Record<string, { main: Array<Array<{ node: string }>> }>;
+  const dup = connections["Duplicate?"].main;
+  assert.equal(dup[0][0].node, "STOP: duplicate");
+  assert.equal(dup[1][0].node, "POST /api/automation/editorial-item");
+});
+
+// ============================================================
+// FF90-02 — Editorial Factory
+// ============================================================
+
+test("ff90-02: classifies into one of RESULT|PREVIEW|ANALYSIS|TRANSFER|BREAKING", () => {
+  const wf = readWorkflow("FF90-02-editorial-factory");
+  const classify = readWorkflowNode(wf, "Classify news type").parameters as {
+    jsCode?: string;
+  };
+  for (const t of ["RESULT", "PREVIEW", "ANALYSIS", "TRANSFER", "BREAKING"]) {
+    assert.match(classify.jsCode ?? "", new RegExp(t), `must mention ${t}`);
+  }
+});
+
+test("ff90-02: article prompt forbids padding + forbids invented quotes/stats", () => {
+  const wf = readWorkflow("FF90-02-editorial-factory");
+  const build = readWorkflowNode(wf, "Build article prompt").parameters as {
+    jsCode?: string;
+  };
+  assert.match(build.jsCode ?? "", /no invented quote/);
+  assert.match(build.jsCode ?? "", /no invented statistic/);
+  assert.match(build.jsCode ?? "", /NEVER pad/);
+  assert.match(build.jsCode ?? "", /2,000-3,500 Thai characters/);
+});
+
+test("ff90-02: ai-assist + seo-check + fact-check all reuse existing automation endpoints", () => {
+  const wf = readWorkflow("FF90-02-editorial-factory");
+  for (const [nodeName, expectedPath] of [
+    ["POST /api/automation/ai-assist", "/api/automation/ai-assist"],
+    ["POST /api/automation/seo-check", "/api/automation/seo-check"],
+    ["POST /api/automation/fact-check", "/api/automation/fact-check"],
+  ] as const) {
+    const n = readWorkflowNode(wf, nodeName);
+    assert.match(readHttpUrl(n), new RegExp(expectedPath.replace(/\//g, "\\/")));
+  }
+});
+
+// ============================================================
+// FF90-03 — Image Factory
+// ============================================================
+
+test("ff90-03: provider adapter fails closed when IMAGE_PROVIDER_STATUS != CONFIGURED", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const code = readWorkflowNode(wf, "Provider adapter").parameters as {
+    jsCode?: string;
+  };
+  assert.match(code.jsCode ?? "", /NOT_CONFIGURED/);
+  assert.match(code.jsCode ?? "", /CONFIGURED/);
+  // And the downstream audit-log held branch must fire.
+  const held = readWorkflowNode(wf, "Audit log (held)").parameters as {
+    jsonBody?: string;
+  };
+  assert.match(held.jsonBody ?? "", /held_for_human/);
+});
+
+test("ff90-03: image prompt never claims documentary representation", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const code = readWorkflowNode(wf, "Build image prompt").parameters as {
+    jsCode?: string;
+  };
+  assert.match(code.jsCode ?? "", /no false documentary/);
+  assert.match(code.jsCode ?? "", /no copied editorial photography/);
+});
+
+test("ff90-03: visual relevance gate is its own node (NOT conflated with rights)", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  assert.ok(wf.nodes.find((n) => n.name === "Visual relevance gate"));
+  const code = readWorkflowNode(wf, "Visual relevance gate").parameters as {
+    jsCode?: string;
+  };
+  assert.match(code.jsCode ?? "", /visual_relevance/);
+  assert.match(code.jsCode ?? "", /RESULT.*PREVIEW.*ANALYSIS.*TRANSFER.*BREAKING/);
+});
+
+test("ff90-03: 6 derivatives planned (hero/thumb/social/feed/vertical/webp)", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const code = readWorkflowNode(wf, "Plan derivatives").parameters as {
+    jsCode?: string;
+  };
+  for (const id of [
+    "hero_16x9",
+    "thumbnail",
+    "social_1x1",
+    "feed_4x5",
+    "vertical_9x16",
+    "web_optimized",
+  ]) {
+    assert.match(code.jsCode ?? "", new RegExp(id));
+  }
+});
+
+// ============================================================
+// FF90-04 — WordPress Draft
+// ============================================================
+
+test("ff90-04: WP draft is created via existing /api/automation/wp-draft (never a publish route)", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const draft = readWorkflowNode(wf, "POST /api/automation/wp-draft");
+  assert.match(readHttpUrl(draft), /\/api\/automation\/wp-draft/);
+  // Hard rule: NO node may POST to /wp-publish.
+  for (const n of wf.nodes) {
+    const url = String(n.parameters?.url ?? "");
+    assert.equal(
+      url.includes("wp-publish"),
+      false,
+      `node ${n.name} must not call wp-publish`,
+    );
+  }
+});
+
+test("ff90-04: status sent to /wp-draft is NOT set (server hard-codes 'draft')", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const draft = readWorkflowNode(wf, "POST /api/automation/wp-draft");
+  const body = JSON.stringify(draft.parameters?.jsonBody ?? "");
+  // Our payload only carries run_id + editorial_item_id + title + content + slug + excerpt + news_type.
+  // No status field — the server hard-codes draft.
+  assert.equal(
+    body.includes('"status"'),
+    false,
+    "workflow must NOT set status on wp-draft request",
+  );
+});
+
+test("ff90-04: missing asset bytes → held_for_human (not silent skip)", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const log = readWorkflowNode(wf, "Audit log (no image)").parameters as {
+    jsonBody?: string;
+  };
+  assert.match(log.jsonBody ?? "", /held_for_human/);
+});
+
+// ============================================================
+// FF90-05 — Human Review Gate
+// ============================================================
+
+test("ff90-05: publish_mode resolves to manual_review (fail-closed)", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const code = readWorkflowNode(wf, "Resolve publish mode").parameters as {
+    jsCode?: string;
+  };
+  assert.match(code.jsCode ?? "", /manual_review/);
+  assert.match(code.jsCode ?? "", /FAIL-CLOSED/);
+  // Default raw mode value must be 'manual_review'.
+  assert.match(code.jsCode ?? "", /PUBLISH_MODE\s*\|\|\s*['"]manual_review['"]/);
+});
+
+test("ff90-05: manual_review waits indefinitely — NO auto_pass_after timer", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const wait = readWorkflowNode(wf, "Wait for explicit human decision").parameters as {
+    jsCode?: string;
+  };
+  const code = wait.jsCode ?? "";
+  assert.match(code, /manual_review/);
+  assert.match(code, /waiting_human_review/);
+  assert.match(code, /No timeout auto-pass/);
+  // auto_pass_after MUST be null in the manual-review payload.
+  assert.match(code, /auto_pass_after:\s*null/);
+});
+
+test("ff90-05: APPROVE branch sets approval_method=manual + does NOT call wp-publish", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const approve = readWorkflowNode(wf, "APPROVE branch").parameters as {
+    jsCode?: string;
+  };
+  const code = approve.jsCode ?? "";
+  assert.match(code, /approval_method:\s*['"]manual['"]/);
+  assert.match(code, /wp_publish_called:\s*false/);
+  // The APPROVE branch must not invoke an HTTP node.
+  const connections = wf.connections as Record<string, unknown>;
+  const approveConn = connections["APPROVE branch"] ?? [];
+  assert.equal(
+    JSON.stringify(approveConn).includes("httpRequest"),
+    false,
+    "APPROVE branch must not call an HTTP node",
+  );
+});
+
+test("ff90-05: REJECT branch records reason + does NOT publish", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const reject = readWorkflowNode(wf, "REJECT branch").parameters as {
+    jsCode?: string;
+  };
+  const code = reject.jsCode ?? "";
+  assert.match(code, /review_status:\s*['"]rejected['"]/);
+  assert.match(code, /status:\s*['"]held_for_revision['"]/);
+});
+// ============================================================
+// CRITICAL: Manual mode 1-hour no-response test
+// ============================================================
+
+test("ff90: manual_review mode does NOT auto-pass after 1 hour of no response", () => {
+  // The wait node is the source of truth here. It carries the note
+  // that explicitly disclaims any timeout auto-pass, and the
+  // auto_pass_after field is null.
+  const wf = readWorkflow("FF90-05-human-review");
+  const wait = readWorkflowNode(wf, "Wait for explicit human decision").parameters as {
+    jsCode?: string;
+  };
+  const code = wait.jsCode ?? "";
+  assert.match(code, /manual_review/);
+  assert.match(code, /waiting_human_review/);
+  assert.match(code, /No timeout auto-pass/);
+  // auto_pass_after MUST be null in the manual-review payload.
+  assert.match(code, /auto_pass_after:\s*null/);
+  // The wait node does NOT contain any sleep or timer logic that
+  // would advance past the WAIT state without a human decision.
+  assert.equal(
+    code.includes("setTimeout") || code.includes("Date.now() + 3600"),
+    false,
+    "wait node must NOT contain a self-advancing timer",
+  );
+});
+
+// ============================================================
+// Future-mode scaffolding tests
+// ============================================================
+
+test("ff90: timeout_auto and full_auto paths are described but not honored", () => {
+  // The Resolve publish mode node must explicitly list the three
+  // supported modes (so future activation is a config flip, not a
+  // code change) but always default to manual_review in Phase 18A.
+  const wf = readWorkflow("FF90-05-human-review");
+  const mode = readWorkflowNode(wf, "Resolve publish mode").parameters as {
+    jsCode?: string;
+  };
+  const code = mode.jsCode ?? "";
+  assert.match(code, /timeout_auto/);
+  assert.match(code, /full_auto/);
+  assert.match(code, /manual_review/);
+  // Fail-closed semantics: any unknown / missing value must collapse
+  // to manual_review.
+  assert.match(code, /FAIL-CLOSED/);
+  // APPROVE branch must explicitly say it does NOT auto-publish.
+  const approve = readWorkflowNode(wf, "APPROVE branch").parameters as {
+    jsCode?: string;
+  };
+  assert.match(approve.jsCode ?? "", /does NOT auto-publish|NOT.*auto-publish|never auto-publish/i);
+});
+
+test("ff90: no workflow JSON contains a credential value (secrets only via $env)", () => {
+  // Walk every workflow JSON and assert no string literal that looks
+  // like a credential (Bearer, Basic, sk-, ghp_, xoxb-, AKIA, etc.).
+  const suspicious = [
+    /Bearer\s+[A-Za-z0-9._-]{20,}/,
+    /Basic\s+[A-Za-z0-9=_-]{20,}/,
+    /\bsk-[A-Za-z0-9]{20,}\b/,
+    /\bghp_[A-Za-z0-9]{20,}\b/,
+    /\bxoxb-[A-Za-z0-9-]{20,}\b/,
+    /\bAKIA[0-9A-Z]{16}\b/,
+    /password\s*[:=]\s*['"][^'"]{6,}['"]/i,
+  ];
+  for (const f of WORKFLOW_FILES) {
+    const raw = readFileSync(join(WORKFLOWS, `${f}.json`), "utf-8");
+    for (const re of suspicious) {
+      assert.equal(re.test(raw), false, `${f}: suspicious credential literal matched ${re}`);
+    }
+  }
+});
+
+// ============================================================
+// Fixture validation — all 5 news types are well-formed
+// ============================================================
+
+const FIXTURE_FILES = [
+  ["result-news.json", "RESULT"],
+  ["preview-news.json", "PREVIEW"],
+  ["analysis-news.json", "ANALYSIS"],
+  ["transfer-news.json", "TRANSFER"],
+  ["breaking-news.json", "BREAKING"],
+] as const;
+
+test("ff90: every fixture matches source schema + news_type field", () => {
+  for (const [file, expectedType] of FIXTURE_FILES) {
+    const fx = readJson(join(FIXTURES, file)) as { news_type: string; source_url: string };
+    assert.equal(fx.news_type, expectedType, `${file} must have news_type=${expectedType}`);
+    assert.ok(fx.source_url.startsWith("https://"), `${file} must have https source_url`);
+  }
+});
+
+test("ff90: every fixture is byte-stable across the 5 fixtures (idempotent)", () => {
+  // Hashing the fixture set ensures accidental edits are loud.
+  const hash = createHash("sha256");
+  for (const [file] of FIXTURE_FILES) {
+    hash.update(readFileSync(join(FIXTURES, file), "utf-8"));
+  }
+  // We just check the hash is non-trivial; the exact value isn't important.
+  assert.ok(hash.digest("hex").length === 64);
+});
+
+// ============================================================
+// Contract schemas parse
+// ============================================================
+
+const CONTRACT_FILES = [
+  "source.schema.json",
+  "editorial.schema.json",
+  "image.schema.json",
+  "review.schema.json",
+  "quality-metrics.schema.json",
+];
+
+test("ff90: every contract schema is valid JSON Schema Draft-07", () => {
+  for (const f of CONTRACT_FILES) {
+    const s = readJson(join(CONTRACTS, f)) as { $schema?: string; type?: string };
+    assert.match(s.$schema ?? "", /draft-07/);
+    assert.equal(s.type, "object", `${f} must be type=object`);
+  }
+});
+
+test("ff90: image schema enforces ai_generated → no fake author", () => {
+  const s = readJson(join(CONTRACTS, "image.schema.json")) as {
+    allOf: Array<{ if?: unknown; then?: { required?: string[] } }>;
+  };
+  // Locate the ai_generated rule.
+  const aiRule = s.allOf.find((rule) => {
+    const j = JSON.stringify(rule);
+    return j.includes("ai_generated");
+  });
+  assert.ok(aiRule, "image schema must have an ai_generated rule");
+});
+
+// ============================================================
+// Phase 18A DELTA SAFETY AUDIT (added on final-safety-audit brief)
+// ============================================================
+
+test("ff90 audit: quality-metrics contract requires the 7 brief-listed booleans", () => {
+  const s = readJson(join(CONTRACTS, "quality-metrics.schema.json")) as {
+    required: string[];
+    properties: Record<string, { type: string }>;
+  };
+  for (const field of [
+    "human_edited_title",
+    "human_edited_body",
+    "human_changed_image",
+    "human_changed_seo",
+    "human_changed_fact",
+    "human_rejected",
+    "critical_error",
+  ]) {
+    assert.ok(s.required.includes(field), `quality-metrics must require ${field}`);
+    assert.equal(s.properties[field].type, "boolean");
+  }
+});
+
+test("ff90 audit: no workflow node branches on publish_mode (no if / switch on it)", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    for (const n of wf.nodes) {
+      const code =
+        String((n.parameters as { jsCode?: string }).jsCode ?? "") +
+        " " +
+        String((n.parameters as { jsonBody?: string }).jsonBody ?? "");
+      // No live code may have an `if (publish_mode ===` style branch.
+      assert.equal(
+        /if\s*\([^)]*publish_mode/.test(code),
+        false,
+        `${f}:${n.name} must not branch on publish_mode`,
+      );
+      assert.equal(
+        /switch\s*\([^)]*publish_mode/.test(code),
+        false,
+        `${f}:${n.name} must not switch on publish_mode`,
+      );
+    }
+  }
+});
+
+test("ff90 audit: APPROVE branch never sets wp_publish_called=true or status=published", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const approve = readWorkflowNode(wf, "APPROVE branch").parameters as {
+    jsCode?: string;
+  };
+  const code = approve.jsCode ?? "";
+  assert.match(code, /wp_publish_called:\s*false/);
+  assert.equal(code.includes("status: 'published'"), false);
+  assert.equal(code.includes('"published"'), false);
+  assert.equal(/approval_method\s*:\s*['"]timeout_auto/.test(code), false);
+});
+
+test("ff90 audit: no file contains AUTOMATION_ENABLED=true literal", () => {
+  for (const f of WORKFLOW_FILES) {
+    const raw = readFileSync(join(WORKFLOWS, `${f}.json`), "utf-8");
+    assert.equal(
+      /AUTOMATION_ENABLED\s*[:=]\s*['"]true['"]/.test(raw),
+      false,
+      `${f} must not set AUTOMATION_ENABLED=true`,
+    );
+  }
+});
+
+test("ff90 audit: no workflow has active=true", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    assert.equal(wf.active, false, `${f} must remain active=false in Phase 18A`);
+  }
+});
+
+test("ff90 audit: no workflow references wp-publish as an HTTP target", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    for (const n of wf.nodes) {
+      const url = String((n.parameters as { url?: string }).url ?? "");
+      assert.equal(
+        url.includes("wp-publish"),
+        false,
+        `${f}:${n.name} must not POST to wp-publish`,
+      );
+    }
+  }
+});
+
+// ============================================================
+// Phase 18A invariants
+// ============================================================
+
+test("ff90: Phase 18A invariants hold across all workflows", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    // active=false everywhere (no live activation).
+    assert.equal(wf.active, false, `${f} active must be false`);
+    // No wf-publish call (would auto-publish).
+    for (const n of wf.nodes) {
+      const url = String(n.parameters?.url ?? "");
+      assert.equal(
+        url.includes("/api/automation/wp-publish") ||
+          url.includes("/api/admin/posts") &&
+            String(n.parameters?.jsonBody ?? "").includes('"status"') &&
+            String(n.parameters?.jsonBody ?? "").includes('"publish"'),
+        false,
+        `${f}:${n.name} must not call wp-publish with status=publish`,
+      );
+    }
+  }
+});

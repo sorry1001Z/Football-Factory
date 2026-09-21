@@ -1,0 +1,9 @@
+{
+  "name": "ff90-automation",
+  "private": true,
+  "version": "0.0.0",
+  "description": "FF90 n8n automation workspace (Phase 18A — local-only, not live-activated).",
+  "scripts": {
+    "test": "node --conditions=react-server --import tsx --test \"../../automation/n8n/tests/workflow-dry-run.test.ts\""
+  }
+}

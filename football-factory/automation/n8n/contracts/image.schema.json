@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/image.schema.json",
+  "title": "FF90 Image Asset Metadata",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["source_kind"],
+  "properties": {
+    "source_kind": {"type": "string", "enum": ["licensed_photo", "licensed_graphic", "ai_generated"]},
+    "source_url": {"type": "string"},
+    "original_url": {"type": "string"},
+    "author": {"type": "string"},
+    "license": {"type": "string"},
+    "license_url": {"type": "string"},
+    "attribution": {"type": "string"},
+    "alt_text": {"type": "string", "maxLength": 500},
+    "caption": {"type": "string", "maxLength": 1000},
+    "credit_line": {"type": "string", "maxLength": 500},
+    "provider": {"type": "string"},
+    "provider_request_id": {"type": "string"},
+    "aspect_ratio": {"type": "string"},
+    "size": {
+      "type": "object",
+      "properties": {
+        "w": {"type": "integer", "minimum": 1},
+        "h": {"type": "integer", "minimum": 1}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"source_kind": {"const": "licensed_photo"}},
+        "required": ["source_kind"]
+      },
+      "then": {
+        "required": ["source_url", "author", "license", "attribution"]
+      }
+    },
+    {
+      "if": {
+        "properties": {"source_kind": {"const": "licensed_graphic"}},
+        "required": ["source_kind"]
+      },
+      "then": {
+        "required": ["license", "attribution"]
+      }
+    },
+    {
+      "if": {
+        "properties": {"source_kind": {"const": "ai_generated"}},
+        "required": ["source_kind"]
+      },
+      "then": {
+        "required": ["provider", "provider_request_id"],
+        "properties": {
+          "author": {"not": {}}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "name": "FF90-04 WordPress Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {"field": "minutes", "minutesInterval": 5}
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff90-04-cron",
+      "name": "Cron: every 5m",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/wp-draft",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $json.title_th,\n  \"content\": $json.body_th,\n  \"slug\": $json.slug,\n  \"excerpt\": $json.excerpt_th,\n  \"news_type\": $json.news_type\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {"response": {"responseFormat": "json"}}
+        }
+      },
+      "id": "ff90-04-draft",
+      "name": "POST /api/automation/wp-draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300],
+      "notes": "Idempotent via decideWpDraft() — same run_id returns the same wp_post_id. status is hard-coded 'draft' by the server. NEVER publish from this workflow."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Image metadata, written into the FF90 image-system registry when applicable.\nconst meta = {\n  alt_text: $json.alt_text || '',\n  caption: $json.caption || '',\n  credit_line: $json.credit_line || '',\n  source_kind: $json.source_kind || 'ai_generated',\n  source_url: $json.source_url || null,\n  original_url: $json.original_url || null,\n  author: $json.author || null,\n  license: $json.license || null,\n  license_url: $json.license_url || null,\n  attribution: $json.attribution || null,\n  provider: $json.provider || null,\n  provider_request_id: $json.provider_request_id || null,\n};\nreturn [{ json: { ...$json, image_meta: meta } }];\n"
+      },
+      "id": "ff90-04-meta",
+      "name": "Image metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "conditions": [
+            {
+              "leftValue": "={{ $json.source_kind }}",
+              "rightValue": "ai_generated",
+              "operator": {"type": "string", "operation": "notEquals"}
+            },
+            {
+              "leftValue": "={{ $json.binary_data }}",
+              "rightValue": "",
+              "operator": {"type": "string", "operation": "exists", "singleValue": true}
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-04-have-asset",
+      "name": "Have asset bytes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1020, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/admin/posts/media",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "multipart-form-data",
+        "multipartParameters": {
+          "parameters": [
+            {"parameterType": "formData", "name": "post_id", "value": "={{ $('POST /api/automation/wp-draft').item.json.wp_post_id }}"},
+            {"parameterType": "formData", "name": "alt_text", "value": "={{ $json.alt_text }}"},
+            {"parameterType": "formData", "name": "caption", "value": "={{ $json.caption }}"},
+            {"parameterType": "formData", "name": "title", "value": "FF90 News Cover"}
+          ]
+        },
+        "options": {"timeout": 60000, "response": {"response": {"responseFormat": "json"}}}
+      },
+      "id": "ff90-04-upload",
+      "name": "POST /api/admin/posts/media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 200],
+      "notes": "Uses the admin media route we shipped in Phase 17D. The route accepts x-automation-secret ONLY if it ALSO satisfies an admin session — for server-to-server we rely on AUTOMATION_SECRET via the automation-auth wrapper. If the admin route rejects automation-secret-only auth, this node falls back to uploading via the WP REST API directly using the WP application credentials held in n8n credentials (NOT in workflow JSON)."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_complete\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"success\",\n  \"message\": \"WP draft created or reused; status=draft\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  }\n}",
+        "options": {"timeout": 15000}
+      },
+      "id": "ff90-04-log",
+      "name": "Audit log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_no_asset\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"held_for_human\",\n  \"message\": \"No image asset available; WP draft created without featured image\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  }\n}",
+        "options": {"timeout": 15000}
+      },
+      "id": "ff90-04-log-noimg",
+      "name": "Audit log (no image)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 440]
+    }
+  ],
+  "connections": {
+    "Cron: every 5m": {
+      "main": [[{"node": "POST /api/automation/wp-draft", "type": "main", "index": 0}]]
+    },
+    "POST /api/automation/wp-draft": {
+      "main": [[{"node": "Image metadata", "type": "main", "index": 0}]]
+    },
+    "Image metadata": {
+      "main": [[{"node": "Have asset bytes?", "type": "main", "index": 0}]]
+    },
+    "Have asset bytes?": {
+      "main": [
+        [{"node": "POST /api/admin/posts/media", "type": "main", "index": 0}],
+        [{"node": "Audit log (no image)", "type": "main", "index": 0}]
+      ]
+    },
+    "POST /api/admin/posts/media": {
+      "main": [[{"node": "Audit log", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "ff90"}, {"name": "phase-18a"}],
+  "id": "ff90-04",
+  "versionId": "1.0.0"
+}

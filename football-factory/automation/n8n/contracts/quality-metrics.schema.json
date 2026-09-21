@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/quality-metrics.schema.json",
+  "title": "FF90 Quality Metrics (per-editorial-item)",
+  "description": "Per-item signals used to derive HUMAN_EDIT_RATE / HUMAN_REJECT_RATE / CRITICAL_ERROR_RATE later. NEVER consumed by any Phase 18A node to switch publish mode automatically.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "editorial_item_id",
+    "automation_run_id",
+    "human_edited_title",
+    "human_edited_body",
+    "human_changed_image",
+    "human_changed_seo",
+    "human_changed_fact",
+    "human_rejected",
+    "critical_error"
+  ],
+  "properties": {
+    "editorial_item_id": {"type": "string", "format": "uuid"},
+    "automation_run_id": {"type": "string", "format": "uuid"},
+    "human_edited_title": {"type": "boolean"},
+    "human_edited_body": {"type": "boolean"},
+    "human_changed_image": {"type": "boolean"},
+    "human_changed_seo": {"type": "boolean"},
+    "human_changed_fact": {"type": "boolean"},
+    "human_rejected": {"type": "boolean"},
+    "critical_error": {"type": "boolean"},
+    "notes": {"type": "string", "maxLength": 2000}
+  }
+}

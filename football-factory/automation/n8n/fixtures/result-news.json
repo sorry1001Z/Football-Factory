@@ -1,0 +1,14 @@
+{
+  "news_type": "RESULT",
+  "source_url": "https://www.bbc.com/sport/football/scores-fixtures/2026-09-20",
+  "source_title": "Man City 5-3 Sunderland: Eight-goal thriller at the Etihad",
+  "publisher": "BBC Sport",
+  "published_at": "2026-09-20T22:30:00Z",
+  "competition": "Premier League",
+  "teams": ["Manchester City", "Sunderland"],
+  "people": ["Enzo Fernández", "Rayan Cherki", "Antoine Semenyo", "Erling Haaland", "Brian Brobbey", "Enzo Maresca"],
+  "source_text": "Manchester City beat Sunderland 5-3 at the Etihad. Enzo Fernández opened the scoring with a free kick in the 9th minute. Brian Brobbey equalised for Sunderland in the 12th. Rayan Cherki made it 2-1 in the 29th. Brobbey scored again in the 33rd. Antoine Semenyo scored in the 43rd to make it 3-2 at the break. Semenyo added his second in the 57th. Brobbey completed his hat-trick in the 59th. Erling Haaland closed the scoring in the 81st. The win takes City three points clear at the top of the Premier League.",
+  "source_type": "reputable_media",
+  "requested_by": "ff90-test-fixture",
+  "optional_metadata": {"fixture_id": "pl-2026-09-20-mci-sun"}
+}

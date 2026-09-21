@@ -1,0 +1,226 @@
+{
+  "name": "FF90-03 Image Factory",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff90-03-cron",
+      "name": "Cron: every 5m (or webhook)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the image prompt from the editorial item + news type.\n// Hard rules:\n//   - Never copy unlicensed editorial photography.\n//   - Never present AI imagery as documentary evidence of the actual match.\n//   - For RESULT/TRANSFER/BREAKING, include team identity only through permitted treatment (e.g. color schemes, generic kit silhouettes, official wordmarks if licensed).\n//   - The cover must communicate the news: include score / headline / key event as on-image elements.\nconst newsType = $json.news_type;\nconst template = {\n  'RESULT': {\n    label: 'FULL-TIME',\n    mood: 'post-match atmosphere, decisive',\n    layout: 'center score, two team names, short Thai headline beneath',\n  },\n  'PREVIEW': {\n    label: 'MATCH PREVIEW',\n    mood: 'anticipatory, neutral',\n    layout: 'team A vs team B in central composition, competition badge area',\n  },\n  'ANALYSIS': {\n    label: 'TACTICAL ANALYSIS',\n    mood: 'analytical, considered',\n    layout: 'pitch zones, tactical arrows, short headline',\n  },\n  'TRANSFER': {\n    label: 'TRANSFER NEWS',\n    mood: 'business-of-football',\n    layout: 'player silhouette center, from->to visual language, deal status line',\n  },\n  'BREAKING': {\n    label: 'BREAKING NEWS',\n    mood: 'urgent, high-contrast',\n    layout: 'short factual headline dominant, low-bleed background',\n  },\n}[newsType] || { label: 'NEWS', mood: 'neutral', layout: 'headline-first' };\n\nconst prompt = {\n  news_type: newsType,\n  headline_th: $json.headline_th || '',\n  subheadline_th: $json.subheadline_th || '',\n  label: template.label,\n  teams: $json.teams || [],\n  score: $json.score || null,\n  competition: $json.competition || '',\n  key_visual: $json.key_visual || '',\n  tone: template.mood,\n  layout: template.layout,\n  visual_constraints: [\n    'professional football editorial design',\n    'strong visual hierarchy',\n    'FF90 identity (logo in safe margin)',\n    'high readability on mobile and social',\n    'no watermarks',\n    'no copied editorial photography',\n    'no false documentary representation',\n    'no unlicensed logos',\n  ],\n  aspect_ratio: '16:9',\n  size: { w: 1600, h: 900 },\n};\nreturn [{ json: { ...$json, image_prompt: prompt } }];\n"
+      },
+      "id": "ff90-03-build-prompt",
+      "name": "Build image prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Provider adapter. Returns a structured result. NEVER fakes a\n// generated image when no provider is configured.\nconst providerStatus = $env.IMAGE_PROVIDER_STATUS || 'NOT_CONFIGURED';\nconst providerName = $env.IMAGE_PROVIDER_NAME || 'none';\nif (providerStatus !== 'CONFIGURED') {\n  return [{\n    json: {\n      provider: providerName,\n      provider_status: 'NOT_CONFIGURED',\n      request_id: null,\n      output_asset: null,\n      status: 'held',\n      error: 'image_provider_not_configured',\n    },\n  }];\n}\n// When configured, the provider-specific HTTP node downstream will\n// populate output_asset + request_id.\nreturn [{\n  json: {\n    provider: providerName,\n    provider_status: 'CONFIGURED',\n    request_id: null,\n    output_asset: null,\n    status: 'pending',\n    error: null,\n  },\n}];\n"
+      },
+      "id": "ff90-03-provider",
+      "name": "Provider adapter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 300],
+      "notes": "If IMAGE_PROVIDER_STATUS is not exactly CONFIGURED, we hold the item at image generation and NEVER fabricate an output. The downstream derivative + WP upload steps are skipped; the editorial item remains at waiting_human_review for the operator to handle images manually."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "conditions": [
+            {
+              "leftValue": "={{ $json.provider_status }}",
+              "rightValue": "CONFIGURED",
+              "operator": {"type": "string", "operation": "equals"}
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-03-cfg",
+      "name": "Provider configured?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1020, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.IMAGE_PROVIDER_URL }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.IMAGE_PROVIDER_API_KEY }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.image_prompt) }}",
+        "options": {
+          "timeout": 120000,
+          "response": {"response": {"responseFormat": "json"}}
+        }
+      },
+      "id": "ff90-03-generate",
+      "name": "POST image provider",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 200],
+      "notes": "Vendor-agnostic HTTP call. Provider credentials live in n8n credentials; never serialized into workflow JSON."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/rights-check",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"news_type\": $json.news_type,\n  \"image_prompt\": $json.image_prompt,\n  \"provider_status\": $json.provider_status,\n  \"provider_name\": $json.provider,\n  \"provider_request_id\": $json.request_id,\n  \"output_asset\": $json.output_asset\n}",
+        "options": {"timeout": 30000, "response": {"response": {"responseFormat": "json"}}}
+      },
+      "id": "ff90-03-rights",
+      "name": "POST /api/automation/rights-check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 200],
+      "notes": "Server-side rights check. If provider_status is NOT_CONFIGURED or asset is missing, the route returns rights_state=manual_review and holds the item."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = $json.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...$json,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
+      },
+      "id": "ff90-03-relevance",
+      "name": "Visual relevance gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1840, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Derivative sizes — same six we already ship via ffmpeg.\nconst sizes = [\n  { id: 'hero_16x9',     w: 1600, h: 900,  mime: 'image/jpeg' },\n  { id: 'thumbnail',     w:  800, h: 450,  mime: 'image/jpeg' },\n  { id: 'social_1x1',    w: 1200, h: 1200, mime: 'image/jpeg' },\n  { id: 'feed_4x5',      w: 1080, h: 1350, mime: 'image/jpeg' },\n  { id: 'vertical_9x16', w: 1080, h: 1920, mime: 'image/jpeg' },\n  { id: 'web_optimized', w: 1600, h:  900, mime: 'image/webp' },\n];\nreturn [{ json: { ...$json, derivatives: sizes } }];\n"
+      },
+      "id": "ff90-03-derivatives",
+      "name": "Plan derivatives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2120, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_complete\",\n  \"stage\": \"image_factory\",\n  \"status\": $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human',\n  \"message\": \"Image factory complete\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  }\n}",
+        "options": {"timeout": 15000}
+      },
+      "id": "ff90-03-log",
+      "name": "Audit log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2400, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}",
+        "options": {"timeout": 15000}
+      },
+      "id": "ff90-03-hold-log",
+      "name": "Audit log (held)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 440]
+    }
+  ],
+  "connections": {
+    "Cron: every 5m (or webhook)": {
+      "main": [[{"node": "Build image prompt", "type": "main", "index": 0}]]
+    },
+    "Build image prompt": {
+      "main": [[{"node": "Provider adapter", "type": "main", "index": 0}]]
+    },
+    "Provider adapter": {
+      "main": [[{"node": "Provider configured?", "type": "main", "index": 0}]]
+    },
+    "Provider configured?": {
+      "main": [
+        [{"node": "POST image provider", "type": "main", "index": 0}],
+        [{"node": "Audit log (held)", "type": "main", "index": 0}]
+      ]
+    },
+    "POST image provider": {
+      "main": [[{"node": "POST /api/automation/rights-check", "type": "main", "index": 0}]]
+    },
+    "POST /api/automation/rights-check": {
+      "main": [[{"node": "Visual relevance gate", "type": "main", "index": 0}]]
+    },
+    "Visual relevance gate": {
+      "main": [[{"node": "Plan derivatives", "type": "main", "index": 0}]]
+    },
+    "Plan derivatives": {
+      "main": [[{"node": "Audit log", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "ff90"}, {"name": "phase-18a"}],
+  "id": "ff90-03",
+  "versionId": "1.0.0"
+}

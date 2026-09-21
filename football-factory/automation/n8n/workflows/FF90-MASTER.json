@@ -1,0 +1,168 @@
+{
+  "name": "FF90-MASTER",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ff90-master-intake",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "ff90-master-webhook",
+      "name": "Webhook: source job intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "notes": "Accepts a normalized job: { source_url, requested_by, optional_metadata }. We do NOT trust arbitrary public POSTs without auth — for production, gate this webhook behind n8n's built-in auth or a sibling auth node. Returns the run_id synchronously (200) so callers can poll the editorial item."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize the inbound webhook payload into the canonical source-intake shape.\nconst body = items[0].json;\nreturn [{\n  json: {\n    source_url: typeof body.source_url === 'string' ? body.source_url : '',\n    source_title: typeof body.source_title === 'string' ? body.source_title : '',\n    publisher: typeof body.publisher === 'string' ? body.publisher : '',\n    published_at: typeof body.published_at === 'string' ? body.published_at : null,\n    competition: typeof body.competition === 'string' ? body.competition : '',\n    teams: Array.isArray(body.teams) ? body.teams : [],\n    people: Array.isArray(body.people) ? body.people : [],\n    source_text: typeof body.source_text === 'string' ? body.source_text : '',\n    source_type: typeof body.source_type === 'string' ? body.source_type : 'other',\n    requested_by: typeof body.requested_by === 'string' ? body.requested_by : 'anonymous',\n    optional_metadata: typeof body.optional_metadata === 'object' && body.optional_metadata ? body.optional_metadata : {},\n  },\n}];\n"
+      },
+      "id": "ff90-master-norm",
+      "name": "Normalize inbound job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-01",
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "ff90-master-exec-01",
+      "name": "Execute FF90-01 Source Intake",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Promote the run_id + editorial_item_id returned by FF90-01 into the\n// shared pipeline context. If duplicate, stop cleanly.\nconst result = $json;\nconst runId = result.run_id || null;\nconst editorialItemId = result.editorial_item_id || null;\nconst status = result.status || (result.duplicate ? 'duplicate' : 'unknown');\nif (status === 'duplicate' || !editorialItemId) {\n  return [{\n    json: {\n      status,\n      run_id: runId,\n      editorial_item_id: editorialItemId,\n      stage: 'source_intake',\n      error_code: null,\n      retryable: false,\n      timestamp: new Date().toISOString(),\n    },\n  }];\n}\nreturn [{ json: { ...result, run_id: runId, editorial_item_id: editorialItemId, status: 'accepted' } }];\n"
+      },
+      "id": "ff90-master-promote-01",
+      "name": "Promote run context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1020, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "conditions": [
+            {"leftValue": "={{ $json.status }}", "rightValue": "accepted", "operator": {"type": "string", "operation": "equals"}}
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-master-gate-01",
+      "name": "Continue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1280, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-02",
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "ff90-master-exec-02",
+      "name": "Execute FF90-02 Editorial Factory",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-03",
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "ff90-master-exec-03",
+      "name": "Execute FF90-03 Image Factory",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1840, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-04",
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "ff90-master-exec-04",
+      "name": "Execute FF90-04 WordPress Draft",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [2120, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-05",
+        "options": {"waitForSubWorkflow": true}
+      },
+      "id": "ff90-master-exec-05",
+      "name": "Execute FF90-05 Human Review Gate",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [2400, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Final envelope. Returns the canonical run envelope every stage promised:\n//   { editorial_item_id, automation_run_id, stage, status, error_code, retryable, timestamp }\n// In Phase 18A this returns waiting_human_review once the WP draft is created.\nreturn [{\n  json: {\n    status: 'waiting_human_review',\n    run_id: $json.run_id,\n    editorial_item_id: $json.editorial_item_id,\n    wp_post_id: $json.wp_post_id || null,\n    stage: 'human_review',\n    error_code: null,\n    retryable: false,\n    publish_mode: 'manual_review',\n    auto_publish: false,\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
+      },
+      "id": "ff90-master-final",
+      "name": "Final envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2680, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Duplicate / error early-out. The downstream stages are NOT executed.\nreturn [{\n  json: {\n    status: $json.status,\n    run_id: $json.run_id,\n    editorial_item_id: $json.editorial_item_id,\n    stage: 'source_intake',\n    error_code: null,\n    retryable: false,\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
+      },
+      "id": "ff90-master-stop",
+      "name": "STOP (duplicate / no editorial link)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 440]
+    }
+  ],
+  "connections": {
+    "Webhook: source job intake": {
+      "main": [[{"node": "Normalize inbound job", "type": "main", "index": 0}]]
+    },
+    "Normalize inbound job": {
+      "main": [[{"node": "Execute FF90-01 Source Intake", "type": "main", "index": 0}]]
+    },
+    "Execute FF90-01 Source Intake": {
+      "main": [[{"node": "Promote run context", "type": "main", "index": 0}]]
+    },
+    "Promote run context": {
+      "main": [[{"node": "Continue?", "type": "main", "index": 0}]]
+    },
+    "Continue?": {
+      "main": [
+        [{"node": "Execute FF90-02 Editorial Factory", "type": "main", "index": 0}],
+        [{"node": "STOP (duplicate / no editorial link)", "type": "main", "index": 0}]
+      ]
+    },
+    "Execute FF90-02 Editorial Factory": {
+      "main": [[{"node": "Execute FF90-03 Image Factory", "type": "main", "index": 0}]]
+    },
+    "Execute FF90-03 Image Factory": {
+      "main": [[{"node": "Execute FF90-04 WordPress Draft", "type": "main", "index": 0}]]
+    },
+    "Execute FF90-04 WordPress Draft": {
+      "main": [[{"node": "Execute FF90-05 Human Review Gate", "type": "main", "index": 0}]]
+    },
+    "Execute FF90-05 Human Review Gate": {
+      "main": [[{"node": "Final envelope", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "ff90"}, {"name": "phase-18a"}, {"name": "master"}],
+  "id": "ff90-master",
+  "versionId": "1.0.0"
+}
