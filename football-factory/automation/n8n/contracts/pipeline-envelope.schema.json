@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ff90.online/schemas/automation/pipeline-envelope.schema.json",
+  "title": "FF90 Pipeline Envelope",
+  "description": "Canonical envelope passed between MASTER and FF90-01..05. Every child workflow MUST re-emit this shape at its terminal node. Fields may be null when legitimately unavailable. No workflow may silently discard previously-available fields.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "run_id": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "editorial_item_id": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "source_id": {
+      "type": ["string", "null"]
+    },
+    "source_url": {
+      "type": ["string", "null"]
+    },
+    "source_title": {
+      "type": ["string", "null"]
+    },
+    "publisher": {
+      "type": ["string", "null"]
+    },
+    "published_at": {
+      "type": ["string", "null"]
+    },
+    "source_type": {
+      "type": ["string", "null"]
+    },
+    "source_text": {
+      "type": ["string", "null"]
+    },
+    "news_type": {
+      "type": ["string", "null"],
+      "enum": ["RESULT", "PREVIEW", "ANALYSIS", "TRANSFER", "BREAKING", "test", null]
+    },
+    "title_th": {
+      "type": ["string", "null"]
+    },
+    "body_th": {
+      "type": ["string", "null"]
+    },
+    "excerpt_th": {
+      "type": ["string", "null"]
+    },
+    "slug": {
+      "type": ["string", "null"]
+    },
+    "provider_status": {
+      "type": ["string", "null"],
+      "enum": ["NOT_CONFIGURED", "CONFIGURED", "held", null]
+    },
+    "output_asset": {
+      "type": ["null", "object"]
+    },
+    "image_status": {
+      "type": ["string", "null"],
+      "enum": ["held", "pending", "ok", "failed", null]
+    },
+    "image_error": {
+      "type": ["string", "null"]
+    },
+    "wp_post_id": {
+      "type": ["integer", "null"]
+    },
+    "wp_post_status": {
+      "type": ["string", "null"],
+      "enum": ["draft", "publish", "pending", null]
+    },
+    "pipeline_stage": {
+      "type": "string",
+      "enum": [
+        "source_intake",
+        "editorial_factory",
+        "image_factory",
+        "wp_draft",
+        "human_review",
+        "complete"
+      ]
+    },
+    "pipeline_status": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "duplicate",
+        "held_for_content",
+        "held_for_human",
+        "waiting_approval",
+        "waiting_human_review",
+        "rejected",
+        "failed",
+        "complete"
+      ]
+    },
+    "review_status": {
+      "type": ["string", "null"],
+      "enum": ["approved", "rejected", "held_for_revision", "pending", null]
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

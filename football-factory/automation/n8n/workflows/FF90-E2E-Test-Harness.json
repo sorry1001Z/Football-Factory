@@ -1,0 +1,48 @@
+{
+  "name": "FF90-E2E-Test-Harness",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — Test Harness\n//\n// This is the DETERMINISTIC ONE-SHOT entry point for Phase 18F-B E2E.\n// It is INACTIVE in production. To execute:\n//\n//   docker exec n8n n8n execute --id=<harness-id> [--rawOutput]\n//\n// This workflow emits the synthetic test fixture (matching MASTER's input\n// schema), then calls Execute Workflow → FF90-MASTER with that payload.\n//\n// IMPORTANT: This workflow MUST remain INACTIVE. It is for one-shot\n// harness invocations only. NEVER enable any cron/schedule trigger on it.\n//\n// Test-only safety:\n//   - source_url prefix: 'test.ff90.online' (operator can identify and cleanup)\n//   - title prefix: '[FF90 E2E TEST]' (operator can find the resulting draft)\n//   - optional_metadata.phase='18f-b' + test_content: synthetic content path\n//\n// Returns the MASTER output JSON for the operator to inspect.\nconst fixture = {\n  source_url: 'https://test.ff90.online/e2e/FF90-E2E-TEST-' + new Date().toISOString().replace(/[:.]/g,'-'),\n  source_title: '[FF90 E2E TEST] Automation Validation — DO NOT PUBLISH',\n  publisher: 'ff90-test-harness',\n  published_at: new Date().toISOString(),\n  competition: 'test',\n  teams: [],\n  people: [],\n  source_text: 'Synthetic FF90 E2E test content. Not a real news article. Must never be published. Identifiable by source_url prefix test.ff90.online and title prefix [FF90 E2E TEST].',\n  source_type: 'other',\n  requested_by: 'phase18f-b-harness',\n  optional_metadata: {\n    phase: '18f-b',\n    test_marker: 'FF90-E2E-TEST-20260922-001',\n    test_content: {\n      title_th: '[FF90 E2E TEST] Automation Validation — DO NOT PUBLISH',\n      body_th: 'Synthetic FF90 end-to-end test content. This is not a real news article and must never be published. Used solely to validate the FF90 automation chain under manual_review mode. Identifiable by the [FF90 E2E TEST] prefix and the source_url prefix test.ff90.online. Safe to delete after verification.',\n      excerpt_th: 'Synthetic FF90 E2E test.',\n      slug: 'ff90-e2e-test-20260922-001',\n      news_type: 'test',\n    },\n  },\n};\nreturn [{ json: fixture }];\n"
+      },
+      "id": "ff90-harness-emit",
+      "name": "Emit test fixture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "notes": "Phase 18G: emits the synthetic E2E test fixture. KEEP INACTIVE. Use docker exec n8n n8n execute --id=<this id> to invoke."
+    },
+    {
+      "parameters": {
+        "workflowId": "ff90-master",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "ff90-harness-call-master",
+      "name": "Execute FF90-MASTER",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "notes": "Phase 18G: invokes FF90-MASTER with the fixture as input. MASTER's webhook entry will receive it because n8n Execute Workflow injects the upstream $json as the workflow's input items."
+    }
+  ],
+  "connections": {
+    "Emit test fixture": {
+      "main": [[{"node": "Execute FF90-MASTER", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {"name": "ff90"},
+    {"name": "phase-18g"},
+    {"name": "test-only"},
+    {"name": "do-not-activate"}
+  ],
+  "id": "ff90-e2e-test-harness",
+  "versionId": "1.0.0",
+  "_phase18g_notes": "Phase 18G: deterministic one-shot E2E harness. KEEP INACTIVE. Invoke via 'docker exec n8n n8n execute --id=ff90-e2e-test-harness'. MUST NEVER be activated as a cron or scheduled workflow. Tags include 'do-not-activate' to surface clearly in the n8n UI."
+}

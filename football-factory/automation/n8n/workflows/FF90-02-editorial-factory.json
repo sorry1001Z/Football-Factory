@@ -17,12 +17,15 @@
       "name": "Cron: every 5m (or webhook)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://www.ff90.online/api/admin/automation/{{ $json.run_id }}",
+        "url": "=https://www.ff90.online/api/automation/run/{{ $json.run_id }}",
         "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
@@ -34,6 +37,7 @@
           ]
         },
         "options": {
+          "timeout": 15000,
           "response": {
             "response": {
               "responseFormat": "json"
@@ -41,22 +45,28 @@
           }
         }
       },
-      "id": "ff90-02-fetch-run",
-      "name": "GET run state",
+      "id": "ff90-02-run-state",
+      "name": "GET /api/automation/run/{run_id}",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [500, 300],
-      "notes": "We do NOT need an admin session cookie for /api/admin/automation/[runId] — that endpoint accepts the automation secret header as a server-to-server call. (See app/api/admin/automation/[runId]/route.ts). Wait — that endpoint requires requireAdminOrEditor(session). The n8n flow uses /api/automation/* routes for server-to-server. The admin endpoint is for the human UI. For editorial factory we read state via /api/automation/approval-status or via the run id directly. See FF90-MASTER contract note: we always pass run_id through the pipeline and re-derive editorial_item_id from the run."
+      "position": [
+        500,
+        300
+      ],
+      "notes": "Phase 18G: migrated from /api/admin/automation/{run_id} (admin session auth) to /api/automation/run/{run_id} (x-automation-secret + AUTOMATION_ENABLED kill-switch). The new route returns the same {run, editorialItem, recentEvents} shape as the admin route."
     },
     {
       "parameters": {
-        "jsCode": "// Editorial Factory — classify news type\n// Inputs: run_id, editorial_item_id, source payload (passed via $json)\n// Output: news_type classification + LLM-ready article brief\nconst run = $json.run || {};\nconst src = $json.source || {};\nlet newsType = 'RESULT';\nconst lower = (src.source_title || '').toLowerCase();\nconst text = (src.source_text || '').toLowerCase();\nif (/preview|preview:|pre-match/.test(lower)) newsType = 'PREVIEW';\nif (/analysis|tactics|tactical|report card/.test(lower)) newsType = 'ANALYSIS';\nif (/transfer|sign|loan|move to|move from|joins|depart/.test(lower)) newsType = 'TRANSFER';\nif (/breaking|just in|developing/.test(lower)) newsType = 'BREAKING';\nreturn [{\n  json: {\n    run_id: $json.run_id,\n    editorial_item_id: $json.editorial_item_id,\n    source_id: $json.source_id,\n    news_type: newsType,\n    classification_basis: { lower, text_excerpt: text.slice(0, 280) },\n  }\n}];\n"
+        "jsCode": "// Phase 18G — classify news type while preserving canonical envelope.\n// Reads upstream $json (envelope from FF90-01). Sets news_type.\n// In production: only classifies when editorial content is already\n// populated (via admin UI); when missing AND no test_marker, returns\n// pipeline_status=held_for_content and the chain short-circuits.\nconst up = $json;\nconst src = up.source_url ? up : (up.raw || {});  // tolerate upstream shape\nconst optMeta = up.optional_metadata || src.optional_metadata || {};\nconst testMarker = optMeta.phase === '18f-b' && optMeta.test_content;\nconst testContent = testMarker ? optMeta.test_content : null;\n\n// News type enum: RESULT | PREVIEW | ANALYSIS | TRANSFER | BREAKING\n// (plus 'test' for Phase 18F-B synthetic fixtures).\n// Determine canonical editorial fields. Production: must already be\n// present on the editorial_item (admin UI pre-populated). Test fixture:\n// pull from optional_metadata.test_content.\nconst fields = {\n  news_type: src.news_type || up.news_type || (testContent ? testContent.news_type : null) || 'RESULT',\n  title_th: src.title_th || up.title_th || (testContent ? testContent.title_th : null) || null,\n  body_th: src.body_th || up.body_th || (testContent ? testContent.body_th : null) || null,\n  excerpt_th: src.excerpt_th || up.excerpt_th || (testContent ? testContent.excerpt_th : null) || null,\n  slug: src.slug || up.slug || (testContent ? testContent.slug : null) || null,\n};\n\n// Fail-closed: in production (no test_marker) if any required editorial\n// field is missing, hold for content.\nconst hasAllContent = !!(fields.title_th && fields.body_th);\nconst failClosed = !testMarker && !hasAllContent;\n\nreturn [{\n  json: {\n    ...up,\n    ...fields,\n    pipeline_stage: 'editorial_factory',\n    pipeline_status: failClosed ? 'held_for_content' : 'accepted',\n    metadata: { ...(up.metadata || {}), test_marker: !!testMarker },\n  },\n}];\n"
       },
       "id": "ff90-02-classify",
       "name": "Classify news type",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 300]
+      "position": [
+        760,
+        300
+      ]
     },
     {
       "parameters": {
@@ -66,7 +76,10 @@
       "name": "Build article prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1020, 300]
+      "position": [
+        1020,
+        300
+      ]
     },
     {
       "parameters": {
@@ -101,7 +114,10 @@
       "name": "POST /api/automation/ai-assist",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1280, 300],
+      "position": [
+        1280,
+        300
+      ],
       "notes": "Server-side AI assist call. Returns a draft title + body. Persists a content_hash server-side; we still pass the body downstream as the operator-resumable payload."
     },
     {
@@ -138,7 +154,10 @@
       "name": "POST /api/automation/seo-check",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1540, 300]
+      "position": [
+        1540,
+        300
+      ]
     },
     {
       "parameters": {
@@ -174,7 +193,10 @@
       "name": "POST /api/automation/fact-check",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 300],
+      "position": [
+        1800,
+        300
+      ],
       "notes": "If the provider is not configured, the server returns provider_status='not_configured' and the editorial item is held at fact_check_state='pending_manual'. n8n MUST NOT auto-pass on timeout."
     },
     {
@@ -206,7 +228,24 @@
       "name": "Audit log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2060, 300]
+      "position": [
+        1480,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// pipeline_status chosen upstream. Always preserves run_id, editorial_item_id,\n// source_*, news_type, title_th, body_th, excerpt_th, slug.\nconst up = $json;\n// Pull upstream editorial fields from the Classify news type output\n// (the most-recent canonical envelope in the chain).\nconst classified = $('Classify news type').item.json || {};\nconst merged = {\n  ...classified,\n  ...up,\n  run_id: classified.run_id || up.run_id || null,\n  editorial_item_id: classified.editorial_item_id || up.editorial_item_id || null,\n  source_id: classified.source_id ?? up.source_id ?? null,\n  source_url: classified.source_url ?? up.source_url ?? null,\n  source_title: classified.source_title ?? up.source_title ?? null,\n  publisher: classified.publisher ?? up.publisher ?? null,\n  published_at: classified.published_at ?? up.published_at ?? null,\n  source_type: classified.source_type ?? up.source_type ?? null,\n  source_text: classified.source_text ?? up.source_text ?? null,\n  news_type: classified.news_type ?? up.news_type ?? null,\n  title_th: classified.title_th ?? up.title_th ?? null,\n  body_th: classified.body_th ?? up.body_th ?? null,\n  excerpt_th: classified.excerpt_th ?? up.excerpt_th ?? null,\n  slug: classified.slug ?? up.slug ?? null,\n  pipeline_stage: 'editorial_factory',\n  pipeline_status: classified.pipeline_status || 'accepted',\n};\nreturn [{ json: merged }];\n"
+      },
+      "id": "ff90-02-promote",
+      "name": "Promote FF90-02 output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        440
+      ],
+      "notes": "Phase 18G: terminal promote. Re-emits canonical envelope to MASTER."
     }
   ],
   "connections": {
@@ -214,14 +253,14 @@
       "main": [
         [
           {
-            "node": "GET run state",
+            "node": "GET /api/automation/run/{run_id}",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "GET run state": {
+    "GET /api/automation/run/{run_id}": {
       "main": [
         [
           {
@@ -293,8 +332,12 @@
     "executionOrder": "v1"
   },
   "tags": [
-    {"name": "ff90"},
-    {"name": "phase-18a"}
+    {
+      "name": "ff90"
+    },
+    {
+      "name": "phase-18a"
+    }
   ],
   "id": "ff90-02",
   "versionId": "1.0.0"

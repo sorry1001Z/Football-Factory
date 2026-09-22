@@ -203,7 +203,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1560,
+        1480,
         200
       ]
     },
@@ -237,9 +237,37 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1280,
+        1480,
         440
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — pre-flight validation. Stop safely BEFORE wp-draft\n// if required editorial fields are missing. Returns canonical\n// envelope with pipeline_status='held_for_content' in that case.\nconst up = $json;\nconst required = ['title_th', 'body_th'];\nconst missing = required.filter(k => !up[k] || String(up[k]).trim() === '');\nif (missing.length > 0) {\n  return [{\n    json: {\n      ...up,\n      pipeline_stage: 'wp_draft',\n      pipeline_status: 'held_for_content',\n      validation_error: 'missing_required_fields',\n      missing_fields: missing,\n    },\n  }];\n}\n// All required fields present. Proceed.\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'wp_draft',\n    pipeline_status: 'accepted',\n  },\n}];\n"
+      },
+      "id": "ff90-04-validate",
+      "name": "Validate editorial fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Phase 18G: stop safely if title_th/body_th missing. Production safety — never create a WordPress post with empty body."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// wp_post_id + wp_post_status='draft' from the wp-draft response.\n//\n// Pull wp-draft response via cross-node ref so we capture wp_post_id.\nconst up = $json;\nconst draftResp = $('POST /api/automation/wp-draft').item.json || {};\nreturn [{\n  json: {\n    ...up,\n    run_id: up.run_id || draftResp.run_id || null,\n    editorial_item_id: up.editorial_item_id || draftResp.editorial_item_id || null,\n    wp_post_id: draftResp.wp_post_id || null,\n    wp_post_status: draftResp.status === 'draft' ? 'draft' : 'draft',  // hardcoded\n    pipeline_stage: 'wp_draft',\n    pipeline_status: up.pipeline_status || 'waiting_approval',\n  },\n}];\n"
+      },
+      "id": "ff90-04-promote",
+      "name": "Promote FF90-04 output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        300
+      ],
+      "notes": "Phase 18G: terminal promote. wp_post_status is hardcoded 'draft' — server enforces this in wp-draft route."
     }
   ],
   "connections": {
@@ -247,7 +275,7 @@
       "main": [
         [
           {
-            "node": "POST /api/automation/wp-draft",
+            "node": "Validate editorial fields",
             "type": "main",
             "index": 0
           }
@@ -299,6 +327,17 @@
         [
           {
             "node": "Audit log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate editorial fields": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/wp-draft",
             "type": "main",
             "index": 0
           }

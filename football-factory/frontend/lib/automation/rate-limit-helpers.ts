@@ -102,4 +102,5 @@ export const AUTOMATION_RL = {
   log:       { bucket: "log",        limit: 60, windowMs: 60_000 } as const,
   alert:     { bucket: "alert",      limit: 60, windowMs: 60_000 } as const,
   approvalStatus: { bucket: "approval-status", limit: 60, windowMs: 60_000 } as const,
+  runRead:   { bucket: "run-read",   limit: 60, windowMs: 60_000 } as const,
 };

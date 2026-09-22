@@ -5,7 +5,10 @@
       "parameters": {
         "rule": {
           "interval": [
-            {"field": "minutes", "minutesInterval": 5}
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
           ]
         },
         "options": {}
@@ -14,17 +17,23 @@
       "name": "Cron: every 5m (also fires on human webhook)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Resolve publish_mode from env or explicit config.\n// FAIL-CLOSED: missing or unknown → manual_review.\nconst modeRaw = ($env.PUBLISH_MODE || 'manual_review').toString().trim().toLowerCase();\nconst allowed = ['manual_review', 'timeout_auto', 'full_auto'];\nconst mode = allowed.includes(modeRaw) ? modeRaw : 'manual_review';\nreturn [{ json: { ...$json, publish_mode: mode } }];\n"
+        "jsCode": "// Phase 18G — Resolve publish mode. Preserves upstream canonical envelope\n// (which FF90-04 promoted). FAIL-CLOSED: missing or unknown → manual_review.\n// Phase 18A contract: timeout_auto and full_auto are NEVER honored in\n// Phase 18A. Future activation is a config flip, not a code change.\nconst up = $json;\nconst modeRaw = ($env.PUBLISH_MODE || 'manual_review').toString().trim().toLowerCase();\nconst allowed = ['manual_review', 'timeout_auto', 'full_auto'];\nconst mode = allowed.includes(modeRaw) ? modeRaw : 'manual_review';\nreturn [{\n  json: {\n    ...up,\n    publish_mode: mode,\n    pipeline_stage: 'human_review',\n  },\n}];\n"
       },
       "id": "ff90-05-mode",
       "name": "Resolve publish mode",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300],
+      "position": [
+        500,
+        300
+      ],
       "notes": "Phase 18A: PUBLISH_MODE must be 'manual_review'. Any other value is overridden to manual_review. Timeout_auto and full_auto are kept for future activation but are NEVER honored in this slice."
     },
     {
@@ -35,7 +44,10 @@
       "name": "Build notification payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [760, 300]
+      "position": [
+        760,
+        300
+      ]
     },
     {
       "parameters": {
@@ -45,20 +57,36 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-automation-secret", "value": "={{ $env.AUTOMATION_SECRET }}"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "x-automation-secret",
+              "value": "={{ $env.AUTOMATION_SECRET }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"severity\": \"info\",\n  \"source\": \"ff90-05-human-review-gate\",\n  \"message\": \"FF90 NEWS READY FOR REVIEW\",\n  \"context\": $json.review_payload,\n  \"run_id\": $json.run_id\n}",
-        "options": {"timeout": 15000, "response": {"response": {"responseFormat": "json"}}}
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
       },
       "id": "ff90-05-alert",
       "name": "POST /api/automation/alert (review-ready)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1020, 300],
+      "position": [
+        1020,
+        300
+      ],
       "notes": "Persists to analytics_events. The admin UI reads these to surface 'Review ready' on the editorial item. A future Telegram adapter (separate workflow) can also subscribe to this same alert."
     },
     {
@@ -69,15 +97,28 @@
       "name": "Wait for explicit human decision",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1280, 300],
+      "position": [
+        1280,
+        300
+      ],
       "notes": "manual_review: WAIT indefinitely. NO 1-hour auto-pass. Item remains at status=waiting_human_review and wp_post_status=draft until the operator issues an explicit decision through the existing /api/admin/editorial/[id]/approval endpoint (admin session) or /api/automation/approval-status (which is read-only)."
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "conditions": [
-            {"leftValue": "={{ $json.review_decision }}", "rightValue": "approved", "operator": {"type": "string", "operation": "equals"}}
+            {
+              "leftValue": "={{ $json.review_decision }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -87,55 +128,139 @@
       "name": "Human decision?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1560, 300]
+      "position": [
+        1560,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// APPROVE branch. Approval_method=manual. Status flips to ready_to_publish\n// but THIS WORKFLOW NEVER CALLS wp-publish — that is an explicit operator\n// action only. The future full_auto mode would invoke wp-publish from here.\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'approved',\n    approval_method: 'manual',\n    approved_at: new Date().toISOString(),\n    wp_publish_called: false,\n    note: 'Phase 18A: APPROVE marks the item ready for publish but does NOT auto-publish. Operator must invoke wp-publish separately.',\n  },\n}];\n"
+        "jsCode": "// Phase 18G — APPROVE branch. Preserves upstream canonical envelope.\n// APPROVE marks the item ready for publish but does NOT auto-publish.\n// Operator must invoke wp-publish separately (admin session).\n// review_status='approved' + approval_method='manual'.\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'approved',\n    approval_method: 'manual',\n    approved_at: new Date().toISOString(),\n    wp_publish_called: false,\n    pipeline_status: 'approved',\n    pipeline_stage: 'human_review',\n    note: 'Phase 18A: APPROVE marks the item ready for publish but does NOT auto-publish. Operator must invoke wp-publish separately.',\n  },\n}];\n"
       },
       "id": "ff90-05-approved",
       "name": "APPROVE branch",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1840, 160]
+      "position": [
+        1840,
+        200
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// REJECT branch. Record reason; do not publish.\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'rejected',\n    status: 'held_for_revision',\n    reject_reason: $json.review_reason || 'unspecified',\n    rejected_at: new Date().toISOString(),\n  },\n}];\n"
+        "jsCode": "// Phase 18G — REJECT branch. Preserves upstream canonical envelope.\n// Records reason; does not publish. Note: this is the DEFAULT cron entry\n// path because no review_decision is set in $json. DB state remains\n// whatever FF90-04 last wrote (typically waiting_approval).\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'rejected',\n    status: 'held_for_revision',\n    reject_reason: $json.review_reason || 'unspecified',\n    rejected_at: new Date().toISOString(),\n    pipeline_status: 'rejected',\n    pipeline_stage: 'human_review',\n  },\n}];\n"
       },
       "id": "ff90-05-rejected",
       "name": "REJECT branch",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1840, 440]
+      "position": [
+        1840,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// review_status. No wp-publish call. DB remains waiting_approval\n// (set by FF90-04); this node only sets in-memory review_status.\nconst up = $json;\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'human_review',\n    pipeline_status: up.pipeline_status === 'approved' ? 'approved' : 'waiting_human_review',\n    review_status: up.review_status || 'pending',\n  },\n}];\n"
+      },
+      "id": "ff90-05-promote",
+      "name": "Promote FF90-05 output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        300
+      ],
+      "notes": "Phase 18G: terminal promote. Re-emits canonical envelope. No wp-publish call. APPROVE does NOT auto-publish."
     }
   ],
   "connections": {
     "Cron: every 5m (also fires on human webhook)": {
-      "main": [[{"node": "Resolve publish mode", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Resolve publish mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Resolve publish mode": {
-      "main": [[{"node": "Build notification payload", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Build notification payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build notification payload": {
-      "main": [[{"node": "POST /api/automation/alert (review-ready)", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/alert (review-ready)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "POST /api/automation/alert (review-ready)": {
-      "main": [[{"node": "Wait for explicit human decision", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Wait for explicit human decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Wait for explicit human decision": {
-      "main": [[{"node": "Human decision?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Human decision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Human decision?": {
       "main": [
-        [{"node": "APPROVE branch", "type": "main", "index": 0}],
-        [{"node": "REJECT branch", "type": "main", "index": 0}]
+        [
+          {
+            "node": "APPROVE branch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "REJECT branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
-  "tags": [{"name": "ff90"}, {"name": "phase-18a"}],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ff90"
+    },
+    {
+      "name": "phase-18a"
+    }
+  ],
   "id": "ff90-05",
   "versionId": "1.0.0"
 }

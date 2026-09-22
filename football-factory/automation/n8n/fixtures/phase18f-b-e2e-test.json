@@ -1,0 +1,25 @@
+{
+  "_doc": "Phase 18F-B E2E test fixture. Schema matches MASTER webhook input (Normalize inbound job). Test content is supplied via optional_metadata.test_content so production safety checks (held_for_content when editorial fields are missing) are bypassed only when the marker phase='18f-b' is present.",
+  "_usage": "POST this body to the MASTER webhook (or pass to the FF90-E2E-Test-Harness workflow when designed in 18G-11). The source_url must be unique per run.",
+  "source_url": "https://test.ff90.online/e2e/FF90-E2E-TEST-20260922-001-<timestamp>",
+  "source_title": "[FF90 E2E TEST] Automation Validation — DO NOT PUBLISH",
+  "publisher": "ff90-test-harness",
+  "published_at": "2026-09-22T18:00:00Z",
+  "competition": "test",
+  "teams": [],
+  "people": [],
+  "source_text": "Synthetic FF90 end-to-end test content. This is not a real news article and must never be published. Identifiable by source_url prefix 'test.ff90.online' and title prefix '[FF90 E2E TEST]'.",
+  "source_type": "other",
+  "requested_by": "phase18f-b-harness",
+  "optional_metadata": {
+    "phase": "18f-b",
+    "test_marker": "FF90-E2E-TEST-20260922-001",
+    "test_content": {
+      "title_th": "[FF90 E2E TEST] Automation Validation — DO NOT PUBLISH",
+      "body_th": "Synthetic FF90 end-to-end test content. This is not a real news article and must never be published. Used solely to validate the FF90 automation chain under manual_review mode. Identifiable by the [FF90 E2E TEST] prefix and the source_url prefix test.ff90.online. Safe to delete after verification.",
+      "excerpt_th": "Synthetic FF90 E2E test.",
+      "slug": "ff90-e2e-test-20260922-001",
+      "news_type": "test"
+    }
+  }
+}

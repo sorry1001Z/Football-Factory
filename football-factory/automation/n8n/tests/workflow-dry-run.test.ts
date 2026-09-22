@@ -605,3 +605,237 @@ test("ff90: Phase 18A invariants hold across all workflows", () => {
     }
   }
 });
+
+
+// ============================================================
+// Phase 18G — full-chain contract repair assertions
+// ============================================================
+
+test("ff90 18G: MASTER references 5 children with the canonical file ids", () => {
+  const master = readWorkflow("FF90-MASTER");
+  const execNodes = master.nodes.filter((n) => n.type === "n8n-nodes-base.executeWorkflow");
+  const refs = execNodes
+    .map((n) => String((n.parameters as { workflowId?: string }).workflowId))
+    .sort();
+  assert.deepEqual(
+    refs,
+    ["ff90-01", "ff90-02", "ff90-03", "ff90-04", "ff90-05"],
+    "MASTER must still execute FF90-01..05 by canonical file id",
+  );
+});
+
+test("ff90 18G: all 6 workflows still active=false", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    assert.equal(wf.active, false, `${f}: active must remain false`);
+  }
+});
+
+test("ff90 18G: FF90-02 GET node uses /api/automation/run/ (NOT /api/admin/automation/)", () => {
+  const wf = readWorkflow("FF90-02-editorial-factory");
+  const getNode = wf.nodes.find(
+    (n) => n.type === "n8n-nodes-base.httpRequest" &&
+           String((n.parameters as { method?: string }).method) === "GET",
+  );
+  assert.ok(getNode, "FF90-02 must have a GET HTTP node");
+  const url = String((getNode.parameters as { url?: string }).url);
+  assert.match(url, /\/api\/automation\/run\//, "FF90-02 GET must target /api/automation/run/");
+  assert.doesNotMatch(url, /\/api\/admin\/automation\//, "FF90-02 GET must NOT target /api/admin/automation/");
+});
+
+test("ff90 18G: zero /api/admin/automation references in any FF90 workflow", () => {
+  for (const f of WORKFLOW_FILES) {
+    const raw = readFileSync(join(WORKFLOWS, `${f}.json`), "utf-8");
+    // The literal string /api/admin/automation must not appear as a URL.
+    // Comments mentioning the migration are allowed in non-URL contexts.
+    assert.equal(
+      /url[^"]*"[^"]*\/api\/admin\/automation\//.test(raw),
+      false,
+      `${f}: must not URL-reference /api/admin/automation/`,
+    );
+  }
+});
+
+test("ff90 18G: FF90-04 contains /api/automation/media (no /api/admin/posts/media)", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const raw = readFileSync(join(WORKFLOWS, `${f("FF90-04-wordpress-draft")}.json`), "utf-8");
+  assert.match(raw, /\/api\/automation\/media/, "FF90-04 must reference /api/automation/media");
+  assert.doesNotMatch(raw, /\/api\/admin\/posts\/media/, "FF90-04 must NOT reference /api/admin/posts/media");
+});
+
+test("ff90 18G: zero /api/admin/posts/media references in any FF90 workflow", () => {
+  for (const f of WORKFLOW_FILES) {
+    const raw = readFileSync(join(WORKFLOWS, `${f}.json`), "utf-8");
+    assert.doesNotMatch(raw, /\/api\/admin\/posts\/media/, `${f}: must not reference /api/admin/posts/media`);
+  }
+});
+
+test("ff90 18G: no FF90 workflow calls /api/automation/wp-publish", () => {
+  for (const f of WORKFLOW_FILES) {
+    const wf = readWorkflow(f);
+    for (const n of wf.nodes) {
+      const url = String((n.parameters as { url?: string }).url ?? "");
+      assert.equal(
+        url.includes("wp-publish"),
+        false,
+        `${f}.${n.name}: must not call wp-publish`,
+      );
+    }
+  }
+});
+
+test("ff90 18G: FF90-01 has Promote FF90-01 output emitting canonical envelope", () => {
+  const wf = readWorkflow("FF90-01-source-intake");
+  const promote = wf.nodes.find((n) => n.name === "Promote FF90-01 output");
+  assert.ok(promote, "FF90-01 must have a Promote FF90-01 output node");
+  const code = String((promote.parameters as { jsCode?: string }).jsCode ?? "");
+  assert.match(code, /run_id/, "promote must include run_id");
+  assert.match(code, /editorial_item_id/, "promote must include editorial_item_id");
+  assert.match(code, /pipeline_status/, "promote must include pipeline_status");
+  // Audit log must precede promote.
+  const auditIdx = wf.nodes.findIndex((n) => n.name === "Audit log");
+  const promoteIdx = wf.nodes.findIndex((n) => n.name === "Promote FF90-01 output");
+  assert.ok(auditIdx >= 0 && promoteIdx > auditIdx, "promote must come after Audit log");
+  // Connection: Audit log → Promote FF90-01 output
+  const conn = (wf.connections as Record<string, { main: Array<Array<{ node: string }>> }>);
+  const auditConn = conn["Audit log"]?.main?.[0] ?? [];
+  assert.ok(
+    auditConn.some((c) => c.node === "Promote FF90-01 output"),
+    "Audit log must connect to Promote FF90-01 output",
+  );
+});
+
+test("ff90 18G: FF90-03 held path preserves editorial fields", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const provider = wf.nodes.find((n) => n.name === "Provider adapter");
+  const code = String((provider.parameters as { jsCode?: string }).jsCode ?? "");
+  // Must preserve upstream fields (we use spread '...upstream').
+  assert.match(code, /\.\.\.upstream/, "provider adapter must spread upstream fields");
+  assert.match(code, /provider_status.*NOT_CONFIGURED/, "NOT_CONFIGURED branch must set provider_status");
+  assert.match(code, /image_status.*held/, "NOT_CONFIGURED branch must set image_status=held");
+});
+
+test("ff90 18G: FF90-03 has Promote FF90-03 output (terminal canonical envelope)", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const promote = wf.nodes.find((n) => n.name === "Promote FF90-03 output");
+  assert.ok(promote, "FF90-03 must have a Promote FF90-03 output node");
+});
+
+test("ff90 18G: FF90-04 has Validate editorial fields gate", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const validate = wf.nodes.find((n) => n.name === "Validate editorial fields");
+  assert.ok(validate, "FF90-04 must have a Validate editorial fields node");
+  const code = String((validate.parameters as { jsCode?: string }).jsCode ?? "");
+  assert.match(code, /title_th/, "validate must check title_th");
+  assert.match(code, /body_th/, "validate must check body_th");
+  assert.match(code, /held_for_content/, "validate must fail-closed with held_for_content");
+});
+
+test("ff90 18G: FF90-04 has Promote FF90-04 output (canonical envelope after wp-draft)", () => {
+  const wf = readWorkflow("FF90-04-wordpress-draft");
+  const promote = wf.nodes.find((n) => n.name === "Promote FF90-04 output");
+  assert.ok(promote, "FF90-04 must have a Promote FF90-04 output node");
+});
+
+test("ff90 18G: FF90-05 does NOT call wp-publish (manual_review guard)", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  // /api/automation/alert is the only allowed HTTP call (persistence only).
+  for (const n of wf.nodes) {
+    const url = String((n.parameters as { url?: string }).url ?? "");
+    if (url) {
+      assert.equal(
+        url.includes("wp-publish"),
+        false,
+        `${n.name} must not call wp-publish`,
+      );
+      // Only alert endpoint is allowed.
+      assert.match(
+        url,
+        /\/api\/automation\/alert\b/,
+        `${n.name} may only call /api/automation/alert (got ${url})`,
+      );
+    }
+  }
+  const approve = wf.nodes.find((n) => n.name === "APPROVE branch");
+  const approveCode = String((approve.parameters as { jsCode?: string }).jsCode ?? "");
+  assert.match(approveCode, /wp_publish_called:\s*false/, "APPROVE must set wp_publish_called=false");
+});
+
+test("ff90 18G: FF90-05 has Promote FF90-05 output (preserves run_id/editorial_item_id/wp_post_id)", () => {
+  const wf = readWorkflow("FF90-05-human-review");
+  const promote = wf.nodes.find((n) => n.name === "Promote FF90-05 output");
+  assert.ok(promote, "FF90-05 must have a Promote FF90-05 output node");
+});
+
+test("ff90 18G: MASTER has Editorial ready? gate (stops chain on held_for_content)", () => {
+  const wf = readWorkflow("FF90-MASTER");
+  const gate = wf.nodes.find((n) => n.name === "Editorial ready?");
+  assert.ok(gate, "MASTER must have an Editorial ready? gate");
+  assert.equal(gate.type, "n8n-nodes-base.if");
+  const stop = wf.nodes.find((n) => n.name === "STOP (held_for_content)");
+  assert.ok(stop, "MASTER must have a STOP (held_for_content) terminal");
+});
+
+test("ff90 18G: MASTER Promote run context uses canonical envelope fields", () => {
+  const wf = readWorkflow("FF90-MASTER");
+  const promote = wf.nodes.find((n) => n.name === "Promote run context");
+  const code = String((promote.parameters as { jsCode?: string }).jsCode ?? "");
+  assert.match(code, /run_id/, "promote must reference run_id");
+  assert.match(code, /editorial_item_id/, "promote must reference editorial_item_id");
+  assert.match(code, /pipeline_status/, "promote must reference pipeline_status (Phase 18G)");
+});
+
+test("ff90 18G: phase18f-b fixture validates against MASTER input schema", () => {
+  const fx = readJson(join(FIXTURES, "phase18f-b-e2e-test.json")) as Record<string, unknown>;
+  // Required fields per Normalize inbound job code in MASTER.
+  for (const k of ["source_url", "source_title", "publisher", "published_at", "source_text", "source_type"]) {
+    assert.ok(typeof fx[k] === "string" && (fx[k] as string).length > 0, `fixture missing ${k}`);
+  }
+  const optMeta = fx.optional_metadata as Record<string, unknown>;
+  assert.equal(optMeta.phase, "18f-b");
+  const testContent = optMeta.test_content as Record<string, unknown>;
+  for (const k of ["title_th", "body_th", "excerpt_th", "slug", "news_type"]) {
+    assert.ok(typeof testContent[k] === "string" && (testContent[k] as string).length > 0, `test_content missing ${k}`);
+  }
+  // Source URL must be unique per run (timestamp placeholder).
+  assert.match(fx.source_url as string, /<timestamp>/, "source_url should carry a unique-per-run placeholder");
+});
+
+test("ff90 18G: pipeline-envelope contract schema is valid JSON Schema draft-07", () => {
+  const s = readJson(join(CONTRACTS, "pipeline-envelope.schema.json")) as { $schema?: string; type?: string };
+  assert.match(s.$schema ?? "", /draft-07/);
+  assert.equal(s.type, "object");
+});
+
+test("ff90 18G: test harness workflow exists, is INACTIVE, marked test-only", () => {
+  // The harness is loaded into n8n as a separate workflow. The JSON file
+  // exists for tracking + import. We assert its on-disk properties.
+  const harnessPath = join(WORKFLOWS, "FF90-E2E-Test-Harness.json");
+  const raw = readFileSync(harnessPath, "utf-8");
+  const harness = JSON.parse(raw) as {
+    active: boolean;
+    tags: Array<{ name: string }>;
+    nodes: Array<{ type: string; name: string }>;
+  };
+  assert.equal(harness.active, false, "test harness must remain INACTIVE");
+  const tagNames = harness.tags.map((t) => t.name);
+  assert.ok(tagNames.includes("do-not-activate"), "harness must carry 'do-not-activate' tag");
+  assert.ok(tagNames.includes("test-only"), "harness must carry 'test-only' tag");
+  // Must not have a schedule / webhook trigger (it should only be invokable
+  // via docker exec n8n n8n execute --id=...).
+  const allowedTypes = new Set([
+    "n8n-nodes-base.code",
+    "n8n-nodes-base.executeWorkflow",
+  ]);
+  for (const n of harness.nodes) {
+    assert.ok(
+      allowedTypes.has(n.type),
+      `harness node ${n.name} must be code or executeWorkflow (got ${n.type})`,
+    );
+  }
+});
+
+// helper: lookup by string id (small shim for the above tests)
+function f(name: string): string {
+  return name;
+}

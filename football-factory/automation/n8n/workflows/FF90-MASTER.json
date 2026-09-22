@@ -12,7 +12,10 @@
       "name": "Webhook: source job intake",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "notes": "Accepts a normalized job: { source_url, requested_by, optional_metadata }. We do NOT trust arbitrary public POSTs without auth — for production, gate this webhook behind n8n's built-in auth or a sibling auth node. Returns the run_id synchronously (200) so callers can poll the editorial item."
     },
     {
@@ -23,35 +26,56 @@
       "name": "Normalize inbound job",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300]
+      "position": [
+        500,
+        300
+      ]
     },
     {
       "parameters": {
         "workflowId": "ff90-01",
-        "options": {"waitForSubWorkflow": true}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ff90-master-exec-01",
       "name": "Execute FF90-01 Source Intake",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [760, 300]
+      "position": [
+        760,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Promote the run_id + editorial_item_id returned by FF90-01 into the\n// shared pipeline context. If duplicate, stop cleanly.\nconst result = $json;\nconst runId = result.run_id || null;\nconst editorialItemId = result.editorial_item_id || null;\nconst status = result.status || (result.duplicate ? 'duplicate' : 'unknown');\nif (status === 'duplicate' || !editorialItemId) {\n  return [{\n    json: {\n      status,\n      run_id: runId,\n      editorial_item_id: editorialItemId,\n      stage: 'source_intake',\n      error_code: null,\n      retryable: false,\n      timestamp: new Date().toISOString(),\n    },\n  }];\n}\nreturn [{ json: { ...result, run_id: runId, editorial_item_id: editorialItemId, status: 'accepted' } }];\n"
+        "jsCode": "// Phase 18G — promote canonical envelope from FF90-01 output.\n// FF90-01 now emits the canonical envelope (via Promote FF90-01 output\n// Code node) instead of an Audit log response. We read it directly.\nconst result = $json;\nconst runId = result.run_id || null;\nconst editorialItemId = result.editorial_item_id || null;\n// Stop the chain on terminal non-accepted states from FF90-01.\nconst stopStates = ['duplicate', 'failed'];\nif (stopStates.includes(result.pipeline_status) || !editorialItemId) {\n  return [{\n    json: {\n      ...result,\n      status: 'duplicate_or_failed',\n      run_id: runId,\n      editorial_item_id: editorialItemId,\n      pipeline_stage: result.pipeline_stage || 'source_intake',\n      error_code: null,\n      retryable: false,\n      timestamp: new Date().toISOString(),\n    },\n  }];\n}\nreturn [{\n  json: {\n    ...result,\n    status: 'accepted',\n    run_id: runId,\n    editorial_item_id: editorialItemId,\n  },\n}];\n"
       },
       "id": "ff90-master-promote-01",
       "name": "Promote run context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1020, 300]
+      "position": [
+        1020,
+        300
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "typeValidation": "strict"},
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "conditions": [
-            {"leftValue": "={{ $json.status }}", "rightValue": "accepted", "operator": {"type": "string", "operation": "equals"}}
+            {
+              "leftValue": "={{ $json.pipeline_status }}",
+              "rightValue": "accepted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -61,61 +85,87 @@
       "name": "Continue?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1280, 300]
+      "position": [
+        1280,
+        300
+      ]
     },
     {
       "parameters": {
         "workflowId": "ff90-02",
-        "options": {"waitForSubWorkflow": true}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ff90-master-exec-02",
       "name": "Execute FF90-02 Editorial Factory",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [1560, 200]
+      "position": [
+        1560,
+        200
+      ]
     },
     {
       "parameters": {
         "workflowId": "ff90-03",
-        "options": {"waitForSubWorkflow": true}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ff90-master-exec-03",
       "name": "Execute FF90-03 Image Factory",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [1840, 200]
+      "position": [
+        1840,
+        200
+      ]
     },
     {
       "parameters": {
         "workflowId": "ff90-04",
-        "options": {"waitForSubWorkflow": true}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ff90-master-exec-04",
       "name": "Execute FF90-04 WordPress Draft",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [2120, 200]
+      "position": [
+        2120,
+        200
+      ]
     },
     {
       "parameters": {
         "workflowId": "ff90-05",
-        "options": {"waitForSubWorkflow": true}
+        "options": {
+          "waitForSubWorkflow": true
+        }
       },
       "id": "ff90-master-exec-05",
       "name": "Execute FF90-05 Human Review Gate",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
-      "position": [2400, 200]
+      "position": [
+        2400,
+        200
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Final envelope. Returns the canonical run envelope every stage promised:\n//   { editorial_item_id, automation_run_id, stage, status, error_code, retryable, timestamp }\n// In Phase 18A this returns waiting_human_review once the WP draft is created.\nreturn [{\n  json: {\n    status: 'waiting_human_review',\n    run_id: $json.run_id,\n    editorial_item_id: $json.editorial_item_id,\n    wp_post_id: $json.wp_post_id || null,\n    stage: 'human_review',\n    error_code: null,\n    retryable: false,\n    publish_mode: 'manual_review',\n    auto_publish: false,\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
+        "jsCode": "// Phase 18G — Final envelope. Re-emits canonical pipeline envelope\n// with all FF90-04 + FF90-05 fields preserved. No wp-publish call.\n// In manual_review mode this returns waiting_human_review.\nreturn [{\n  json: {\n    ...$json,\n    pipeline_stage: 'complete',\n    pipeline_status: $json.pipeline_status || 'waiting_human_review',\n    publish_mode: 'manual_review',\n    auto_publish: false,\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
       },
       "id": "ff90-master-final",
       "name": "Final envelope",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2680, 200]
+      "position": [
+        2680,
+        200
+      ]
     },
     {
       "parameters": {
@@ -125,44 +175,198 @@
       "name": "STOP (duplicate / no editorial link)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 440]
+      "position": [
+        1560,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.pipeline_status }}",
+              "rightValue": "accepted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-master-gate-02",
+      "name": "Editorial ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        200
+      ],
+      "notes": "Phase 18G: stop chain if FF90-02 returned held_for_content."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — short-circuit when FF90-02 returned held_for_content\n// (or any non-accepted pipeline_status from editorial factory).\n// Do NOT proceed to image factory or WP draft.\nreturn [{\n  json: {\n    ...$json,\n    pipeline_stage: 'editorial_factory',\n    pipeline_status: 'held_for_content',\n    error_code: 'editorial_held_for_content',\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
+      },
+      "id": "ff90-master-stop-editorial",
+      "name": "STOP (held_for_content)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        440
+      ],
+      "notes": "Phase 18G: terminal stop when editorial content is missing."
     }
   ],
   "connections": {
     "Webhook: source job intake": {
-      "main": [[{"node": "Normalize inbound job", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Normalize inbound job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize inbound job": {
-      "main": [[{"node": "Execute FF90-01 Source Intake", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Execute FF90-01 Source Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Execute FF90-01 Source Intake": {
-      "main": [[{"node": "Promote run context", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Promote run context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Promote run context": {
-      "main": [[{"node": "Continue?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Continue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Continue?": {
       "main": [
-        [{"node": "Execute FF90-02 Editorial Factory", "type": "main", "index": 0}],
-        [{"node": "STOP (duplicate / no editorial link)", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Execute FF90-02 Editorial Factory",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "STOP (duplicate / no editorial link)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Execute FF90-02 Editorial Factory": {
-      "main": [[{"node": "Execute FF90-03 Image Factory", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Editorial ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Execute FF90-03 Image Factory": {
-      "main": [[{"node": "Execute FF90-04 WordPress Draft", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Execute FF90-04 WordPress Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Execute FF90-04 WordPress Draft": {
-      "main": [[{"node": "Execute FF90-05 Human Review Gate", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Execute FF90-05 Human Review Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Execute FF90-05 Human Review Gate": {
-      "main": [[{"node": "Final envelope", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Final envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editorial ready?": {
+      "main": [
+        [
+          {
+            "node": "Execute FF90-03 Image Factory",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "STOP (held_for_content)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
-  "tags": [{"name": "ff90"}, {"name": "phase-18a"}, {"name": "master"}],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ff90"
+    },
+    {
+      "name": "phase-18a"
+    },
+    {
+      "name": "master"
+    }
+  ],
   "id": "ff90-master",
   "versionId": "1.0.0"
 }
