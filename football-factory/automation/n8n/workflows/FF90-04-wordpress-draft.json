@@ -64,7 +64,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Image metadata, written into the FF90 image-system registry when applicable.\nconst meta = {\n  alt_text: $json.alt_text || '',\n  caption: $json.caption || '',\n  credit_line: $json.credit_line || '',\n  source_kind: $json.source_kind || 'ai_generated',\n  source_url: $json.source_url || null,\n  original_url: $json.original_url || null,\n  author: $json.author || null,\n  license: $json.license || null,\n  license_url: $json.license_url || null,\n  attribution: $json.attribution || null,\n  provider: $json.provider || null,\n  provider_request_id: $json.provider_request_id || null,\n};\nreturn [{ json: { ...$json, image_meta: meta } }];\n"
+        "jsCode": "const current = { ...$('Validate editorial fields').item.json, ...$json };\n// Image metadata, written into the FF90 image-system registry when applicable.\nconst meta = {\n  alt_text: current.alt_text || '',\n  caption: current.caption || '',\n  credit_line: current.credit_line || '',\n  source_kind: current.source_kind || 'ai_generated',\n  source_url: current.source_url || null,\n  original_url: current.original_url || null,\n  author: current.author || null,\n  license: current.license || null,\n  license_url: current.license_url || null,\n  attribution: current.attribution || null,\n  provider: current.provider || null,\n  provider_request_id: current.provider_request_id || null,\n};\nreturn [{ json: { ...current, image_meta: meta } }];\n"
       },
       "id": "ff90-04-meta",
       "name": "Image metadata",
@@ -257,7 +257,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// wp_post_id + wp_post_status='draft' from the wp-draft response.\n//\n// Pull wp-draft response via cross-node ref so we capture wp_post_id.\nconst up = $json;\nconst draftResp = $('POST /api/automation/wp-draft').item.json || {};\nreturn [{\n  json: {\n    ...up,\n    run_id: up.run_id || draftResp.run_id || null,\n    editorial_item_id: up.editorial_item_id || draftResp.editorial_item_id || null,\n    wp_post_id: draftResp.wp_post_id || null,\n    wp_post_status: draftResp.status === 'draft' ? 'draft' : 'draft',  // hardcoded\n    pipeline_stage: 'wp_draft',\n    pipeline_status: up.pipeline_status || 'waiting_approval',\n  },\n}];\n"
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// wp_post_id + wp_post_status='draft' from the wp-draft response.\n//\n// Pull wp-draft response via cross-node ref so we capture wp_post_id.\nconst up = $('Image metadata').item.json;\nconst draftResp = $('POST /api/automation/wp-draft').item.json || {};\nreturn [{\n  json: {\n    ...up,\n    run_id: up.run_id || draftResp.run_id || null,\n    editorial_item_id: up.editorial_item_id || draftResp.editorial_item_id || null,\n    wp_post_id: draftResp.wp_post_id || null,\n    wp_post_status: draftResp.status === 'draft' ? 'draft' : 'draft',  // hardcoded\n    pipeline_stage: 'wp_draft',\n    pipeline_status: 'waiting_approval',\n  },\n}];\n"
       },
       "id": "ff90-04-promote",
       "name": "Promote FF90-04 output",
@@ -268,6 +268,49 @@
         300
       ],
       "notes": "Phase 18G: terminal promote. wp_post_status is hardcoded 'draft' — server enforces this in wp-draft route."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.pipeline_status }}",
+              "rightValue": "accepted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-04-content-gate",
+      "name": "Editorial fields valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json } }];\n"
+      },
+      "id": "ff90-04-stop:-missing-editorial-content",
+      "name": "STOP: missing editorial content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        600
+      ]
     }
   ],
   "connections": {
@@ -337,7 +380,47 @@
       "main": [
         [
           {
+            "node": "Editorial fields valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editorial fields valid?": {
+      "main": [
+        [
+          {
             "node": "POST /api/automation/wp-draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "STOP: missing editorial content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit log": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-04 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit log (no image)": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-04 output",
             "type": "main",
             "index": 0
           }

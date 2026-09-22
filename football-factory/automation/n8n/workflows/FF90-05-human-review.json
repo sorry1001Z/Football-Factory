@@ -91,7 +91,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// WAIT for explicit human decision. In manual_review mode this\n// is the terminal node of FF90-05. The wait is bounded only by\n// a periodic re-poll — there is NO timeout auto-pass.\nreturn [{\n  json: {\n    ...$json,\n    waiting_since: new Date().toISOString(),\n    waiting_until: null,\n    auto_pass_after: null,\n    mode_in_effect: 'manual_review',\n    note: 'No timeout auto-pass in manual_review mode. The item stays at status=waiting_human_review and wp_post_status=draft indefinitely until the operator approves or rejects via /admin/editorial/[id] or an explicit /api/admin/editorial/[id]/approval call. This is enforced by the server (which rejects timeout_auto_pass when publish_mode=manual_review) and by the workflow (which has no wait-for-response timer).',\n  },\n}];\n"
+        "jsCode": "// WAIT for explicit human decision. In manual_review mode this\n// is the terminal node of FF90-05. The wait is bounded only by\n// a periodic re-poll — there is NO timeout auto-pass.\nreturn [{\n  json: {\n    ...$('Build notification payload').item.json,\n    waiting_since: new Date().toISOString(),\n    waiting_until: null,\n    auto_pass_after: null,\n    mode_in_effect: 'manual_review',\n    note: 'No timeout auto-pass in manual_review mode. The item stays at status=waiting_human_review and wp_post_status=draft indefinitely until the operator approves or rejects via /admin/editorial/[id] or an explicit /api/admin/editorial/[id]/approval call. This is enforced by the server (which rejects timeout_auto_pass when publish_mode=manual_review) and by the workflow (which has no wait-for-response timer).',\n  },\n}];\n"
       },
       "id": "ff90-05-wait",
       "name": "Wait for explicit human decision",
@@ -148,7 +148,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — REJECT branch. Preserves upstream canonical envelope.\n// Records reason; does not publish. Note: this is the DEFAULT cron entry\n// path because no review_decision is set in $json. DB state remains\n// whatever FF90-04 last wrote (typically waiting_approval).\nreturn [{\n  json: {\n    ...$json,\n    review_status: 'rejected',\n    status: 'held_for_revision',\n    reject_reason: $json.review_reason || 'unspecified',\n    rejected_at: new Date().toISOString(),\n    pipeline_status: 'rejected',\n    pipeline_stage: 'human_review',\n  },\n}];\n"
+        "jsCode": "// No decision means pending; only explicit rejection marks the envelope rejected.\nif ($json.review_decision !== 'rejected') {\n  return [{ json: { ...$json, review_status: 'pending', pipeline_status: 'waiting_human_review', pipeline_stage: 'human_review' } }];\n}\nreturn [{ json: { ...$json,\n  review_status: 'rejected',\n  status: 'held_for_revision',\n  pipeline_status: 'rejected',\n  pipeline_stage: 'human_review',\n  reject_reason: $json.review_reason || 'unspecified',\n  rejected_at: new Date().toISOString(),\n} }];\n"
       },
       "id": "ff90-05-rejected",
       "name": "REJECT branch",
@@ -161,7 +161,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// review_status. No wp-publish call. DB remains waiting_approval\n// (set by FF90-04); this node only sets in-memory review_status.\nconst up = $json;\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'human_review',\n    pipeline_status: up.pipeline_status === 'approved' ? 'approved' : 'waiting_human_review',\n    review_status: up.review_status || 'pending',\n  },\n}];\n"
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope with\n// review_status. No wp-publish call. DB remains waiting_approval\n// (set by FF90-04); this node only sets in-memory review_status.\nconst up = $json;\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'human_review',\n    pipeline_status: ['approved', 'rejected'].includes(up.pipeline_status) ? up.pipeline_status : 'waiting_human_review',\n    review_status: up.review_status || 'pending',\n  },\n}];\n"
       },
       "id": "ff90-05-promote",
       "name": "Promote FF90-05 output",
@@ -242,6 +242,28 @@
         [
           {
             "node": "REJECT branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APPROVE branch": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-05 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "REJECT branch": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-05 output",
             "type": "main",
             "index": 0
           }

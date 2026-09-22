@@ -63,7 +63,8 @@
               "responseFormat": "json"
             }
           }
-        }
+        },
+        "method": "POST"
       },
       "id": "ff90-01-dedupe",
       "name": "POST /api/automation/deduplicate",
@@ -108,7 +109,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — duplicate stop. Re-emit canonical envelope with\n// pipeline_status='duplicate'. Preserve source_* from upstream so\n// MASTER sees the dedupe context.\nconst src = $('Normalize source').item.json || {};\nconst dedupe = $('POST /api/automation/deduplicate').item.json || {};\nreturn [{\n  json: {\n    run_id: dedupe.run_id || null,\n    editorial_item_id: null,\n    source_id: src.source_id || null,\n    source_url: src.canonical_url || null,\n    source_title: src.source_title || null,\n    publisher: src.publisher || null,\n    published_at: src.published_at || null,\n    source_type: src.source_type || null,\n    source_text: src.source_text || null,\n    pipeline_stage: 'source_intake',\n    pipeline_status: 'duplicate',\n    metadata: { duplicate: true },\n  },\n}];\n"
+        "jsCode": "// Phase 18G — duplicate stop. Re-emit canonical envelope with\n// pipeline_status='duplicate'. Preserve source_* from upstream so\n// MASTER sees the dedupe context.\nconst src = $('Normalize source').item.json || {};\nconst dedupe = $('POST /api/automation/deduplicate').item.json || {};\nreturn [{\n  json: {\n    ...(src.raw || {}),\n    run_id: dedupe.run_id || null,\n    editorial_item_id: null,\n    source_id: src.source_id || null,\n    source_url: src.canonical_url || null,\n    source_title: src.source_title || null,\n    publisher: src.publisher || null,\n    published_at: src.published_at || null,\n    source_type: src.source_type || null,\n    source_text: src.source_text || null,\n    pipeline_stage: 'source_intake',\n    pipeline_status: 'duplicate',\n    metadata: { duplicate: true },\n  },\n}];\n"
       },
       "id": "ff90-01-dup-end",
       "name": "STOP: duplicate",
@@ -200,7 +201,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — terminal promote node. Re-emits the canonical\n// pipeline envelope so MASTER can extract run_id, editorial_item_id,\n// and source context without losing data to the Audit-log response.\n//\n// Merge rule: previous envelope + fields explicitly set by this stage.\n//\n// Upstream payload (from POST /api/automation/editorial-item) carries\n// editorial_item_id + run_id; merge with the original Normalize-source\n// output which carries source_* fields.\n//\n// We use cross-node refs to read fields that other nodes produced.\nconst up = $('POST /api/automation/editorial-item').item.json;\nconst src = $('Normalize source').item.json || {};\nreturn [{\n  json: {\n    run_id: up.run_id || null,\n    editorial_item_id: up.editorial_item_id || null,\n    source_id: src.source_id || null,\n    source_url: src.canonical_url || null,\n    source_title: src.source_title || null,\n    publisher: src.publisher || null,\n    published_at: src.published_at || null,\n    source_type: src.source_type || null,\n    source_text: src.source_text || null,\n    pipeline_stage: 'source_intake',\n    pipeline_status: 'accepted',\n    metadata: {},\n  },\n}];\n"
+        "jsCode": "// Phase 18G — terminal promote node. Re-emits the canonical\n// pipeline envelope so MASTER can extract run_id, editorial_item_id,\n// and source context without losing data to the Audit-log response.\n//\n// Merge rule: previous envelope + fields explicitly set by this stage.\n//\n// Upstream payload (from POST /api/automation/editorial-item) carries\n// editorial_item_id + run_id; merge with the original Normalize-source\n// output which carries source_* fields.\n//\n// We use cross-node refs to read fields that other nodes produced.\nconst up = $('POST /api/automation/editorial-item').item.json;\nconst src = $('Normalize source').item.json || {};\nreturn [{\n  json: {\n    ...(src.raw || {}),\n    run_id: up.run_id || null,\n    editorial_item_id: up.editorial_item_id || null,\n    source_id: src.source_id || null,\n    source_url: src.canonical_url || null,\n    source_title: src.source_title || null,\n    publisher: src.publisher || null,\n    published_at: src.published_at || null,\n    source_type: src.source_type || null,\n    source_text: src.source_text || null,\n    pipeline_stage: 'source_intake',\n    pipeline_status: 'accepted',\n    metadata: {},\n  },\n}];\n"
       },
       "id": "ff90-01-promote",
       "name": "Promote FF90-01 output",
@@ -211,6 +212,19 @@
         440
       ],
       "notes": "Phase 18G: terminal promote node. Re-emits the canonical envelope to MASTER so run_id and editorial_item_id are not lost to the Audit log response."
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Normalize source').item.json;\nreturn [{ json: { ...src, ...$json } }];\n"
+      },
+      "id": "ff90-01-restore-source-context",
+      "name": "Restore source context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        600
+      ]
     }
   ],
   "connections": {
@@ -240,7 +254,7 @@
       "main": [
         [
           {
-            "node": "Duplicate?",
+            "node": "Restore source context",
             "type": "main",
             "index": 0
           }
@@ -281,6 +295,17 @@
         [
           {
             "node": "Promote FF90-01 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore source context": {
+      "main": [
+        [
+          {
+            "node": "Duplicate?",
             "type": "main",
             "index": 0
           }

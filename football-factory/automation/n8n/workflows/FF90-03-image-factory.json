@@ -162,7 +162,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = $json.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...$json,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
+        "jsCode": "const current = { ...$('Restore provider context').item.json, ...$json };\n// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = current.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...current,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
       },
       "id": "ff90-03-relevance",
       "name": "Visual relevance gate",
@@ -256,7 +256,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope so\n// FF90-04 can continue with title_th/body_th/etc preserved.\n//\n// Branches:\n//   - provider configured + audit success → pipeline_status='accepted'\n//   - provider NOT_CONFIGURED + audit held → pipeline_status='held_for_human'\n//   - any failure → pipeline_status='failed'\nconst up = $json;\nconst isHeld = up.provider_status === 'NOT_CONFIGURED' || up.image_status === 'held';\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'image_factory',\n    pipeline_status: isHeld ? 'held_for_human' : 'accepted',\n  },\n}];\n"
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope so\n// FF90-04 can continue with title_th/body_th/etc preserved.\n//\n// Branches:\n//   - provider configured + audit success → pipeline_status='accepted'\n//   - provider NOT_CONFIGURED + audit held → pipeline_status='held_for_human'\n//   - any failure → pipeline_status='failed'\nconst provider = $('Provider adapter').item.json;\nconst up = provider.provider_status === 'NOT_CONFIGURED'\n  ? provider : $('Plan derivatives').item.json;\nconst isHeld = up.provider_status === 'NOT_CONFIGURED' || up.image_status === 'held';\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'image_factory',\n    pipeline_status: isHeld ? 'held_for_human' : 'accepted',\n  },\n}];\n"
       },
       "id": "ff90-03-promote",
       "name": "Promote FF90-03 output",
@@ -267,6 +267,19 @@
         300
       ],
       "notes": "Phase 18G: terminal promote. Re-emits canonical envelope. image_status='held' does NOT block the chain — text-only WP draft can still proceed."
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$('Provider adapter').item.json, ...$json } }];\n"
+      },
+      "id": "ff90-03-restore-provider-context",
+      "name": "Restore provider context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        600
+      ]
     }
   ],
   "connections": {
@@ -325,7 +338,7 @@
       "main": [
         [
           {
-            "node": "POST /api/automation/rights-check",
+            "node": "Restore provider context",
             "type": "main",
             "index": 0
           }
@@ -359,6 +372,39 @@
         [
           {
             "node": "Audit log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore provider context": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/rights-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit log": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-03 output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit log (held)": {
+      "main": [
+        [
+          {
+            "node": "Promote FF90-03 output",
             "type": "main",
             "index": 0
           }
