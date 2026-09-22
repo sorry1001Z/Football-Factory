@@ -24,7 +24,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [500, 300],
-      "notes": "Phase 18G: invokes FF90-MASTER with the fixture as input. MASTER's webhook entry will receive it because n8n Execute Workflow injects the upstream $json as the workflow's input items."
+      "notes": "Phase 18G: invokes FF90-MASTER with the fixture as input. MASTER receives it through its passthrough Execute Workflow Trigger, then uses the existing Normalize inbound job node."
     }
   ],
   "connections": {

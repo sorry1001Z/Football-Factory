@@ -13,6 +13,45 @@ function reaches(w, from, to, seen = new Set()) {
   return (w.connections[from]?.main || []).flat().some(e => reaches(w, e.node, to, seen));
 }
 
+test('children have exactly one passthrough subworkflow entry and no autonomous trigger', () => {
+  const firstNodes = ['Normalize source', 'Preserve editorial input', 'Build image prompt', 'Validate editorial fields', 'Resolve publish mode'];
+  names.forEach((name, i) => {
+    const w = read(name);
+    const triggers = w.nodes.filter(n => /trigger|webhook/i.test(n.type));
+    assert.equal(triggers.length, 1, name);
+    const trigger = triggers[0];
+    assert.equal(trigger.type, 'n8n-nodes-base.executeWorkflowTrigger');
+    assert.equal(trigger.typeVersion, 1.1);
+    assert.deepEqual(trigger.parameters, { inputSource: 'passthrough' });
+    assert.notEqual(trigger.disabled, true);
+    assert.equal(w.nodes.some(n => n.type === 'n8n-nodes-base.scheduleTrigger'), false);
+    assert.deepEqual(next(w, trigger.name), [firstNodes[i]]);
+    assert.ok(reaches(w, trigger.name, `Promote FF90-0${i + 1} output`));
+  });
+});
+
+test('MASTER keeps its production webhook and accepts the harness through a subworkflow entry', () => {
+  const w = read('FF90-MASTER');
+  const webhook = w.nodes.filter(n => n.type === 'n8n-nodes-base.webhook');
+  assert.equal(webhook.length, 1);
+  assert.equal(webhook[0].name, 'Webhook: source job intake');
+  assert.equal(webhook[0].parameters.path, 'ff90-master-intake');
+  const sub = w.nodes.filter(n => n.type === 'n8n-nodes-base.executeWorkflowTrigger');
+  assert.equal(sub.length, 1);
+  assert.equal(sub[0].typeVersion, 1.1);
+  assert.deepEqual(sub[0].parameters, { inputSource: 'passthrough' });
+  for (const entry of [webhook[0], sub[0]]) {
+    assert.deepEqual(next(w, entry.name), ['Normalize inbound job']);
+    assert.ok(reaches(w, entry.name, 'Editorial ready?'));
+    assert.ok(reaches(w, entry.name, 'STOP (held_for_content)'));
+  }
+  assert.equal(w.nodes.some(n => n.type === 'n8n-nodes-base.scheduleTrigger'), false);
+  const harness = read('FF90-E2E-Test-Harness');
+  assert.equal(harness.active, false);
+  for (const tag of ['test-only', 'do-not-activate']) assert.ok(harness.tags.some(t => t.name === tag));
+  assert.equal(harness.nodes.some(n => /trigger|webhook/i.test(n.type)), false);
+});
+
 test('every audit branch reaches its terminal canonical promote', () => {
   names.forEach((name, i) => {
     const w = read(name);

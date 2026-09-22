@@ -98,7 +98,67 @@ Each `*.json` in `workflows/` follows the n8n workflow export schema:
 }
 ```
 
-## Contracts
+## Phase 18H-B: production subworkflow and deployment contract
+
+FF90-01 through FF90-05 each have one `n8n-nodes-base.executeWorkflowTrigger`,
+`typeVersion: 1.1`, with `parameters: { "inputSource": "passthrough" }`.
+They have no schedules. The trigger passes all parent items through, including
+unknown JSON fields and optional binary data; it supplies no defaults or fixtures.
+The existing first business node remains responsible for any normalization.
+This schema and pass-through behavior are present in the
+[n8n 2.0.0 trigger source](https://github.com/n8n-io/n8n/blob/n8n%402.0.0/packages/nodes-base/nodes/ExecuteWorkflow/ExecuteWorkflowTrigger/ExecuteWorkflowTrigger.node.ts).
+The installed instance was not inspected or modified during this source repair.
+
+| Child | Expected parent input | First business node |
+|---|---|---|
+| FF90-01 | source_url, source_title, publisher, published_at, source_text, source_type, competition, teams, people, requested_by, optional_metadata | Normalize source |
+| FF90-02 | Canonical envelope with run_id, editorial_item_id and source/editorial context | Preserve editorial input |
+| FF90-03 | Canonical envelope with editorial fields and news_type | Build image prompt |
+| FF90-04 | Canonical envelope with title_th/body_th and optional image/media state | Validate editorial fields |
+| FF90-05 | Canonical envelope with run/editorial IDs, draft and publish-mode state | Resolve publish mode |
+
+MASTER retains `Webhook: source job intake`. It also has a passthrough
+Execute Workflow Trigger for the test harness; both entries feed the existing
+`Normalize inbound job` node and the same editorial-ready/held-for-content gates.
+The harness remains test-only, inactive, and without schedules or webhooks.
+
+Production deployment updates the existing rows below. Execute Workflow targets
+are persisted directly in source, not translated from logical IDs at runtime.
+Top-level JSON `id` values remain logical metadata: a production updater must
+select the existing row using this map, preserve the row ID, and preserve the
+committed Execute Workflow targets. A generic import that creates new rows under
+the logical IDs is not the production update contract. No sync tool is introduced
+or executed by this repair.
+
+| Logical definition | Production row ID |
+|---|---|
+| ff90-01 | kwpSls38bmydgZK3 |
+| ff90-02 | MfMkjlDg1SnEUk3r |
+| ff90-03 | hGQx1nGDbBPXgD83 |
+| ff90-04 | YvfaWlJGZfUBEkSC |
+| ff90-05 | HOc6FXMlouQJDMAl |
+| ff90-master | mer7yesS2YkeQQa7 |
+| ff90-e2e-test-harness | YZZj6ESNsVYuypX8 |
+
+All committed definitions stay `active: false`. Eventual activation/publication
+of MASTER and the five children is an operator task; the children must still have
+zero schedules and the harness must remain inactive. No activation, workflow
+execution, environment changes, or server kill-switch bypass are part of this
+repair. Draft-only and manual human-review behavior are unchanged.
+
+Offline regression checks (run from `football-factory/frontend`):
+
+```sh
+node --import tsx --test ../automation/n8n/tests/workflow-dry-run.test.ts ../automation/n8n/tests/source-reconciliation.test.mjs ../automation/n8n/tests/canonical-envelope.test.mjs
+```
+
+The envelope tests evaluate isolated Code-node functions with synthetic inputs
+and stubbed HTTP outputs. They do not run n8n, execute a workflow, call an API,
+or read real environment values. They establish input/output contracts, not
+runtime E2E success. Operator verification on the installed n8n version remains
+a separate later step.
+
+## Contract schemas
 
 JSON Schema Draft-07 contracts live in `contracts/`:
 

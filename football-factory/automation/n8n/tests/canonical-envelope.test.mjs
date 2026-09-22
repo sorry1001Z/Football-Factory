@@ -1,0 +1,110 @@
+// Pure Code-node unit tests with synthetic data and stubbed HTTP outputs.
+// No n8n engine, workflow execution, network, real environment, or database.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { runInNewContext } from 'node:vm';
+
+const read = name => JSON.parse(readFileSync(new URL(`../workflows/${name}.json`, import.meta.url), 'utf8'));
+function code(w, name, input, outputs = {}) {
+  const node = w.nodes.find(n => n.name === name);
+  assert.ok(node?.parameters.jsCode, name);
+  const result = runInNewContext(`(function () { ${node.parameters.jsCode} })()`, {
+    $json: structuredClone(input),
+    items: [{ json: structuredClone(input) }],
+    $env: {},
+    $: label => {
+      assert.ok(Object.hasOwn(outputs, label), `unexpected node lookup: ${label}`);
+      return { item: { json: structuredClone(outputs[label]) } };
+    },
+    require: name => { assert.equal(name, 'crypto'); return { createHash }; },
+  }, { timeout: 1000 });
+  return JSON.parse(JSON.stringify(result[0].json));
+}
+
+const source = {
+  source_url: 'https://test.ff90.online/envelope-unit-test',
+  source_title: 'Synthetic source', publisher: 'test-only', published_at: '2026-09-23T00:00:00Z',
+  source_text: 'Synthetic content', source_type: 'other', competition: 'test',
+  teams: ['test-a', 'test-b'], people: ['test-person'], requested_by: 'unit-test',
+  optional_metadata: { phase: '18f-b', test_marker: 'unit-test', test_content: {
+    title_th: 'Synthetic title', body_th: 'Synthetic body', excerpt_th: 'Synthetic excerpt',
+    news_type: 'test', slug: 'synthetic-test',
+  } },
+  extension_field: { retained: true },
+};
+const envelope = {
+  ...source, run_id: '11111111-1111-4111-8111-111111111111',
+  editorial_item_id: '22222222-2222-4222-8222-222222222222', source_id: 'src:unit-test',
+  ...source.optional_metadata.test_content, pipeline_status: 'accepted',
+};
+function retained(actual, expected, keys = Object.keys(expected)) {
+  for (const key of keys) assert.deepEqual(actual[key], expected[key], `lost field: ${key}`);
+}
+
+test('FF90-01 retains source input including optional metadata and extensions at Promote', () => {
+  const w = read('FF90-01-source-intake');
+  const normalized = code(w, 'Normalize source', source);
+  const output = code(w, 'Promote FF90-01 output', { ok: true }, {
+    'Normalize source': normalized,
+    'POST /api/automation/editorial-item': envelope,
+  });
+  retained(output, source);
+  retained(output, envelope, ['run_id', 'editorial_item_id']);
+});
+
+test('FF90-02 retains canonical fields and synthetic content; missing content stays held', () => {
+  const w = read('FF90-02-editorial-factory');
+  const input = code(w, 'Preserve editorial input', { ...source, run_id: envelope.run_id, editorial_item_id: envelope.editorial_item_id });
+  const classified = code(w, 'Classify news type', { run: {}, editorialItem: null }, { 'Preserve editorial input': input });
+  const output = code(w, 'Promote FF90-02 output', { ok: true }, { 'Classify news type': classified });
+  retained(output, source);
+  retained(output, envelope, ['run_id', 'editorial_item_id', 'title_th', 'body_th', 'news_type']);
+  assert.equal(output.pipeline_status, 'accepted');
+  const empty = { ...input, optional_metadata: {} };
+  const held = code(w, 'Classify news type', { editorialItem: null }, { 'Preserve editorial input': empty });
+  assert.equal(held.pipeline_status, 'held_for_content');
+});
+
+test('FF90-03 NOT_CONFIGURED preserves the editorial envelope through Promote', () => {
+  const w = read('FF90-03-image-factory');
+  const prompt = code(w, 'Build image prompt', envelope);
+  const provider = code(w, 'Provider adapter', prompt);
+  const output = code(w, 'Promote FF90-03 output', { ok: true }, { 'Provider adapter': provider });
+  retained(output, envelope, Object.keys(envelope).filter(k => k !== 'pipeline_status'));
+  assert.equal(output.provider_status, 'NOT_CONFIGURED');
+  assert.equal(output.image_status, 'held');
+});
+
+test('FF90-04 accepts text-only input, preserves context, and holds incomplete content', () => {
+  const w = read('FF90-04-wordpress-draft');
+  const validated = code(w, 'Validate editorial fields', envelope);
+  assert.equal(validated.pipeline_status, 'accepted');
+  const draft = { wp_post_id: 123, status: 'draft' };
+  const meta = code(w, 'Image metadata', draft, { 'Validate editorial fields': validated });
+  const output = code(w, 'Promote FF90-04 output', { ok: true }, {
+    'Image metadata': meta, 'POST /api/automation/wp-draft': draft,
+  });
+  retained(output, envelope, Object.keys(envelope).filter(k => k !== 'pipeline_status'));
+  assert.equal(output.wp_post_status, 'draft');
+  for (const field of ['title_th', 'body_th']) {
+    const held = code(w, 'Validate editorial fields', { ...envelope, [field]: ' ' });
+    assert.equal(held.pipeline_status, 'held_for_content');
+  }
+});
+
+test('FF90-05 preserves draft context and no decision remains pending through Promote', () => {
+  const w = read('FF90-05-human-review');
+  const input = { ...envelope, wp_post_id: 123, wp_post_status: 'draft', publish_mode: 'manual_review' };
+  const mode = code(w, 'Resolve publish mode', input);
+  const payload = code(w, 'Build notification payload', mode);
+  const waiting = code(w, 'Wait for explicit human decision', { ok: true }, { 'Build notification payload': payload });
+  const pending = code(w, 'REJECT branch', waiting);
+  const output = code(w, 'Promote FF90-05 output', pending);
+  retained(output, input, Object.keys(input).filter(k => k !== 'pipeline_status'));
+  assert.equal(output.review_status, 'pending');
+  assert.equal(output.pipeline_status, 'waiting_human_review');
+  assert.equal(output.mode_in_effect, 'manual_review');
+  assert.equal(output.auto_pass_after, null);
+});

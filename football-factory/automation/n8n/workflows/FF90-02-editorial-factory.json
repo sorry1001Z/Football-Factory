@@ -3,20 +3,12 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "minutes",
-              "minutesInterval": 5
-            }
-          ]
-        },
-        "options": {}
+        "inputSource": "passthrough"
       },
-      "id": "ff90-02-cron",
-      "name": "Cron: every 5m (or webhook)",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
+      "id": "ff90-02-subworkflow-trigger",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
       "position": [
         240,
         300
@@ -332,7 +324,7 @@
     }
   ],
   "connections": {
-    "Cron: every 5m (or webhook)": {
+    "When Executed by Another Workflow": {
       "main": [
         [
           {

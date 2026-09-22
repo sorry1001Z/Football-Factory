@@ -224,6 +224,20 @@
         440
       ],
       "notes": "Phase 18G: terminal stop when editorial content is missing."
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "ff90-master-subworkflow-trigger",
+      "name": "When Executed by Test Harness",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        520
+      ],
+      "notes": "Parent-callable entry for the inactive test harness. Production webhook remains unchanged."
     }
   ],
   "connections": {
@@ -345,6 +359,17 @@
         [
           {
             "node": "STOP (held_for_content)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Test Harness": {
+      "main": [
+        [
+          {
+            "node": "Normalize inbound job",
             "type": "main",
             "index": 0
           }
