@@ -18,10 +18,31 @@ function code(w, name, input, outputs = {}) {
       assert.ok(Object.hasOwn(outputs, label), `unexpected node lookup: ${label}`);
       return { item: { json: structuredClone(outputs[label]) } };
     },
-    require: name => { assert.equal(name, 'crypto'); return { createHash }; },
   }, { timeout: 1000 });
   return JSON.parse(JSON.stringify(result[0].json));
 }
+
+const normalizeCode = read('FF90-01-source-intake').nodes.find(n => n.name === 'Normalize source').parameters.jsCode;
+const hashStart = normalizeCode.indexOf('function sha256(input) {');
+const hashEndMarker = '\n}\n\nconst item = items[0].json;';
+const hashEnd = normalizeCode.indexOf(hashEndMarker, hashStart);
+assert.ok(hashStart >= 0 && hashEnd > hashStart, 'embedded pure SHA-256 function is present');
+const pureSha256Source = normalizeCode.slice(hashStart, hashEnd + 2);
+function pureHash(input) {
+  return runInNewContext(`(${pureSha256Source})(input)`, { input }, { timeout: 1000 });
+}
+
+test('pure JavaScript SHA-256 matches the standard abc vector', () => {
+  assert.equal(pureHash('abc'), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+});
+
+test('pure SHA-256 is deterministic, distinguishes input, and returns lowercase 64-char hex', () => {
+  const first = pureHash('same input');
+  assert.equal(first, pureHash('same input'));
+  assert.notEqual(first, pureHash('different input'));
+  assert.equal(first.length, 64);
+  assert.match(first, /^[0-9a-f]{64}$/);
+});
 
 const source = {
   source_url: 'https://test.ff90.online/envelope-unit-test',
@@ -52,6 +73,20 @@ test('FF90-01 retains source input including optional metadata and extensions at
   });
   retained(output, source);
   retained(output, envelope, ['run_id', 'editorial_item_id']);
+});
+
+test('FF90-01 production hash input and source_id match Node SHA-256 exactly', () => {
+  const w = read('FF90-01-source-intake');
+  const input = {
+    source_url: '  https://example.test/story  ', source_title: 'A title',
+    published_at: '2026-09-23T09:30:00Z', source_text: 'body',
+  };
+  const normalized = code(w, 'Normalize source', input);
+  const exactInput = 'https://example.test/story\u00002026-09-23T09:30:00Z';
+  const expected = createHash('sha256').update(exactInput).digest('hex');
+  assert.equal(pureHash(exactInput), expected);
+  assert.equal(normalized.source_id, `src:${expected.slice(0, 48)}`);
+  assert.equal(normalized.source_id.length, 52);
 });
 
 test('FF90-02 retains canonical fields and synthetic content; missing content stays held', () => {

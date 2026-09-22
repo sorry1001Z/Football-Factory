@@ -142,3 +142,17 @@ test('all seven workflows remain inactive with no executable wp-publish target',
     for (const n of w.nodes) assert.doesNotMatch(n.parameters.url || '', /wp-publish/);
   }
 });
+
+test('executable Code nodes in the full FF90 chain load no disallowed modules', () => {
+  const disallowed = /\brequire\s*\(|\bimport\s*(?:\(|['"]|[^\n;]*?\sfrom\s*['"])|\bnode:(?:crypto|fs|path|os|child_process|net|tls|http|https)\b|(?:require\s*\(\s*|\bfrom\s*)['"](?:crypto|fs|path|os|child_process|net|tls|http|https)['"]/;
+  const hits = [];
+  for (const name of [...names, 'FF90-MASTER', 'FF90-E2E-Test-Harness']) {
+    for (const node of read(name).nodes) {
+      if (node.type !== 'n8n-nodes-base.code' || !node.parameters.jsCode) continue;
+      if (disallowed.test(node.parameters.jsCode)) hits.push(`${name}:${node.name}`);
+    }
+  }
+  assert.deepEqual(hits, []);
+  const normalizer = read(names[0]).nodes.find(n => n.name === 'Normalize source').parameters.jsCode;
+  assert.doesNotMatch(normalizer, /\brequire\s*\(\s*['"]crypto['"]\s*\)/);
+});
