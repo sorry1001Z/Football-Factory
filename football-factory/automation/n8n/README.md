@@ -52,7 +52,7 @@ On error, downstream stages are NOT executed. No half-built items.
 | POST /api/automation/fact-check | `app/api/automation/fact-check/route.ts`       |
 | POST /api/automation/rights-check | `app/api/automation/rights-check/route.ts`    |
 | POST /api/automation/wp-draft   | `app/api/automation/wp-draft/route.ts`         |
-| POST /api/admin/posts/media     | `app/api/admin/posts/media/route.ts` (Phase 17D)|
+| POST /api/automation/media      | `app/api/automation/media/route.ts` (Phase 18C.1) |
 | POST /api/automation/alert      | `app/api/automation/alert/route.ts`           |
 | POST /api/automation/log        | `app/api/automation/log/route.ts`             |
 

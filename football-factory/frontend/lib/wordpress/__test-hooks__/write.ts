@@ -8,12 +8,23 @@
 // across the test runtime.
 
 import "server-only";
-import { WordPressWriteClient } from "@/lib/wordpress/write";
+import { WordPressWriteClient, type WpMedia } from "@/lib/wordpress/write";
 
 export type WordPressWriteClientLike = Pick<
   WordPressWriteClient,
   "configured" | "createPost" | "updatePost" | "trashPost"
->;
+> & {
+  // uploadMedia is optional in the factory contract because most
+  // existing call sites (wp-publish, wp-draft, safety-patch tests)
+  // never upload media. Routes that need it (e.g. /api/automation/media)
+  // type-check against the real WordPressWriteClient, not this mockable
+  // interface.
+  uploadMedia?: WordPressWriteClient["uploadMedia"];
+};
+
+// Re-export WpMedia so tests can construct typed return values without
+// importing the (server-only) write module directly.
+export type { WpMedia };
 
 declare global {
   // eslint-disable-next-line no-var

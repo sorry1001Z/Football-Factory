@@ -92,6 +92,7 @@ export function rateLimitedResponse(resetMs: number): Response {
 export const AUTOMATION_RL = {
   wpPublish: { bucket: "wp-publish", limit: 10, windowMs: 60_000 } as const,
   wpDraft:   { bucket: "wp-draft",   limit: 10, windowMs: 60_000 } as const,
+  media:     { bucket: "wp-media",   limit: 30, windowMs: 60_000 } as const,
   editorial: { bucket: "editorial",  limit: 30, windowMs: 60_000 } as const,
   aiAssist:  { bucket: "ai-assist",  limit: 30, windowMs: 60_000 } as const,
   factCheck: { bucket: "fact-check", limit: 30, windowMs: 60_000 } as const,
