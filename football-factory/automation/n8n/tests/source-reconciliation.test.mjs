@@ -2,7 +2,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 
 const names = ['FF90-01-source-intake', 'FF90-02-editorial-factory', 'FF90-03-image-factory', 'FF90-04-wordpress-draft', 'FF90-05-human-review'];
 const read = name => JSON.parse(readFileSync(new URL(`../workflows/${name}.json`, import.meta.url), 'utf8'));
@@ -63,8 +62,44 @@ test('workflow graph targets exist and embedded JavaScript parses without execut
   }
 });
 
-test('MASTER child IDs equal the previous committed baseline', () => {
-  const baseline = JSON.parse(execFileSync('git', ['show', '337c2d48fcf34cea4bc66b7f43b44fe72122f7df:football-factory/automation/n8n/workflows/FF90-MASTER.json'], { encoding: 'utf8' }));
-  const ids = w => w.nodes.filter(n => n.type === 'n8n-nodes-base.executeWorkflow').map(n => n.parameters.workflowId);
-  assert.deepEqual(ids(read('FF90-MASTER')), ids(baseline));
+// Production runtime ID map confirmed by the operator in Phase 18G-R2.
+// These are Execute Workflow targets; top-level logical IDs remain metadata.
+const productionRuntimeIds = {
+  'ff90-01': 'kwpSls38bmydgZK3',
+  'ff90-02': 'MfMkjlDg1SnEUk3r',
+  'ff90-03': 'hGQx1nGDbBPXgD83',
+  'ff90-04': 'YvfaWlJGZfUBEkSC',
+  'ff90-05': 'HOc6FXMlouQJDMAl',
+  'ff90-master': 'mer7yesS2YkeQQa7',
+};
+
+test('MASTER resolves all five Execute Workflow targets against the production map', () => {
+  const master = read('FF90-MASTER');
+  const exec = master.nodes.filter(n => n.type === 'n8n-nodes-base.executeWorkflow');
+  assert.equal(master.id, 'ff90-master');
+  assert.equal(exec.length, 5);
+  names.forEach((name, i) => {
+    const logicalId = name.slice(0, 7).toLowerCase();
+    const target = exec.find(n => n.id === `ff90-master-exec-0${i + 1}`);
+    assert.ok(target, `missing Execute Workflow node for ${logicalId}`);
+    assert.equal(target.parameters.workflowId, productionRuntimeIds[logicalId]);
+    assert.equal(read(name).id, logicalId);
+  });
+  for (const n of exec) assert.doesNotMatch(n.parameters.workflowId, /^ff90-0[1-5]$/);
+});
+
+test('harness targets the production MASTER runtime ID, never its logical ID', () => {
+  const harness = read('FF90-E2E-Test-Harness');
+  const refs = harness.nodes.filter(n => n.type === 'n8n-nodes-base.executeWorkflow').map(n => n.parameters.workflowId);
+  assert.deepEqual(refs, [productionRuntimeIds['ff90-master']]);
+  assert.equal(refs.includes('ff90-master'), false);
+  assert.equal(harness.id, 'ff90-e2e-test-harness');
+});
+
+test('all seven workflows remain inactive with no executable wp-publish target', () => {
+  for (const name of [...names, 'FF90-MASTER', 'FF90-E2E-Test-Harness']) {
+    const w = read(name);
+    assert.equal(w.active, false, name);
+    for (const n of w.nodes) assert.doesNotMatch(n.parameters.url || '', /wp-publish/);
+  }
 });

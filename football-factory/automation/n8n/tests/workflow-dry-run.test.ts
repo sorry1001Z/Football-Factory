@@ -101,7 +101,7 @@ test("ff90 master: executes sub-workflows in correct order", () => {
     .map((n) => String((n.parameters as { workflowId?: string }).workflowId));
   assert.deepEqual(
     execOrder,
-    ["ff90-01", "ff90-02", "ff90-03", "ff90-04", "ff90-05"],
+    ["kwpSls38bmydgZK3", "MfMkjlDg1SnEUk3r", "hGQx1nGDbBPXgD83", "YvfaWlJGZfUBEkSC", "HOc6FXMlouQJDMAl"],
     "master must execute FF90-01 → 02 → 03 → 04 → 05 in that order",
   );
 });
@@ -611,7 +611,7 @@ test("ff90: Phase 18A invariants hold across all workflows", () => {
 // Phase 18G — full-chain contract repair assertions
 // ============================================================
 
-test("ff90 18G: MASTER references 5 children with the canonical file ids", () => {
+test("ff90 18G: MASTER references 5 children with the production runtime IDs", () => {
   const master = readWorkflow("FF90-MASTER");
   const execNodes = master.nodes.filter((n) => n.type === "n8n-nodes-base.executeWorkflow");
   const refs = execNodes
@@ -619,8 +619,8 @@ test("ff90 18G: MASTER references 5 children with the canonical file ids", () =>
     .sort();
   assert.deepEqual(
     refs,
-    ["ff90-01", "ff90-02", "ff90-03", "ff90-04", "ff90-05"],
-    "MASTER must still execute FF90-01..05 by canonical file id",
+    ["kwpSls38bmydgZK3", "MfMkjlDg1SnEUk3r", "hGQx1nGDbBPXgD83", "YvfaWlJGZfUBEkSC", "HOc6FXMlouQJDMAl"].sort(),
+    "MASTER must execute FF90-01..05 by production runtime ID",
   );
 });
 
