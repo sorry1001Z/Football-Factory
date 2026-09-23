@@ -213,28 +213,16 @@
               "value": "={{ $json.editorial_item_id }}"
             },
             {
-              "name": "news_type",
-              "value": "={{ $json.news_type }}"
+              "name": "state",
+              "value": "manual_review"
             },
             {
-              "name": "image_prompt",
-              "value": "={{ $json.image_prompt }}"
+              "name": "source_url",
+              "value": "={{ typeof $json.source_url === 'string' && $json.source_url.trim().length <= 2048 ? $json.source_url.trim() : undefined }}"
             },
             {
-              "name": "provider_status",
-              "value": "={{ $json.provider_status }}"
-            },
-            {
-              "name": "provider_name",
-              "value": "={{ $json.provider }}"
-            },
-            {
-              "name": "provider_request_id",
-              "value": "={{ $json.request_id }}"
-            },
-            {
-              "name": "output_asset",
-              "value": "={{ $json.output_asset }}"
+              "name": "source_name",
+              "value": "={{ typeof $json.publisher === 'string' && $json.publisher.trim().length <= 256 ? $json.publisher.trim() : undefined }}"
             }
           ]
         }

@@ -20,6 +20,7 @@ const input = {
   editorial_item_id: 'editorial-phase18he2d3',
   source_id: 'src:1234567890abcdef1234567890abcdef1234567890abcdef',
   canonical_url: 'https://example.invalid/ff90-e2d5-test',
+  source_url: 'https://example.invalid/ff90-e2d5-test',
   source_title: '[FF90 TEST] dedupe body',
   publisher: 'FF90-TEST',
   source_type: 'test',
@@ -47,9 +48,9 @@ const input = {
 const nodeOutputs = {
   'POST /api/automation/deduplicate': { run_id: input.run_id },
   'POST /api/automation/editorial-item': { editorial_item_id: input.editorial_item_id },
-  'POST /api/automation/ai-assist': { title: input.title, content: input.content, slug: input.slug, excerpt: input.excerpt },
+  'POST /api/automation/ai-assist': { provider_status: 'not_configured', content_hash: 'synthetic' },
   'POST /api/automation/seo-check': { seo_check_status: 'clear' },
-  'POST /api/automation/fact-check': { fact_check_state: 'cleared', provider_status: 'test' },
+  'POST /api/automation/fact-check': { state: 'pending_manual', provider_status: 'not_configured' },
   'POST /api/automation/wp-draft': { wp_post_id: 123, idempotent: false },
 };
 
@@ -152,6 +153,60 @@ test('FF90-02 through FF90-05 dynamic HTTP JSON bodies use keypair mode', () => 
     assert.equal(typeof evaluated, 'object');
     assert.ok(evaluated !== null && !Array.isArray(evaluated));
   }
+});
+
+test('FF90-02 SEO and fact-check requests use the canonical editorial fields and route contracts', () => {
+  const workflow = read('FF90-02-editorial-factory');
+  const seo = workflow.nodes.find(n => n.name === 'POST /api/automation/seo-check');
+  const ai = workflow.nodes.find(n => n.name === 'POST /api/automation/ai-assist');
+  const fact = workflow.nodes.find(n => n.name === 'POST /api/automation/fact-check');
+  const seoBody = evaluateKeypairBody(seo, seo.name);
+  const aiBody = evaluateKeypairBody(ai, ai.name);
+  const factBody = evaluateKeypairBody(fact, fact.name);
+  assert.deepEqual(Object.keys(seoBody).sort(), ['content', 'description', 'editorial_item_id', 'run_id', 'slug', 'title']);
+  assert.equal(seoBody.run_id, input.run_id);
+  assert.equal(seoBody.editorial_item_id, input.editorial_item_id);
+  assert.equal(seoBody.title, input.title_th);
+  assert.equal(seoBody.content, input.body_th);
+  assert.equal(seoBody.slug, input.slug);
+  assert.equal(seoBody.description, input.excerpt_th);
+  assert.deepEqual(Object.keys(aiBody).sort(), ['content', 'editorial_item_id', 'run_id']);
+  assert.equal(aiBody.content, input.body_th);
+  assert.deepEqual(Object.keys(factBody).sort(), ['content', 'editorial_item_id', 'run_id']);
+  assert.equal(factBody.content, input.body_th);
+  assert.match(workflow.nodes.find(n => n.name === 'Audit log').parameters.bodyParameters.parameters.find(p => p.name === 'status').value, /\.state === 'cleared'/);
+});
+
+test('FF90-03..05 callers use actual rights, draft, media, and alert route fields', () => {
+  const image = read('FF90-03-image-factory');
+  const rights = image.nodes.find(n => n.name === 'POST /api/automation/rights-check');
+  const rightsBody = evaluateKeypairBody(rights, rights.name);
+  assert.deepEqual(Object.keys(rightsBody).sort(), ['editorial_item_id', 'run_id', 'source_name', 'source_url', 'state']);
+  assert.equal(rightsBody.state, 'manual_review');
+  assert.equal(rightsBody.source_url, input.source_url);
+  assert.equal(rightsBody.source_name, input.publisher);
+
+  const draftWorkflow = read('FF90-04-wordpress-draft');
+  const draft = draftWorkflow.nodes.find(n => n.name === 'POST /api/automation/wp-draft');
+  const draftBody = evaluateKeypairBody(draft, draft.name);
+  assert.deepEqual(Object.keys(draftBody).sort(), ['content', 'editorial_item_id', 'run_id', 'title']);
+  assert.equal(draftBody.title, input.title_th);
+  assert.equal(draftBody.content, input.body_th);
+  const media = draftWorkflow.nodes.find(n => n.name === 'POST /api/automation/media');
+  const multipart = media.parameters.multipartParameters.parameters;
+  assert.deepEqual(multipart.filter(p => p.parameterType === 'formData').map(p => p.name).sort(), ['alt_text', 'caption', 'editorial_item_id', 'post_id', 'run_id', 'title'].sort());
+  assert.deepEqual(multipart.find(p => p.parameterType === 'formBinaryData'), {
+    parameterType: 'formBinaryData', name: 'file', inputDataFieldName: 'binary_data',
+  });
+  assert.ok(multipart.some(p => p.name === 'run_id' && p.value === '={{ $json.run_id }}'));
+  assert.ok(multipart.some(p => p.name === 'editorial_item_id' && p.value === '={{ $json.editorial_item_id }}'));
+
+  const review = read('FF90-05-human-review');
+  const alert = review.nodes.find(n => n.name === 'POST /api/automation/alert (review-ready)');
+  const alertBody = evaluateKeypairBody(alert, alert.name);
+  assert.deepEqual(Object.keys(alertBody).sort(), ['context', 'message', 'run_id', 'severity', 'source']);
+  assert.equal(alertBody.severity, 'info');
+  assert.equal(typeof alertBody.context, 'object');
 });
 
 test('FF90-01 dedupe body evaluates to the API contract as an object', () => {

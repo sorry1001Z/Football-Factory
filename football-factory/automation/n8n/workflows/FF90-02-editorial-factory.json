@@ -112,16 +112,8 @@
               "value": "={{ $json.editorial_item_id }}"
             },
             {
-              "name": "prompt",
-              "value": "={{ $json.article_prompt }}"
-            },
-            {
-              "name": "news_type",
-              "value": "={{ $json.news_type }}"
-            },
-            {
-              "name": "source_id",
-              "value": "={{ $json.source_id }}"
+              "name": "content",
+              "value": "={{ $json.body_th }}"
             }
           ]
         }
@@ -134,7 +126,7 @@
         1280,
         300
       ],
-      "notes": "Server-side AI assist call. Returns a draft title + body. Persists a content_hash server-side; we still pass the body downstream as the operator-resumable payload.",
+      "notes": "Records a content fingerprint when no AI provider is configured; it does not generate article fields. Canonical editorial content is restored from the upstream envelope.",
       "credentials": {
         "httpHeaderAuth": {
           "id": "oDa6RRKZleN2DC71",
@@ -180,23 +172,19 @@
             },
             {
               "name": "title",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.title }}"
+              "value": "={{ $json.title_th }}"
             },
             {
               "name": "content",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.content }}"
+              "value": "={{ $json.body_th }}"
             },
             {
               "name": "slug",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.slug }}"
+              "value": "={{ typeof $json.slug === 'string' && $json.slug.trim().length >= 3 && $json.slug.trim().length <= 64 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test($json.slug.trim()) ? $json.slug.trim() : undefined }}"
             },
             {
               "name": "description",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.excerpt }}"
-            },
-            {
-              "name": "news_type",
-              "value": "={{ $json.news_type }}"
+              "value": "={{ typeof $json.excerpt_th === 'string' && $json.excerpt_th.trim().length <= 500 ? $json.excerpt_th.trim() : undefined }}"
             }
           ]
         }
@@ -253,20 +241,8 @@
               "value": "={{ $json.editorial_item_id }}"
             },
             {
-              "name": "title",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.title }}"
-            },
-            {
               "name": "content",
-              "value": "={{ $('POST /api/automation/ai-assist').item.json.content }}"
-            },
-            {
-              "name": "news_type",
-              "value": "={{ $json.news_type }}"
-            },
-            {
-              "name": "source_id",
-              "value": "={{ $json.source_id }}"
+              "value": "={{ $json.body_th }}"
             }
           ]
         }
@@ -324,7 +300,7 @@
             },
             {
               "name": "status",
-              "value": "={{ $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human' }}"
+              "value": "={{ $('POST /api/automation/fact-check').item.json.state === 'cleared' ? 'success' : 'held_for_human' }}"
             },
             {
               "name": "message",

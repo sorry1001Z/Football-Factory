@@ -581,10 +581,37 @@ test("FF_HOOK_7: malformed slug → 400 validation_failed", async () => {
       ),
     );
     assert.equal(r.status, 400);
+    assert.equal((await r.json() as { error: string }).error, "validation_failed");
   });
 });
 
-test("FF_HOOK_7: deterministic local checks — good payload → score > 50", async () => {
+test("FF_HOOK_7: missing required title → 400 validation_failed", async () => {
+  await withDb([], async () => {
+    const r = await Hook7(
+      makeRequest(
+        { run_id: RUN_ID, editorial_item_id: EDITORIAL_ID, content: "fixture body" },
+        { "x-automation-secret": OK_SECRET },
+      ),
+    );
+    assert.equal(r.status, 400);
+    assert.equal((await r.json() as { error: string }).error, "validation_failed");
+  });
+});
+
+test("FF_HOOK_7: wrong content type → 400 validation_failed", async () => {
+  await withDb([], async () => {
+    const r = await Hook7(
+      makeRequest(
+        { run_id: RUN_ID, editorial_item_id: EDITORIAL_ID, title: "Fixture title", content: 42 },
+        { "x-automation-secret": OK_SECRET },
+      ),
+    );
+    assert.equal(r.status, 400);
+    assert.equal((await r.json() as { error: string }).error, "validation_failed");
+  });
+});
+
+test("FF_HOOK_7: corrected FF90-02 contract payload → accepted with deterministic score", async () => {
   // Stage current is "rights_check" so the forward edge to "seo_check" is allowed.
   await withDb(
     [
@@ -603,12 +630,13 @@ test("FF_HOOK_7: deterministic local checks — good payload → score > 50", as
           {
             run_id: RUN_ID,
             editorial_item_id: EDITORIAL_ID,
-            title: "Premier League mid-week recap and tactical notes",
+            title: "พรีเมียร์ลีก: สรุปผลและประเด็นแท็กติก",
             content:
-              "Liverpool showed a 4-2-3-1 shape against Chelsea. " +
-              "Read the full analysis below. ".repeat(40) +
-              "<a href=\"/news/some-internal-link\">related</a>",
-            slug: "premier-league-mid-week-recap",
+              "บทความทดสอบนี้สรุปข้อมูลฟุตบอลจาก fixture ที่กำหนดไว้ " +
+              "ไม่มีการสร้างข้อเท็จจริงเพิ่มเติม และมีรายละเอียดประกอบสำหรับการตรวจ SEO ".repeat(12) +
+              "<a href=\"/news/fixture-related\">อ่านข่าวที่เกี่ยวข้อง</a>",
+            slug: "phase-18f-b-seo-fixture",
+            description: "คำโปรยสำหรับทดสอบสัญญา SEO ของ fixture 18F-B โดยใช้เนื้อหาสังเคราะห์เท่านั้น",
           },
           { "x-automation-secret": OK_SECRET },
         ),

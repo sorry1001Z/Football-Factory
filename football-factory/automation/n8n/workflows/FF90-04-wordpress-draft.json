@@ -57,18 +57,6 @@
             {
               "name": "content",
               "value": "={{ $json.body_th }}"
-            },
-            {
-              "name": "slug",
-              "value": "={{ $json.slug }}"
-            },
-            {
-              "name": "excerpt",
-              "value": "={{ $json.excerpt_th }}"
-            },
-            {
-              "name": "news_type",
-              "value": "={{ $json.news_type }}"
             }
           ]
         }
@@ -151,6 +139,11 @@
         "multipartParameters": {
           "parameters": [
             {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "binary_data"
+            },
+            {
               "parameterType": "formData",
               "name": "post_id",
               "value": "={{ $('POST /api/automation/wp-draft').item.json.wp_post_id }}"
@@ -169,6 +162,16 @@
               "parameterType": "formData",
               "name": "title",
               "value": "FF90 News Cover"
+            },
+            {
+              "parameterType": "formData",
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "parameterType": "formData",
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
             }
           ]
         },
