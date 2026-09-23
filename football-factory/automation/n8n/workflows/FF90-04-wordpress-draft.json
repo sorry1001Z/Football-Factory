@@ -29,8 +29,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $json.title_th,\n  \"content\": $json.body_th,\n  \"slug\": $json.slug,\n  \"excerpt\": $json.excerpt_th,\n  \"news_type\": $json.news_type\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 30000,
           "response": {
@@ -39,7 +38,40 @@
             }
           }
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $json.title_th }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.body_th }}"
+            },
+            {
+              "name": "slug",
+              "value": "={{ $json.slug }}"
+            },
+            {
+              "name": "excerpt",
+              "value": "={{ $json.excerpt_th }}"
+            },
+            {
+              "name": "news_type",
+              "value": "={{ $json.news_type }}"
+            }
+          ]
+        }
       },
       "id": "ff90-04-draft",
       "name": "POST /api/automation/wp-draft",
@@ -185,12 +217,40 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_complete\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"success\",\n  \"message\": \"WP draft created or reused; status=draft\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "action",
+              "value": "ff90_04_wp_draft_complete"
+            },
+            {
+              "name": "stage",
+              "value": "wp_draft"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "WP draft created or reused; status=draft"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  } }}"
+            }
+          ]
+        }
       },
       "id": "ff90-04-log",
       "name": "Audit log",
@@ -222,12 +282,40 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_no_asset\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"held_for_human\",\n  \"message\": \"No image asset available; WP draft created without featured image\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "action",
+              "value": "ff90_04_wp_draft_no_asset"
+            },
+            {
+              "name": "stage",
+              "value": "wp_draft"
+            },
+            {
+              "name": "status",
+              "value": "held_for_human"
+            },
+            {
+              "name": "message",
+              "value": "No image asset available; WP draft created without featured image"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  } }}"
+            }
+          ]
+        }
       },
       "id": "ff90-04-log-noimg",
       "name": "Audit log (no image)",

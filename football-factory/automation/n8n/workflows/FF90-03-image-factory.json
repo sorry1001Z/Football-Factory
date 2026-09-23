@@ -82,12 +82,40 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "action",
+              "value": "ff90_03_image_factory_held"
+            },
+            {
+              "name": "stage",
+              "value": "image_factory"
+            },
+            {
+              "name": "status",
+              "value": "held_for_human"
+            },
+            {
+              "name": "message",
+              "value": "Image provider not configured OR visual relevance failed; item held for human"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n    \"provider_status\": $json.provider_status\n  } }}"
+            }
+          ]
+        }
       },
       "id": "ff90-03-hold-log",
       "name": "Audit log (held)",
@@ -163,8 +191,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"news_type\": $json.news_type,\n  \"image_prompt\": $json.image_prompt,\n  \"provider_status\": $json.provider_status,\n  \"provider_name\": $json.provider,\n  \"provider_request_id\": $json.request_id,\n  \"output_asset\": $json.output_asset\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 30000,
           "response": {
@@ -173,7 +200,44 @@
             }
           }
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
+            },
+            {
+              "name": "news_type",
+              "value": "={{ $json.news_type }}"
+            },
+            {
+              "name": "image_prompt",
+              "value": "={{ $json.image_prompt }}"
+            },
+            {
+              "name": "provider_status",
+              "value": "={{ $json.provider_status }}"
+            },
+            {
+              "name": "provider_name",
+              "value": "={{ $json.provider }}"
+            },
+            {
+              "name": "provider_request_id",
+              "value": "={{ $json.request_id }}"
+            },
+            {
+              "name": "output_asset",
+              "value": "={{ $json.output_asset }}"
+            }
+          ]
+        }
       },
       "id": "ff90-03-rights",
       "name": "POST /api/automation/rights-check",
@@ -206,12 +270,40 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_complete\",\n  \"stage\": \"image_factory\",\n  \"status\": $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human',\n  \"message\": \"Image factory complete\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "action",
+              "value": "ff90_03_image_factory_complete"
+            },
+            {
+              "name": "stage",
+              "value": "image_factory"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human' }}"
+            },
+            {
+              "name": "message",
+              "value": "Image factory complete"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  } }}"
+            }
+          ]
+        }
       },
       "id": "ff90-03-log",
       "name": "Audit log",

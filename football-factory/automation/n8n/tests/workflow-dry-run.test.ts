@@ -224,9 +224,9 @@ test("ff90-03: provider adapter is explicitly fail-closed without env access", (
   assert.equal(wf.nodes.some(n => n.name === "POST image provider"), false);
   // And the downstream audit-log held branch must fire.
   const held = readWorkflowNode(wf, "Audit log (held)").parameters as {
-    jsonBody?: string;
+    bodyParameters?: { parameters?: Array<{ name: string; value: string }> };
   };
-  assert.match(held.jsonBody ?? "", /held_for_human/);
+  assert.ok(held.bodyParameters?.parameters?.some(field => field.name === "status" && field.value === "held_for_human"));
 });
 
 test("ff90-03: image prompt never claims documentary representation", () => {
@@ -287,7 +287,7 @@ test("ff90-04: WP draft is created via existing /api/automation/wp-draft (never 
 test("ff90-04: status sent to /wp-draft is NOT set (server hard-codes 'draft')", () => {
   const wf = readWorkflow("FF90-04-wordpress-draft");
   const draft = readWorkflowNode(wf, "POST /api/automation/wp-draft");
-  const body = JSON.stringify(draft.parameters?.jsonBody ?? "");
+  const body = JSON.stringify(draft.parameters?.bodyParameters ?? "");
   // Our payload only carries run_id + editorial_item_id + title + content + slug + excerpt + news_type.
   // No status field — the server hard-codes draft.
   assert.equal(
@@ -300,9 +300,9 @@ test("ff90-04: status sent to /wp-draft is NOT set (server hard-codes 'draft')",
 test("ff90-04: missing asset bytes → held_for_human (not silent skip)", () => {
   const wf = readWorkflow("FF90-04-wordpress-draft");
   const log = readWorkflowNode(wf, "Audit log (no image)").parameters as {
-    jsonBody?: string;
+    bodyParameters?: { parameters?: Array<{ name: string; value: string }> };
   };
-  assert.match(log.jsonBody ?? "", /held_for_human/);
+  assert.ok(log.bodyParameters?.parameters?.some(field => field.name === "status" && field.value === "held_for_human"));
 });
 
 // ============================================================
@@ -526,7 +526,7 @@ test("ff90 audit: no workflow node branches on publish_mode (no if / switch on i
       const code =
         String((n.parameters as { jsCode?: string }).jsCode ?? "") +
         " " +
-        String((n.parameters as { jsonBody?: string }).jsonBody ?? "");
+        JSON.stringify((n.parameters as { bodyParameters?: unknown }).bodyParameters ?? "");
       // No live code may have an `if (publish_mode ===` style branch.
       assert.equal(
         /if\s*\([^)]*publish_mode/.test(code),
@@ -601,8 +601,8 @@ test("ff90: Phase 18A invariants hold across all workflows", () => {
       assert.equal(
         url.includes("/api/automation/wp-publish") ||
           url.includes("/api/admin/posts") &&
-            String(n.parameters?.jsonBody ?? "").includes('"status"') &&
-            String(n.parameters?.jsonBody ?? "").includes('"publish"'),
+            JSON.stringify(n.parameters?.bodyParameters ?? "").includes('"status"') &&
+            JSON.stringify(n.parameters?.bodyParameters ?? "").includes('"publish"'),
         false,
         `${f}:${n.name} must not call wp-publish with status=publish`,
       );

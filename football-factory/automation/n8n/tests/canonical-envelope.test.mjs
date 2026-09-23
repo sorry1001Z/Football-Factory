@@ -175,7 +175,8 @@ test('FF90-03 NOT_CONFIGURED preserves the editorial envelope through Promote', 
   const derivatives = code(w, 'Plan derivatives', relevant);
   const heldAudit = w.nodes.find((node) => node.name === 'Audit log (held)');
   assert.ok(heldAudit);
-  assert.match(heldAudit.parameters.jsonBody, /\$json\.run_id/);
+  assert.equal(heldAudit.parameters.specifyBody, 'keypair');
+  assert.ok(heldAudit.parameters.bodyParameters.parameters.some(field => field.name === 'run_id' && /\$json\.run_id/.test(field.value)));
   const output = code(w, 'Promote FF90-03 output', { ok: true }, { 'Provider adapter': provider });
   retained(output, envelope, Object.keys(envelope).filter(k => k !== 'pipeline_status'));
   assert.equal(output.provider_status, 'NOT_CONFIGURED');

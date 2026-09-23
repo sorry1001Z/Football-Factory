@@ -56,8 +56,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"severity\": \"info\",\n  \"source\": \"ff90-05-human-review-gate\",\n  \"message\": \"FF90 NEWS READY FOR REVIEW\",\n  \"context\": $json.review_payload,\n  \"run_id\": $json.run_id\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000,
           "response": {
@@ -66,7 +65,32 @@
             }
           }
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "severity",
+              "value": "info"
+            },
+            {
+              "name": "source",
+              "value": "ff90-05-human-review-gate"
+            },
+            {
+              "name": "message",
+              "value": "FF90 NEWS READY FOR REVIEW"
+            },
+            {
+              "name": "context",
+              "value": "={{ $json.review_payload }}"
+            },
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            }
+          ]
+        }
       },
       "id": "ff90-05-alert",
       "name": "POST /api/automation/alert (review-ready)",

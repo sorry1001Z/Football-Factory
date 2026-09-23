@@ -89,8 +89,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"prompt\": $json.article_prompt,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 60000,
           "response": {
@@ -100,7 +99,32 @@
           }
         },
         "method": "POST",
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.article_prompt }}"
+            },
+            {
+              "name": "news_type",
+              "value": "={{ $json.news_type }}"
+            },
+            {
+              "name": "source_id",
+              "value": "={{ $json.source_id }}"
+            }
+          ]
+        }
       },
       "id": "ff90-02-ai",
       "name": "POST /api/automation/ai-assist",
@@ -133,8 +157,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"slug\": $('POST /api/automation/ai-assist').item.json.slug,\n  \"description\": $('POST /api/automation/ai-assist').item.json.excerpt,\n  \"news_type\": $json.news_type\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 30000,
           "response": {
@@ -143,7 +166,40 @@
             }
           }
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.title }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.content }}"
+            },
+            {
+              "name": "slug",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.slug }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.excerpt }}"
+            },
+            {
+              "name": "news_type",
+              "value": "={{ $json.news_type }}"
+            }
+          ]
+        }
       },
       "id": "ff90-02-seo",
       "name": "POST /api/automation/seo-check",
@@ -175,8 +231,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 30000,
           "response": {
@@ -185,7 +240,36 @@
             }
           }
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "editorial_item_id",
+              "value": "={{ $json.editorial_item_id }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.title }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $('POST /api/automation/ai-assist').item.json.content }}"
+            },
+            {
+              "name": "news_type",
+              "value": "={{ $json.news_type }}"
+            },
+            {
+              "name": "source_id",
+              "value": "={{ $json.source_id }}"
+            }
+          ]
+        }
       },
       "id": "ff90-02-fact",
       "name": "POST /api/automation/fact-check",
@@ -218,12 +302,40 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_02_editorial_factory_complete\",\n  \"stage\": \"editorial_factory\",\n  \"status\": $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human',\n  \"message\": \"Editorial factory complete\",\n  \"metadata\": {\n    \"news_type\": $json.news_type,\n    \"seo_status\": $('POST /api/automation/seo-check').item.json.seo_check_status,\n    \"fact_provider_status\": $('POST /api/automation/fact-check').item.json.provider_status\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000
         },
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "action",
+              "value": "ff90_02_editorial_factory_complete"
+            },
+            {
+              "name": "stage",
+              "value": "editorial_factory"
+            },
+            {
+              "name": "status",
+              "value": "={{ $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human' }}"
+            },
+            {
+              "name": "message",
+              "value": "Editorial factory complete"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n    \"news_type\": $json.news_type,\n    \"seo_status\": $('POST /api/automation/seo-check').item.json.seo_check_status,\n    \"fact_provider_status\": $('POST /api/automation/fact-check').item.json.provider_status\n  } }}"
+            }
+          ]
+        }
       },
       "id": "ff90-02-log",
       "name": "Audit log",

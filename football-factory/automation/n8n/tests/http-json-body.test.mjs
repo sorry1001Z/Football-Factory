@@ -107,9 +107,10 @@ function requestBodyNodes() {
 test('all FF90 HTTP JSON bodies evaluate to objects using expression or keypair mode', () => {
   const nodes = requestBodyNodes();
   assert.equal(nodes.length, 14);
-  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'json').length, 13);
-  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'keypair').length, 1);
+  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'json').length, 0);
+  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'keypair').length, 14);
   for (const { workflowName, node } of nodes) {
+    assert.equal(node.parameters.jsonBody, undefined, `${workflowName}:${node.name} must not use JSON/expression hybrid body mode`);
     assert.doesNotMatch(JSON.stringify(node.parameters), /JSON\.stringify\s*\(/, `${workflowName}:${node.name} must not stringify its body`);
     const evaluated = evaluateBodyNode(node, `${workflowName}:${node.name}`);
     assert.equal(typeof evaluated, 'object', `${workflowName}:${node.name} must evaluate to an object`);
@@ -117,6 +118,38 @@ test('all FF90 HTTP JSON bodies evaluate to objects using expression or keypair 
     const serialized = JSON.stringify(evaluated);
     const parsed = JSON.parse(serialized);
     assert.equal(typeof parsed, 'object', `${workflowName}:${node.name} must parse after serialization`);
+  }
+});
+
+test('FF90-01 editorial-item and Audit log use keypair bodies with correct dynamic values', () => {
+  const workflow = read('FF90-01-source-intake');
+  const editorial = workflow.nodes.find(n => n.name === 'POST /api/automation/editorial-item');
+  const audit = workflow.nodes.find(n => n.name === 'Audit log');
+  for (const node of [editorial, audit]) {
+    assert.ok(node);
+    assert.equal(node.parameters.specifyBody, 'keypair');
+    assert.equal(node.parameters.contentType, 'json');
+    assert.equal(node.parameters.jsonBody, undefined);
+  }
+  const editorialBody = evaluateKeypairBody(editorial, editorial.name);
+  assert.equal(editorialBody.run_id, input.run_id);
+  assert.equal(editorialBody.source_id, input.source_id);
+  assert.equal(editorialBody.title, input.source_title);
+  assert.deepEqual(Object.keys(editorialBody.metadata).sort(), ['competition', 'people', 'published_at', 'source_intake_run_at', 'source_type', 'teams']);
+  assert.match(editorialBody.metadata.source_intake_run_at, /^\d{4}-\d\d-/);
+  const auditBody = evaluateKeypairBody(audit, audit.name);
+  assert.equal(auditBody.run_id, input.run_id);
+  assert.equal(auditBody.action, 'ff90_01_source_intake_complete');
+  assert.equal(auditBody.metadata.editorial_item_id, input.editorial_item_id);
+});
+
+test('FF90-02 through FF90-05 dynamic HTTP JSON bodies use keypair mode', () => {
+  for (const { workflowName, node } of requestBodyNodes().filter(({ workflowName }) => workflowName !== 'FF90-01-source-intake')) {
+    assert.equal(node.parameters.specifyBody, 'keypair', `${workflowName}:${node.name}`);
+    assert.equal(node.parameters.jsonBody, undefined, `${workflowName}:${node.name}`);
+    const evaluated = evaluateKeypairBody(node, `${workflowName}:${node.name}`);
+    assert.equal(typeof evaluated, 'object');
+    assert.ok(evaluated !== null && !Array.isArray(evaluated));
   }
 });
 
@@ -150,9 +183,7 @@ test('FF90 HTTP JSON bodies contain no concatenated JSON text or expression-stri
     const evaluated = evaluateBodyNode(node, `${workflowName}:${node.name}`);
     assert.equal(typeof evaluated, 'object', `${workflowName}:${node.name} returned serialized/string-built JSON`);
     assert.doesNotMatch(JSON.stringify(evaluated), /\$json/, `${workflowName}:${node.name} contains unevaluated expressions`);
-    if (node.parameters.specifyBody === 'json') {
-      assert.match(node.parameters.jsonBody, /^=\{\{/);
-      assert.match(node.parameters.jsonBody, /\}\}$/);
-    }
+    assert.equal(node.parameters.specifyBody, 'keypair');
+    assert.equal(node.parameters.jsonBody, undefined);
   }
 });
