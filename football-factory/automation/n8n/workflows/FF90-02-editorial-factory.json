@@ -90,7 +90,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"prompt\": $json.article_prompt,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"prompt\": $json.article_prompt,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}}}",
         "options": {
           "timeout": 60000,
           "response": {
@@ -134,7 +134,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"slug\": $('POST /api/automation/ai-assist').item.json.slug,\n  \"description\": $('POST /api/automation/ai-assist').item.json.excerpt,\n  \"news_type\": $json.news_type\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"slug\": $('POST /api/automation/ai-assist').item.json.slug,\n  \"description\": $('POST /api/automation/ai-assist').item.json.excerpt,\n  \"news_type\": $json.news_type\n}}}",
         "options": {
           "timeout": 30000,
           "response": {
@@ -176,7 +176,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $('POST /api/automation/ai-assist').item.json.title,\n  \"content\": $('POST /api/automation/ai-assist').item.json.content,\n  \"news_type\": $json.news_type,\n  \"source_id\": $json.source_id\n}}}",
         "options": {
           "timeout": 30000,
           "response": {
@@ -219,7 +219,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_02_editorial_factory_complete\",\n  \"stage\": \"editorial_factory\",\n  \"status\": $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human',\n  \"message\": \"Editorial factory complete\",\n  \"metadata\": {\n    \"news_type\": $json.news_type,\n    \"seo_status\": $('POST /api/automation/seo-check').item.json.seo_check_status,\n    \"fact_provider_status\": $('POST /api/automation/fact-check').item.json.provider_status\n  }\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_02_editorial_factory_complete\",\n  \"stage\": \"editorial_factory\",\n  \"status\": $('POST /api/automation/fact-check').item.json.fact_check_state === 'cleared' ? 'success' : 'held_for_human',\n  \"message\": \"Editorial factory complete\",\n  \"metadata\": {\n    \"news_type\": $json.news_type,\n    \"seo_status\": $('POST /api/automation/seo-check').item.json.seo_check_status,\n    \"fact_provider_status\": $('POST /api/automation/fact-check').item.json.provider_status\n  }\n}}}",
         "options": {
           "timeout": 15000
         },

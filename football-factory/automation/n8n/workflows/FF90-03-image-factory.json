@@ -83,7 +83,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}}}",
         "options": {
           "timeout": 15000
         },
@@ -164,7 +164,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"news_type\": $json.news_type,\n  \"image_prompt\": $json.image_prompt,\n  \"provider_status\": $json.provider_status,\n  \"provider_name\": $json.provider,\n  \"provider_request_id\": $json.request_id,\n  \"output_asset\": $json.output_asset\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"news_type\": $json.news_type,\n  \"image_prompt\": $json.image_prompt,\n  \"provider_status\": $json.provider_status,\n  \"provider_name\": $json.provider,\n  \"provider_request_id\": $json.request_id,\n  \"output_asset\": $json.output_asset\n}}}",
         "options": {
           "timeout": 30000,
           "response": {
@@ -207,7 +207,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_complete\",\n  \"stage\": \"image_factory\",\n  \"status\": $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human',\n  \"message\": \"Image factory complete\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  }\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_complete\",\n  \"stage\": \"image_factory\",\n  \"status\": $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human',\n  \"message\": \"Image factory complete\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  }\n}}}",
         "options": {
           "timeout": 15000
         },

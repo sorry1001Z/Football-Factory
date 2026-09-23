@@ -30,7 +30,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $json.title_th,\n  \"content\": $json.body_th,\n  \"slug\": $json.slug,\n  \"excerpt\": $json.excerpt_th,\n  \"news_type\": $json.news_type\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"editorial_item_id\": $json.editorial_item_id,\n  \"title\": $json.title_th,\n  \"content\": $json.body_th,\n  \"slug\": $json.slug,\n  \"excerpt\": $json.excerpt_th,\n  \"news_type\": $json.news_type\n}}}",
         "options": {
           "timeout": 30000,
           "response": {
@@ -186,7 +186,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_complete\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"success\",\n  \"message\": \"WP draft created or reused; status=draft\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  }\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_complete\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"success\",\n  \"message\": \"WP draft created or reused; status=draft\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  }\n}}}",
         "options": {
           "timeout": 15000
         },
@@ -223,7 +223,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_no_asset\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"held_for_human\",\n  \"message\": \"No image asset available; WP draft created without featured image\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  }\n}",
+        "jsonBody": "={{{\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_no_asset\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"held_for_human\",\n  \"message\": \"No image asset available; WP draft created without featured image\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  }\n}}}",
         "options": {
           "timeout": 15000
         },

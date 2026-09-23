@@ -57,7 +57,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"severity\": \"info\",\n  \"source\": \"ff90-05-human-review-gate\",\n  \"message\": \"FF90 NEWS READY FOR REVIEW\",\n  \"context\": $json.review_payload,\n  \"run_id\": $json.run_id\n}",
+        "jsonBody": "={{{\n  \"severity\": \"info\",\n  \"source\": \"ff90-05-human-review-gate\",\n  \"message\": \"FF90 NEWS READY FOR REVIEW\",\n  \"context\": $json.review_payload,\n  \"run_id\": $json.run_id\n}}}",
         "options": {
           "timeout": 15000,
           "response": {
