@@ -315,7 +315,7 @@
               "value": "={{ $json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_02_editorial_factory_complete"
             },
             {

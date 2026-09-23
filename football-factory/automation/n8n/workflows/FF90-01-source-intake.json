@@ -235,7 +235,7 @@
               "value": "={{ $('POST /api/automation/deduplicate').item.json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_01_source_intake_complete"
             },
             {

@@ -2,6 +2,7 @@
 //
 // Auth:    x-automation-secret
 // Body:    { run_id?, event_type, stage, status, message?, metadata? }
+// Status:  success | held_for_human (FF90 audit event contract).
 //
 // Behavior:
 //   - Authenticate AUTOMATION_SECRET.
@@ -33,11 +34,13 @@ import { redactSecrets } from "@/lib/auth/redact-secrets";
 
 export const dynamic = "force-dynamic";
 
+const STATUSES = ["success", "held_for_human"] as const;
+
 const Schema = z.object({
   run_id: z.string().uuid().optional(),
   event_type: z.string().min(1).max(64),
   stage: z.string().min(1).max(64),
-  status: z.string().min(1).max(32),
+  status: z.enum(STATUSES),
   message: z.string().max(2000).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });

@@ -139,7 +139,8 @@ test('FF90-01 editorial-item and Audit log use keypair bodies with correct dynam
   assert.match(editorialBody.metadata.source_intake_run_at, /^\d{4}-\d\d-/);
   const auditBody = evaluateKeypairBody(audit, audit.name);
   assert.equal(auditBody.run_id, input.run_id);
-  assert.equal(auditBody.action, 'ff90_01_source_intake_complete');
+  assert.equal(auditBody.event_type, 'ff90_01_source_intake_complete');
+  assert.equal(Object.hasOwn(auditBody, 'action'), false);
   assert.equal(auditBody.metadata.editorial_item_id, input.editorial_item_id);
 });
 

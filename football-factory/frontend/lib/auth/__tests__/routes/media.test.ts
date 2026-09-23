@@ -24,7 +24,7 @@
 // FF90-04 workflow reference checks (no n8n execution; pure JSON scan):
 //  - FF90-04 references /api/automation/media (no admin path)
 //  - FF90-04 does NOT reference /api/admin/posts/media anywhere
-//  - FF90-04 keeps x-automation-secret = $env.AUTOMATION_SECRET
+//  - FF90-04 uses native Header Auth without blocked environment expressions
 //  - FF90-04 does NOT introduce a wp-publish call
 
 import { __resetRateLimiterForTest } from "@/lib/security/rate-limit";
@@ -615,7 +615,7 @@ test("ff90-04: workflow does NOT reference /api/admin/posts/media anywhere", asy
   );
 });
 
-test("ff90-04: workflow keeps x-automation-secret = $env.AUTOMATION_SECRET", async () => {
+test("ff90-04: workflow uses native Header Auth without duplicate secret headers", async () => {
   const fs = await import("node:fs/promises");
   const path = await import("node:path");
   const wfPath = path.join(
@@ -626,12 +626,32 @@ test("ff90-04: workflow keeps x-automation-secret = $env.AUTOMATION_SECRET", asy
     "workflows",
     "FF90-04-wordpress-draft.json",
   );
-  const text = await fs.readFile(wfPath, "utf-8");
-  assert.match(
-    text,
-    /x-automation-secret[\s\S]{0,80}\$env\.AUTOMATION_SECRET/,
-    "x-automation-secret must still be bound to $env.AUTOMATION_SECRET",
-  );
+  const workflow = JSON.parse(await fs.readFile(wfPath, "utf-8")) as {
+    nodes: Array<{
+      type: string;
+      parameters: {
+        authentication?: string;
+        genericAuthType?: string;
+        headerParameters?: { parameters?: Array<{ name?: string }> };
+        [key: string]: unknown;
+      };
+      credentials?: { httpHeaderAuth?: { name?: string } };
+    }>;
+  };
+  const requests = workflow.nodes.filter(node => node.type === "n8n-nodes-base.httpRequest");
+  assert.ok(requests.length > 0);
+  for (const node of requests) {
+    assert.equal(node.parameters.authentication, "genericCredentialType");
+    assert.equal(node.parameters.genericAuthType, "httpHeaderAuth");
+    assert.equal(node.credentials?.httpHeaderAuth?.name, "FF90 Automation Secret");
+    assert.equal(
+      (node.parameters.headerParameters?.parameters ?? []).some(
+        header => header.name?.toLowerCase() === "x-automation-secret",
+      ),
+      false,
+    );
+    assert.doesNotMatch(JSON.stringify(node.parameters), /\$env\./);
+  }
 });
 
 test("ff90-04: workflow does NOT introduce a wp-publish call", async () => {

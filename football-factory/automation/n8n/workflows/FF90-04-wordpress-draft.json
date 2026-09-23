@@ -230,7 +230,7 @@
               "value": "={{ $json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_04_wp_draft_complete"
             },
             {
@@ -295,7 +295,7 @@
               "value": "={{ $json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_04_wp_draft_no_asset"
             },
             {

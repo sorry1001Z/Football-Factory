@@ -95,7 +95,7 @@
               "value": "={{ $json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_03_image_factory_held"
             },
             {
@@ -283,7 +283,7 @@
               "value": "={{ $json.run_id }}"
             },
             {
-              "name": "action",
+              "name": "event_type",
               "value": "ff90_03_image_factory_complete"
             },
             {
