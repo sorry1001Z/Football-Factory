@@ -42,8 +42,7 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{{\n  \"idempotency_key\": \"ff90-01:\" + $json.source_id,\n  \"workflow\": \"FF90-01-source-intake\",\n  \"payload\": {\n    \"source_id\": $json.source_id,\n    \"canonical_url\": $json.canonical_url,\n    \"source_title\": $json.source_title\n  }\n}}}",
+        "specifyBody": "keypair",
         "options": {
           "timeout": 15000,
           "response": {
@@ -53,7 +52,24 @@
           }
         },
         "method": "POST",
-        "genericAuthType": "httpHeaderAuth"
+        "genericAuthType": "httpHeaderAuth",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "idempotency_key",
+              "value": "={{ 'ff90-01:' + $json.source_id }}"
+            },
+            {
+              "name": "workflow",
+              "value": "FF90-01-source-intake"
+            },
+            {
+              "name": "payload",
+              "value": "={{ { source_id: $json.source_id, canonical_url: $json.canonical_url, source_title: $json.source_title } }}"
+            }
+          ]
+        },
+        "contentType": "json"
       },
       "id": "ff90-01-dedupe",
       "name": "POST /api/automation/deduplicate",

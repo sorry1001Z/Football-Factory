@@ -18,9 +18,9 @@ const read = name => JSON.parse(readFileSync(new URL(`../workflows/${name}.json`
 const input = {
   run_id: 'run-phase18he2d3',
   editorial_item_id: 'editorial-phase18he2d3',
-  source_id: `src:${'a'.repeat(48)}`,
-  canonical_url: 'https://example.invalid/ff90-json-body-test',
-  source_title: '[FF90 TEST] JSON body',
+  source_id: 'src:1234567890abcdef1234567890abcdef1234567890abcdef',
+  canonical_url: 'https://example.invalid/ff90-e2d5-test',
+  source_title: '[FF90 TEST] dedupe body',
   publisher: 'FF90-TEST',
   source_type: 'test',
   source_text: 'Synthetic test content',
@@ -53,7 +53,7 @@ const nodeOutputs = {
   'POST /api/automation/wp-draft': { wp_post_id: 123, idempotent: false },
 };
 
-function evaluateJsonBody(body, nodeName) {
+function evaluateExpression(body, nodeName) {
   if (typeof body !== 'string') return body;
   if (body.startsWith('={{') && body.endsWith('}}')) {
     const expression = body.slice(3, -2);
@@ -66,11 +66,31 @@ function evaluateJsonBody(body, nodeName) {
   try {
     return JSON.parse(body);
   } catch {
-    assert.fail(`${nodeName}: JSON body must be a valid object expression or static JSON`);
+    assert.fail(`${nodeName}: expression must return a value`);
   }
 }
 
-function jsonBodyNodes() {
+function evaluateKeypairBody(node, nodeName) {
+  assert.equal(node.parameters.specifyBody, 'keypair', `${nodeName}: expected keypair mode`);
+  const fields = node.parameters.bodyParameters?.parameters;
+  assert.ok(Array.isArray(fields) && fields.length > 0, `${nodeName}: missing key/value body parameters`);
+  const body = {};
+  for (const field of fields) {
+    assert.equal(typeof field.name, 'string');
+    assert.equal(Object.hasOwn(body, field.name), false, `${nodeName}: duplicate body field ${field.name}`);
+    body[field.name] = typeof field.value === 'string' && field.value.startsWith('={{')
+      ? evaluateExpression(field.value, `${nodeName}:${field.name}`)
+      : field.value;
+  }
+  return body;
+}
+
+function evaluateBodyNode(node, nodeName) {
+  if (node.parameters.specifyBody === 'keypair') return evaluateKeypairBody(node, nodeName);
+  return evaluateExpression(node.parameters.jsonBody, nodeName);
+}
+
+function requestBodyNodes() {
   const result = [];
   for (const workflowName of workflowNames) {
     const workflow = read(workflowName);
@@ -84,12 +104,14 @@ function jsonBodyNodes() {
   return result;
 }
 
-test('all FF90 HTTP JSON bodies evaluate to objects or valid static JSON', () => {
-  const nodes = jsonBodyNodes();
+test('all FF90 HTTP JSON bodies evaluate to objects using expression or keypair mode', () => {
+  const nodes = requestBodyNodes();
   assert.equal(nodes.length, 14);
-  for (const { workflowName, node, body } of nodes) {
-    assert.doesNotMatch(String(body), /JSON\.stringify\s*\(/, `${workflowName}:${node.name} must not stringify its body expression`);
-    const evaluated = evaluateJsonBody(body, `${workflowName}:${node.name}`);
+  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'json').length, 13);
+  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'keypair').length, 1);
+  for (const { workflowName, node } of nodes) {
+    assert.doesNotMatch(JSON.stringify(node.parameters), /JSON\.stringify\s*\(/, `${workflowName}:${node.name} must not stringify its body`);
+    const evaluated = evaluateBodyNode(node, `${workflowName}:${node.name}`);
     assert.equal(typeof evaluated, 'object', `${workflowName}:${node.name} must evaluate to an object`);
     assert.ok(evaluated !== null && !Array.isArray(evaluated), `${workflowName}:${node.name} must evaluate to a JSON object`);
     const serialized = JSON.stringify(evaluated);
@@ -101,7 +123,13 @@ test('all FF90 HTTP JSON bodies evaluate to objects or valid static JSON', () =>
 test('FF90-01 dedupe body evaluates to the API contract as an object', () => {
   const workflow = read('FF90-01-source-intake');
   const node = workflow.nodes.find(n => n.name === 'POST /api/automation/deduplicate');
-  const evaluated = evaluateJsonBody(node.parameters.jsonBody, node.name);
+  assert.equal(node.typeVersion, 4.2);
+  assert.equal(node.parameters.sendBody, true);
+  assert.equal(node.parameters.contentType, 'json');
+  assert.equal(node.parameters.specifyBody, 'keypair');
+  const fields = node.parameters.bodyParameters.parameters;
+  assert.deepEqual(fields.map(field => field.name), ['idempotency_key', 'workflow', 'payload']);
+  const evaluated = evaluateKeypairBody(node, node.name);
   assert.equal(typeof evaluated, 'object');
   assert.ok(evaluated !== null && !Array.isArray(evaluated));
   const body = JSON.parse(JSON.stringify(evaluated));
@@ -118,9 +146,13 @@ test('FF90-01 dedupe body evaluates to the API contract as an object', () => {
 });
 
 test('FF90 HTTP JSON bodies contain no concatenated JSON text or expression-string bodies', () => {
-  for (const { workflowName, node, body } of jsonBodyNodes()) {
-    const evaluated = evaluateJsonBody(body, `${workflowName}:${node.name}`);
+  for (const { workflowName, node } of requestBodyNodes()) {
+    const evaluated = evaluateBodyNode(node, `${workflowName}:${node.name}`);
     assert.equal(typeof evaluated, 'object', `${workflowName}:${node.name} returned serialized/string-built JSON`);
-    assert.doesNotMatch(String(body), /^=\s*['"`].*\$json/s, `${workflowName}:${node.name} builds JSON as a string`);
+    assert.doesNotMatch(JSON.stringify(evaluated), /\$json/, `${workflowName}:${node.name} contains unevaluated expressions`);
+    if (node.parameters.specifyBody === 'json') {
+      assert.match(node.parameters.jsonBody, /^=\{\{/);
+      assert.match(node.parameters.jsonBody, /\}\}$/);
+    }
   }
 });
