@@ -89,6 +89,7 @@ test("run: no secret → 401 automation_secret_invalid", async () => {
   const body = await res.json();
   assert.equal(body.ok, false);
   assert.equal(body.error, "automation_secret_invalid");
+  assert.equal(db.calls.length, 0, "invalid authentication must stop before database access");
 });
 
 test("run: wrong secret → 401 automation_secret_invalid", async () => {
@@ -140,6 +141,7 @@ test("run: AUTOMATION_ENABLED absent even with admin cookie → 503 (no admin by
   assert.equal(res.status, 503);
   const body = await res.json();
   assert.equal(body.error, "automation_disabled");
+  assert.equal(db.calls.length, 0, "disabled automation must stop before database access");
 });
 
 test("run: enabled + invalid UUID → 400 invalid_run_id", async () => {
@@ -155,6 +157,7 @@ test("run: enabled + invalid UUID → 400 invalid_run_id", async () => {
   const body = await res.json();
   assert.equal(body.ok, false);
   assert.equal(body.error, "invalid_run_id");
+  assert.equal(db.calls.length, 0, "invalid UUID must stop before database access");
 });
 
 test("run: enabled + nonexistent valid UUID → 404 run_not_found", async () => {
@@ -169,6 +172,26 @@ test("run: enabled + nonexistent valid UUID → 404 run_not_found", async () => 
   const body = await res.json();
   assert.equal(body.ok, false);
   assert.equal(body.error, "run_not_found");
+  assert.equal(db.calls.length, 1);
+  assert.match(db.calls[0].sql, /FROM automation_runs/);
+  assert.match(db.calls[0].sql, /started_at AS created_at/);
+  assert.doesNotMatch(db.calls[0].sql, /\b(error_class|wp_post_id|stage)\b/);
+  assert.ok(db.calls.every(({ sql }) => /^\s*SELECT\b/i.test(sql)), "GET must not issue mutations");
+});
+
+test("run: database errors remain safe structured 500 responses", async () => {
+  process.env.DATABASE_URL = "postgres://stub";
+  const db = makeStubDb([() => new Error("sensitive database detail")]);
+  __setDbOverrideForTest(db as unknown as Db);
+  const res = await GET(
+    makeRequest({ secret: OK_SECRET, runId: RUN_ID }),
+    { params: Promise.resolve({ runId: RUN_ID }) },
+  );
+  assert.equal(res.status, 500);
+  const text = await res.text();
+  assert.equal(text, JSON.stringify({ ok: false, error: "internal_error" }));
+  assert.equal(text.includes("sensitive database detail"), false);
+  assert.ok(db.calls.every(({ sql }) => /^\s*SELECT\b/i.test(sql)));
 });
 
 test("run: enabled + DATABASE_URL missing → 503 database_not_configured", async () => {
@@ -195,12 +218,9 @@ test("run: enabled + valid run → 200 with run+editorialItem+recentEvents", asy
           id: RUN_ID,
           workflow: "FF90-04-wordpress-draft",
           status: "waiting_approval",
-          stage: "wp_draft",
-          error_class: null,
           editorial_item_id: EDITORIAL_ID,
-          wp_post_id: 12345,
-          created_at: "2026-09-22T00:00:00Z",
-          updated_at: "2026-09-22T00:01:00Z",
+          started_at: "2026-09-22T00:00:00Z",
+          finished_at: null,
         },
       ],
       rowCount: 1,
@@ -238,6 +258,10 @@ test("run: enabled + valid run → 200 with run+editorialItem+recentEvents", asy
   assert.ok(body.editorialItem, "editorialItem must be present");
   assert.equal(body.editorialItem.id, EDITORIAL_ID);
   assert.ok(Array.isArray(body.recentEvents));
+  assert.equal(body.run.stage, "waiting_approval");
+  assert.equal(body.run.wpPostId, 12345);
+  assert.ok(db.calls.every(({ sql }) => /^\s*SELECT\b/i.test(sql)), "GET must never mutate data");
+  assert.match(db.calls[0].sql, /COALESCE\(finished_at, started_at\) AS updated_at/);
 });
 
 test("run: route file does not consult requireAdminOrEditor (no admin bypass)", () => {

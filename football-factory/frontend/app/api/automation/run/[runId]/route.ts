@@ -49,10 +49,7 @@ interface RunRow {
   id: string;
   workflow: string;
   status: string;
-  stage: string | null;
-  error_class: string | null;
   editorial_item_id: string | null;
-  wp_post_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,10 +66,6 @@ export async function GET(
   const ks = assertAutomationEnabled();
   if (!ks.ok) return automationDisabledResponse();
 
-  // Step 3: per-instance rate limit (separate bucket for run reads).
-  const rl = consumeAutomationRateLimit(request, AUTOMATION_RL.runRead);
-  if (!rl.ok) return rateLimitedResponse(rl.resetMs);
-
   const { runId } = await ctx.params;
   const parsed = IdSchema.safeParse({ runId });
   if (!parsed.success) {
@@ -82,6 +75,10 @@ export async function GET(
     );
   }
 
+  // Step 4: per-instance rate limit (separate bucket for run reads).
+  const rl = consumeAutomationRateLimit(request, AUTOMATION_RL.runRead);
+  if (!rl.ok) return rateLimitedResponse(rl.resetMs);
+
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
       { ok: false, error: "database_not_configured" },
@@ -89,58 +86,69 @@ export async function GET(
     );
   }
 
-  // 1. Fetch the run. We select ONLY the safe columns; the raw
-  //    metadata and any internal columns never reach the response.
-  const r = await getDb().query<RunRow>(
-    `SELECT id, workflow, status, stage, error_class,
-            editorial_item_id, wp_post_id, created_at, updated_at
-       FROM automation_runs
-      WHERE id = $1
-      LIMIT 1`,
-    [parsed.data.runId],
-  );
-  const run = r.rows[0];
-  if (!run) {
+  try {
+    // automation_runs stores started_at/finished_at; stage and WP fields
+    // belong to the linked editorial_items row, not the run table.
+    const r = await getDb().query<RunRow>(
+      `SELECT id, workflow, status, editorial_item_id,
+              started_at AS created_at,
+              COALESCE(finished_at, started_at) AS updated_at
+         FROM automation_runs
+        WHERE id = $1
+        LIMIT 1`,
+      [parsed.data.runId],
+    );
+    const run = r.rows[0];
+    if (!run) {
+      return NextResponse.json(
+        { ok: false, error: "run_not_found" },
+        { status: 404 },
+      );
+    }
+
+    // The linked editorial item owns stage and WordPress post state.
+    const repo = new EditorialRepository(getDb());
+    const item = run.editorial_item_id
+      ? await repo.findById(run.editorial_item_id)
+      : null;
+
+    const ev = await getDb().query<{
+      id: number | string;
+      created_at: string;
+      action: string;
+      actor_user_id: string | null;
+      metadata: unknown;
+    }>(
+      `SELECT id, created_at, action, actor_user_id, metadata
+         FROM audit_logs
+        WHERE resource_type = 'automation_run'
+          AND resource_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2`,
+      [parsed.data.runId, RECENT_EVENTS],
+    );
+    const recentEvents: AuditEvent[] = ev.rows
+      .map(normalizeAuditRow)
+      .reverse();
+
+    const body: AutomationRunResponse = {
+      ok: true,
+      run: normalizeRunRow({
+        ...run,
+        stage: item?.stage ?? null,
+        error_class: null,
+        wp_post_id: item?.wp_post_id ?? null,
+      }),
+      editorialItem: item,
+      recentEvents,
+    };
+    return NextResponse.json(body, { status: 200 });
+  } catch {
+    // Keep database failures as server errors without leaking SQL or
+    // connection details into the API response.
     return NextResponse.json(
-      { ok: false, error: "run_not_found" },
-      { status: 404 },
+      { ok: false, error: "internal_error" },
+      { status: 500 },
     );
   }
-
-  // 2. Linked editorial item (via the deterministic FK from
-  //    migration 003). If NULL, we surface `null` and the workflow
-  //    can detect a no-link state.
-  const repo = new EditorialRepository(getDb());
-  const item = run.editorial_item_id
-    ? await repo.findById(run.editorial_item_id)
-    : null;
-
-  // 3. Recent audit logs for this run. Bound to a small window to
-  //    keep responses tight.
-  const ev = await getDb().query<{
-    id: number | string;
-    created_at: string;
-    action: string;
-    actor_user_id: string | null;
-    metadata: unknown;
-  }>(
-    `SELECT id, created_at, action, actor_user_id, metadata
-       FROM audit_logs
-      WHERE resource_type = 'automation_run'
-        AND resource_id = $1
-      ORDER BY created_at DESC
-      LIMIT $2`,
-    [parsed.data.runId, RECENT_EVENTS],
-  );
-  const recentEvents: AuditEvent[] = ev.rows
-    .map(normalizeAuditRow)
-    .reverse(); // surface in chronological order for the timeline.
-
-  const body: AutomationRunResponse = {
-    ok: true,
-    run: normalizeRunRow(run),
-    editorialItem: item,
-    recentEvents,
-  };
-  return NextResponse.json(body, { status: 200 });
 }
