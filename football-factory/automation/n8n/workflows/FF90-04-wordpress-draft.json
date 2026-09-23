@@ -18,14 +18,10 @@
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/wp-draft",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -42,7 +38,8 @@
               "responseFormat": "json"
             }
           }
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-04-draft",
       "name": "POST /api/automation/wp-draft",
@@ -52,7 +49,13 @@
         500,
         300
       ],
-      "notes": "Idempotent via decideWpDraft() — same run_id returns the same wp_post_id. status is hard-coded 'draft' by the server. NEVER publish from this workflow."
+      "notes": "Idempotent via decideWpDraft() — same run_id returns the same wp_post_id. status is hard-coded 'draft' by the server. NEVER publish from this workflow.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -110,16 +113,7 @@
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/media",
-        "authentication": "none",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            }
-          ]
-        },
+        "authentication": "genericCredentialType",
         "sendBody": true,
         "specifyBody": "multipart-form-data",
         "multipartParameters": {
@@ -153,6 +147,11 @@
               "responseFormat": "json"
             }
           }
+        },
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
         }
       },
       "id": "ff90-04-upload",
@@ -163,20 +162,22 @@
         1280,
         200
       ],
-      "notes": "Phase 18C.1: uses the dedicated automation-authenticated media route (x-automation-secret only, no admin cookie/CSRF). Underlying WP upload is delegated to WordPressWriteClient.uploadMedia (same helper used by the admin media route; no duplicate upload code). This node never publishes."
+      "notes": "Phase 18C.1: uses the dedicated automation-authenticated media route (x-automation-secret only, no admin cookie/CSRF). Underlying WP upload is delegated to WordPressWriteClient.uploadMedia (same helper used by the admin media route; no duplicate upload code). This node never publishes.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/log",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -188,7 +189,8 @@
         "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_complete\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"success\",\n  \"message\": \"WP draft created or reused; status=draft\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id,\n    \"wp_status\": \"draft\",\n    \"idempotent\": $('POST /api/automation/wp-draft').item.json.idempotent || false\n  }\n}",
         "options": {
           "timeout": 15000
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-04-log",
       "name": "Audit log",
@@ -197,20 +199,22 @@
       "position": [
         1480,
         200
-      ]
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/log",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -222,7 +226,8 @@
         "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_04_wp_draft_no_asset\",\n  \"stage\": \"wp_draft\",\n  \"status\": \"held_for_human\",\n  \"message\": \"No image asset available; WP draft created without featured image\",\n  \"metadata\": {\n    \"wp_post_id\": $('POST /api/automation/wp-draft').item.json.wp_post_id\n  }\n}",
         "options": {
           "timeout": 15000
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-04-log-noimg",
       "name": "Audit log (no image)",
@@ -231,7 +236,13 @@
       "position": [
         1480,
         440
-      ]
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {

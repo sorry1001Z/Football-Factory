@@ -129,17 +129,19 @@ test("ff90 master: final envelope advertises manual_review + no auto-publish", (
 // FF90-01 — Source Intake contract reuse
 // ============================================================
 
-test("ff90-01: dedupe is delegated to /api/automation/deduplicate", () => {
+test("ff90-01: dedupe is delegated to /api/automation/deduplicate with native Header Auth", () => {
   const wf = readWorkflow("FF90-01-source-intake");
   const dedupe = readWorkflowNode(wf, "POST /api/automation/deduplicate");
   const url = readHttpUrl(dedupe);
   assert.match(url, /\/api\/automation\/deduplicate/);
-  // Header must use the x-automation-secret pattern (NOT a session cookie).
+  assert.equal(dedupe.parameters?.authentication, "genericCredentialType");
+  assert.equal(dedupe.parameters?.genericAuthType, "httpHeaderAuth");
+  // The shared credential injects the automation header; never a session cookie.
   const headers = (dedupe.parameters?.headerParameters as {
     parameters: Array<{ name: string }>;
-  }).parameters;
+  } | undefined)?.parameters ?? [];
   const names = headers.map((h) => h.name);
-  assert.ok(names.includes("x-automation-secret"), "must use x-automation-secret auth");
+  assert.equal(names.includes("x-automation-secret"), false, "auth header comes from the credential");
   assert.equal(
     names.includes("cookie"),
     false,
@@ -212,13 +214,14 @@ test("ff90-02: ai-assist + seo-check + fact-check all reuse existing automation 
 // FF90-03 — Image Factory
 // ============================================================
 
-test("ff90-03: provider adapter fails closed when IMAGE_PROVIDER_STATUS != CONFIGURED", () => {
+test("ff90-03: provider adapter is explicitly fail-closed without env access", () => {
   const wf = readWorkflow("FF90-03-image-factory");
   const code = readWorkflowNode(wf, "Provider adapter").parameters as {
     jsCode?: string;
   };
   assert.match(code.jsCode ?? "", /NOT_CONFIGURED/);
-  assert.match(code.jsCode ?? "", /CONFIGURED/);
+  assert.doesNotMatch(code.jsCode ?? "", /\$env\./);
+  assert.equal(wf.nodes.some(n => n.name === "POST image provider"), false);
   // And the downstream audit-log held branch must fire.
   const held = readWorkflowNode(wf, "Audit log (held)").parameters as {
     jsonBody?: string;
@@ -235,7 +238,7 @@ test("ff90-03: image prompt never claims documentary representation", () => {
   assert.match(code.jsCode ?? "", /no copied editorial photography/);
 });
 
-test("ff90-03: visual relevance gate is its own node (NOT conflated with rights)", () => {
+test("ff90-03: visual relevance gate remains in the no-image review path", () => {
   const wf = readWorkflow("FF90-03-image-factory");
   assert.ok(wf.nodes.find((n) => n.name === "Visual relevance gate"));
   const code = readWorkflowNode(wf, "Visual relevance gate").parameters as {
@@ -314,7 +317,8 @@ test("ff90-05: publish_mode resolves to manual_review (fail-closed)", () => {
   assert.match(code.jsCode ?? "", /manual_review/);
   assert.match(code.jsCode ?? "", /FAIL-CLOSED/);
   // Default raw mode value must be 'manual_review'.
-  assert.match(code.jsCode ?? "", /PUBLISH_MODE\s*\|\|\s*['"]manual_review['"]/);
+  assert.match(code.jsCode ?? "", /modeRaw\s*=\s*['"]manual_review['"]/);
+  assert.doesNotMatch(code.jsCode ?? "", /\$env\./);
 });
 
 test("ff90-05: manual_review waits indefinitely — NO auto_pass_after timer", () => {

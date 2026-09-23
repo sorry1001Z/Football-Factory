@@ -29,7 +29,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — provider adapter. Preserves canonical envelope from\n// upstream $json and overlays provider_status. Fail-closed when\n// provider is NOT_CONFIGURED (sets provider_status='NOT_CONFIGURED',\n// image_status='held', never fabricates output).\nconst providerStatus = $env.IMAGE_PROVIDER_STATUS || 'NOT_CONFIGURED';\nconst providerName = $env.IMAGE_PROVIDER_NAME || 'none';\nconst upstream = $json;\nif (providerStatus !== 'CONFIGURED') {\n  return [{\n    json: {\n      ...upstream,\n      provider: providerName,\n      provider_status: 'NOT_CONFIGURED',\n      request_id: null,\n      output_asset: null,\n      image_status: 'held',\n      image_error: 'image_provider_not_configured',\n    },\n  }];\n}\n// When CONFIGURED: provider-specific HTTP node downstream populates\n// output_asset + request_id.\nreturn [{\n  json: {\n    ...upstream,\n    provider: providerName,\n    provider_status: 'CONFIGURED',\n    request_id: null,\n    output_asset: null,\n    image_status: 'pending',\n    image_error: null,\n  },\n}];\n"
+        "jsCode": "// Image generation is intentionally disabled until its provider is provisioned.\n// Preserve the canonical parent envelope and return the existing held/no-image state.\nconst upstream = $json;\nreturn [{\n  json: {\n    ...upstream,\n    provider: 'none',\n    provider_status: 'NOT_CONFIGURED',\n    request_id: null,\n    output_asset: null,\n    image_status: 'held',\n    image_error: 'image_provider_not_configured',\n  },\n}];\n"
       },
       "id": "ff90-03-provider",
       "name": "Provider adapter",
@@ -40,6 +40,83 @@
         300
       ],
       "notes": "If IMAGE_PROVIDER_STATUS is not exactly CONFIGURED, we hold the item at image generation and NEVER fabricate an output. The downstream derivative + WP upload steps are skipped; the editorial item remains at waiting_human_review for the operator to handle images manually."
+    },
+    {
+      "parameters": {
+        "jsCode": "const current = $json;\n// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = current.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...current,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
+      },
+      "id": "ff90-03-relevance",
+      "name": "Visual relevance gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — plan derivatives. Preserves upstream envelope and overlays\n// 6 derivative keys: hero_16x9, thumbnail, social_1x1, feed_4x5,\n// vertical_9x16, web_optimized.\nconst upstream = $json;\nreturn [{\n  json: {\n    ...upstream,\n    derivatives: {\n      hero_16x9: null,\n      thumbnail: null,\n      social_1x1: null,\n      feed_4x5: null,\n      vertical_9x16: null,\n      web_optimized: null,\n    },\n    pipeline_stage: 'image_factory',\n  },\n}];\n"
+      },
+      "id": "ff90-03-derivatives",
+      "name": "Plan derivatives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/log",
+        "authentication": "genericCredentialType",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}",
+        "options": {
+          "timeout": 15000
+        },
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "ff90-03-hold-log",
+      "name": "Audit log (held)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        460
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope so\n// FF90-04 can continue with title_th/body_th/etc preserved.\n//\n// Branches:\n//   - provider configured + audit success → pipeline_status='accepted'\n//   - provider NOT_CONFIGURED + audit held → pipeline_status='held_for_human'\n//   - any failure → pipeline_status='failed'\nconst provider = $('Provider adapter').item.json;\nconst up = provider.provider_status === 'NOT_CONFIGURED'\n  ? provider : $('Plan derivatives').item.json;\nconst isHeld = up.provider_status === 'NOT_CONFIGURED' || up.image_status === 'held';\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'image_factory',\n    pipeline_status: isHeld ? 'held_for_human' : 'accepted',\n  },\n}];\n"
+      },
+      "id": "ff90-03-promote",
+      "name": "Promote FF90-03 output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ],
+      "notes": "Phase 18G: terminal promote. Re-emits canonical envelope. image_status='held' does NOT block the chain — text-only WP draft can still proceed."
     },
     {
       "parameters": {
@@ -74,56 +151,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.IMAGE_PROVIDER_URL }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.IMAGE_PROVIDER_API_KEY }}"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.image_prompt) }}",
-        "options": {
-          "timeout": 120000,
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "id": "ff90-03-generate",
-      "name": "POST image provider",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1280,
-        200
-      ],
-      "notes": "Vendor-agnostic HTTP call. Provider credentials live in n8n credentials; never serialized into workflow JSON."
-    },
-    {
-      "parameters": {
-        "method": "POST",
         "url": "https://www.ff90.online/api/automation/rights-check",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -140,7 +172,8 @@
               "responseFormat": "json"
             }
           }
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-03-rights",
       "name": "POST /api/automation/rights-check",
@@ -150,46 +183,22 @@
         1560,
         200
       ],
-      "notes": "Server-side rights check. If provider_status is NOT_CONFIGURED or asset is missing, the route returns rights_state=manual_review and holds the item."
-    },
-    {
-      "parameters": {
-        "jsCode": "const current = { ...$('Restore provider context').item.json, ...$json };\n// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = current.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...current,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
-      },
-      "id": "ff90-03-relevance",
-      "name": "Visual relevance gate",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1840,
-        200
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Phase 18G — plan derivatives. Preserves upstream envelope and overlays\n// 6 derivative keys: hero_16x9, thumbnail, social_1x1, feed_4x5,\n// vertical_9x16, web_optimized.\nconst upstream = $json;\nreturn [{\n  json: {\n    ...upstream,\n    derivatives: {\n      hero_16x9: null,\n      thumbnail: null,\n      social_1x1: null,\n      feed_4x5: null,\n      vertical_9x16: null,\n      web_optimized: null,\n    },\n    pipeline_stage: 'image_factory',\n  },\n}];\n"
-      },
-      "id": "ff90-03-derivatives",
-      "name": "Plan derivatives",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2120,
-        200
-      ]
+      "notes": "Server-side rights check. If provider_status is NOT_CONFIGURED or asset is missing, the route returns rights_state=manual_review and holds the item.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/log",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -201,7 +210,8 @@
         "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_complete\",\n  \"stage\": \"image_factory\",\n  \"status\": $json.visual_relevance === 'PASS' && $json.provider_status === 'CONFIGURED' ? 'success' : 'held_for_human',\n  \"message\": \"Image factory complete\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status,\n    \"visual_relevance\": $json.visual_relevance\n  }\n}",
         "options": {
           "timeout": 15000
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-03-log",
       "name": "Audit log",
@@ -210,68 +220,13 @@
       "position": [
         1100,
         240
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://www.ff90.online/api/automation/log",
-        "authentication": "none",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"run_id\": $json.run_id,\n  \"action\": \"ff90_03_image_factory_held\",\n  \"stage\": \"image_factory\",\n  \"status\": \"held_for_human\",\n  \"message\": \"Image provider not configured OR visual relevance failed; item held for human\",\n  \"metadata\": {\n    \"provider_status\": $json.provider_status\n  }\n}",
-        "options": {
-          "timeout": 15000
-        }
-      },
-      "id": "ff90-03-hold-log",
-      "name": "Audit log (held)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1100,
-        460
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Phase 18G — terminal promote. Re-emits canonical envelope so\n// FF90-04 can continue with title_th/body_th/etc preserved.\n//\n// Branches:\n//   - provider configured + audit success → pipeline_status='accepted'\n//   - provider NOT_CONFIGURED + audit held → pipeline_status='held_for_human'\n//   - any failure → pipeline_status='failed'\nconst provider = $('Provider adapter').item.json;\nconst up = provider.provider_status === 'NOT_CONFIGURED'\n  ? provider : $('Plan derivatives').item.json;\nconst isHeld = up.provider_status === 'NOT_CONFIGURED' || up.image_status === 'held';\nreturn [{\n  json: {\n    ...up,\n    pipeline_stage: 'image_factory',\n    pipeline_status: isHeld ? 'held_for_human' : 'accepted',\n  },\n}];\n"
-      },
-      "id": "ff90-03-promote",
-      "name": "Promote FF90-03 output",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1560,
-        300
       ],
-      "notes": "Phase 18G: terminal promote. Re-emits canonical envelope. image_status='held' does NOT block the chain — text-only WP draft can still proceed."
-    },
-    {
-      "parameters": {
-        "jsCode": "return [{ json: { ...$('Provider adapter').item.json, ...$json } }];\n"
-      },
-      "id": "ff90-03-restore-provider-context",
-      "name": "Restore provider context",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        700,
-        600
-      ]
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     }
   ],
   "connections": {
@@ -308,46 +263,6 @@
         ]
       ]
     },
-    "Provider configured?": {
-      "main": [
-        [
-          {
-            "node": "POST image provider",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Audit log (held)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "POST image provider": {
-      "main": [
-        [
-          {
-            "node": "Restore provider context",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "POST /api/automation/rights-check": {
-      "main": [
-        [
-          {
-            "node": "Visual relevance gate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Visual relevance gate": {
       "main": [
         [
@@ -370,18 +285,7 @@
         ]
       ]
     },
-    "Restore provider context": {
-      "main": [
-        [
-          {
-            "node": "POST /api/automation/rights-check",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Audit log": {
+    "Audit log (held)": {
       "main": [
         [
           {
@@ -392,7 +296,36 @@
         ]
       ]
     },
-    "Audit log (held)": {
+    "Provider configured?": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/rights-check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Audit log (held)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/rights-check": {
+      "main": [
+        [
+          {
+            "node": "Visual relevance gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit log": {
       "main": [
         [
           {

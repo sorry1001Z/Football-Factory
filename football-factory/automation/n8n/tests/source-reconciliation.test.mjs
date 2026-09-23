@@ -78,10 +78,9 @@ test('missing content cannot reach AI or WordPress HTTP calls', () => {
 
 test('image-not-configured path returns its envelope without requiring an asset', () => {
   const w = read(names[2]);
-  for (const n of next(w, 'Provider configured?', 1)) {
-    assert.ok(reaches(w, n, 'Promote FF90-03 output'));
-    assert.equal(reaches(w, n, 'POST image provider'), false);
-  }
+  assert.equal(w.nodes.some(n => n.name === 'POST image provider'), false);
+  assert.ok(reaches(w, 'Provider adapter', 'Audit log (held)'));
+  assert.ok(reaches(w, 'Audit log (held)', 'Promote FF90-03 output'));
   const draft = read(names[3]);
   assert.ok(reaches(draft, next(draft, 'Have asset bytes?', 1)[0], 'Promote FF90-04 output'));
 });
@@ -155,4 +154,89 @@ test('executable Code nodes in the full FF90 chain load no disallowed modules', 
   assert.deepEqual(hits, []);
   const normalizer = read(names[0]).nodes.find(n => n.name === 'Normalize source').parameters.jsCode;
   assert.doesNotMatch(normalizer, /\brequire\s*\(\s*['"]crypto['"]\s*\)/);
+});
+
+const automationCredentialId = 'oDa6RRKZleN2DC71';
+const automationCredentialName = 'FF90 Automation Secret';
+const authContract = {
+  'FF90-01-source-intake': [
+    ['POST /api/automation/deduplicate', 'POST', 'https://www.ff90.online/api/automation/deduplicate'],
+    ['POST /api/automation/editorial-item', 'POST', 'https://www.ff90.online/api/automation/editorial-item'],
+    ['Audit log', 'POST', 'https://www.ff90.online/api/automation/log'],
+  ],
+  'FF90-02-editorial-factory': [
+    ['GET /api/automation/run/{run_id}', 'GET', '=https://www.ff90.online/api/automation/run/{{ $json.run_id }}'],
+    ['POST /api/automation/ai-assist', 'POST', 'https://www.ff90.online/api/automation/ai-assist'],
+    ['POST /api/automation/seo-check', 'POST', 'https://www.ff90.online/api/automation/seo-check'],
+    ['POST /api/automation/fact-check', 'POST', 'https://www.ff90.online/api/automation/fact-check'],
+    ['Audit log', 'POST', 'https://www.ff90.online/api/automation/log'],
+  ],
+  'FF90-03-image-factory': [
+    ['POST /api/automation/rights-check', 'POST', 'https://www.ff90.online/api/automation/rights-check'],
+    ['Audit log', 'POST', 'https://www.ff90.online/api/automation/log'],
+    ['Audit log (held)', 'POST', 'https://www.ff90.online/api/automation/log'],
+  ],
+  'FF90-04-wordpress-draft': [
+    ['POST /api/automation/wp-draft', 'POST', 'https://www.ff90.online/api/automation/wp-draft'],
+    ['POST /api/automation/media', 'POST', 'https://www.ff90.online/api/automation/media'],
+    ['Audit log', 'POST', 'https://www.ff90.online/api/automation/log'],
+    ['Audit log (no image)', 'POST', 'https://www.ff90.online/api/automation/log'],
+  ],
+  'FF90-05-human-review': [
+    ['POST /api/automation/alert (review-ready)', 'POST', 'https://www.ff90.online/api/automation/alert'],
+  ],
+};
+
+test('exactly 16 automation HTTP nodes use the one Hermes-provisioned Header Auth credential', () => {
+  let count = 0;
+  for (const [file, expected] of Object.entries(authContract)) {
+    const w = read(file);
+    for (const [name, method, url] of expected) {
+      const n = w.nodes.find(n => n.name === name && n.type === 'n8n-nodes-base.httpRequest');
+      assert.ok(n, `${file}:${name}`);
+      count++;
+      assert.equal(n.parameters.authentication, 'genericCredentialType');
+      assert.equal(n.parameters.genericAuthType, 'httpHeaderAuth');
+      assert.deepEqual(n.credentials?.httpHeaderAuth, { id: automationCredentialId, name: automationCredentialName });
+      const headers = n.parameters.headerParameters?.parameters || [];
+      assert.equal(headers.filter(h => h.name?.toLowerCase() === 'x-automation-secret').length, 0);
+      assert.equal(n.parameters.method || 'GET', method);
+      assert.equal(n.parameters.url, url);
+      if (n.parameters.sendBody) assert.ok(n.parameters.jsonBody || n.parameters.multipartParameters || n.parameters.bodyParameters, `${name}: body contract missing`);
+    }
+  }
+  assert.equal(count, 16);
+});
+
+test('no executable workflow parameter retains blocked environment expressions or inline auth values', () => {
+  for (const name of [...names, 'FF90-MASTER', 'FF90-E2E-Test-Harness']) {
+    const w = read(name);
+    for (const n of w.nodes) {
+      assert.doesNotMatch(JSON.stringify(n.parameters || {}), /\$env\./, `${name}:${n.name}`);
+      for (const h of n.parameters.headerParameters?.parameters || []) {
+        assert.notEqual(h.name?.toLowerCase(), 'x-automation-secret');
+      }
+      const credential = n.credentials?.httpHeaderAuth;
+      if (credential?.name === automationCredentialName) assert.deepEqual(Object.keys(credential).sort(), ['id', 'name']);
+    }
+  }
+});
+
+test('provider and manual-review nodes have fixed fail-closed settings with no env dependency', () => {
+  const image = read(names[2]);
+  const adapter = image.nodes.find(n => n.name === 'Provider adapter').parameters.jsCode;
+  assert.match(adapter, /provider_status:\s*'NOT_CONFIGURED'/);
+  assert.match(adapter, /image_status:\s*'held'/);
+  assert.match(adapter, /output_asset:\s*null/);
+  assert.equal(image.nodes.some(n => n.name === 'POST image provider'), false);
+  assert.ok(reaches(image, 'Provider adapter', 'Promote FF90-03 output'));
+
+  const review = read(names[4]);
+  const mode = review.nodes.find(n => n.name === 'Resolve publish mode').parameters.jsCode;
+  assert.match(mode, /modeRaw\s*=\s*'manual_review'/);
+  assert.doesNotMatch(mode, /\$env\./);
+  const reject = review.nodes.find(n => n.name === 'REJECT branch').parameters.jsCode;
+  assert.match(reject, /review_decision !== 'rejected'/);
+  assert.match(reject, /review_status:\s*'pending'/);
+  assert.match(reject, /pipeline_status:\s*'waiting_human_review'/);
 });

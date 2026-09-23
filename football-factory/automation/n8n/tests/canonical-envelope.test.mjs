@@ -106,6 +106,12 @@ test('FF90-03 NOT_CONFIGURED preserves the editorial envelope through Promote', 
   const w = read('FF90-03-image-factory');
   const prompt = code(w, 'Build image prompt', envelope);
   const provider = code(w, 'Provider adapter', prompt);
+  assert.equal(provider.provider_status, 'NOT_CONFIGURED');
+  const relevant = code(w, 'Visual relevance gate', provider);
+  const derivatives = code(w, 'Plan derivatives', relevant);
+  const heldAudit = w.nodes.find((node) => node.name === 'Audit log (held)');
+  assert.ok(heldAudit);
+  assert.match(heldAudit.parameters.jsonBody, /\$json\.run_id/);
   const output = code(w, 'Promote FF90-03 output', { ok: true }, { 'Provider adapter': provider });
   retained(output, envelope, Object.keys(envelope).filter(k => k !== 'pipeline_status'));
   assert.equal(output.provider_status, 'NOT_CONFIGURED');

@@ -31,14 +31,10 @@
     {
       "parameters": {
         "url": "https://www.ff90.online/api/automation/deduplicate",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -56,7 +52,8 @@
             }
           }
         },
-        "method": "POST"
+        "method": "POST",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-01-dedupe",
       "name": "POST /api/automation/deduplicate",
@@ -66,7 +63,13 @@
         780,
         300
       ],
-      "notes": "Reuses the existing automation dedupe endpoint. Returns run_id which we use for the editorial hook downstream."
+      "notes": "Reuses the existing automation dedupe endpoint. Returns run_id which we use for the editorial hook downstream.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -116,14 +119,10 @@
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/editorial-item",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -140,7 +139,8 @@
               "responseFormat": "json"
             }
           }
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-01-hook3",
       "name": "POST /api/automation/editorial-item",
@@ -150,20 +150,22 @@
         1340,
         440
       ],
-      "notes": "Creates (or reuses) the editorial_item via the existing automation hook. Returns editorial_item_id, stage=editorial_created."
+      "notes": "Creates (or reuses) the editorial_item via the existing automation hook. Returns editorial_item_id, stage=editorial_created.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://www.ff90.online/api/automation/log",
-        "authentication": "none",
+        "authentication": "genericCredentialType",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "x-automation-secret",
-              "value": "={{ $env.AUTOMATION_SECRET }}"
-            },
             {
               "name": "content-type",
               "value": "application/json"
@@ -180,7 +182,8 @@
               "responseFormat": "json"
             }
           }
-        }
+        },
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "ff90-01-log",
       "name": "Audit log",
@@ -189,7 +192,13 @@
       "position": [
         1480,
         440
-      ]
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     },
     {
       "parameters": {
