@@ -89,6 +89,70 @@ test('FF90-01 production hash input and source_id match Node SHA-256 exactly', (
   assert.equal(normalized.source_id.length, 52);
 });
 
+test('MASTER unwraps the real webhook body and preserves the complete source contract', () => {
+  const master = read('FF90-MASTER');
+  const payload = {
+    source_url: 'https://example.invalid/ff90-envelope-test',
+    source_title: '[FF90 TEST] Envelope',
+    publisher: 'FF90-TEST',
+    published_at: '2026-09-23T00:00:00+07:00',
+    source_text: 'Synthetic test content.',
+    source_type: 'test',
+    competition: [],
+    teams: [],
+    people: [],
+    requested_by: 'phase18he2d1',
+    optional_metadata: { test_only: true },
+  };
+  const wrapped = {
+    headers: { authorization: 'synthetic-transport-value', 'x-automation-secret': 'synthetic-transport-value' },
+    query: { trace: 'synthetic-transport-value' },
+    body: payload,
+    webhookUrl: 'https://example.invalid/webhook',
+    executionMode: 'production',
+  };
+  const normalized = code(master, 'Normalize inbound job', wrapped);
+  const direct = code(master, 'Normalize inbound job', payload);
+  for (const key of [
+    'source_url', 'source_title', 'publisher', 'published_at', 'source_text', 'source_type',
+    'competition', 'teams', 'people', 'requested_by', 'optional_metadata',
+  ]) assert.deepEqual(normalized[key], payload[key], `lost webhook field: ${key}`);
+  assert.deepEqual(normalized, direct, 'webhook and direct inputs produce equivalent canonical fields');
+  for (const key of ['headers', 'query', 'webhookUrl', 'executionMode', 'body']) {
+    assert.equal(Object.hasOwn(normalized, key), false, `transport field leaked: ${key}`);
+  }
+
+  const intake = read('FF90-01-source-intake');
+  const childInput = code(intake, 'Normalize source', normalized);
+  assert.equal(childInput.canonical_url, payload.source_url);
+  assert.equal(childInput.source_title, payload.source_title);
+  assert.equal(childInput.publisher, payload.publisher);
+  assert.equal(childInput.published_at, payload.published_at);
+  assert.notEqual(childInput.source_id, 'src:6e340b9cffb37a989ca544e6bb780a2c78901d3fb3373876');
+});
+
+test('MASTER direct input and malformed or missing nested fields retain safe defaults', () => {
+  const master = read('FF90-MASTER');
+  const payload = { source_url: 'https://example.invalid/direct', source_title: 'Direct input', published_at: '2026-09-23T00:00:00Z' };
+  assert.deepEqual(code(master, 'Normalize inbound job', payload), {
+    source_url: payload.source_url,
+    source_title: payload.source_title,
+    publisher: '',
+    published_at: payload.published_at,
+    competition: '',
+    teams: [],
+    people: [],
+    source_text: '',
+    source_type: 'other',
+    requested_by: 'anonymous',
+    optional_metadata: {},
+  });
+  assert.deepEqual(code(master, 'Normalize inbound job', { headers: { ignored: true }, body: [] }), {
+    source_url: '', source_title: '', publisher: '', published_at: null, competition: '', teams: [], people: [],
+    source_text: '', source_type: 'other', requested_by: 'anonymous', optional_metadata: {},
+  });
+});
+
 test('FF90-02 retains canonical fields and synthetic content; missing content stays held', () => {
   const w = read('FF90-02-editorial-factory');
   const input = code(w, 'Preserve editorial input', { ...source, run_id: envelope.run_id, editorial_item_id: envelope.editorial_item_id });
