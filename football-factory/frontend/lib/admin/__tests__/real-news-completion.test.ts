@@ -42,12 +42,15 @@ test("editorial queue exposes held real-news runs for operator completion", () =
   assert.match(page, /\/admin\/editorial\/\$\{run\.editorial_item_id\}/);
 });
 
-test("webhook token stays server-only and is never passed through the editorial UI", () => {
+test("automation secret stays server-only and is never passed through the editorial UI", () => {
   const route = read("app/api/admin/automation/runs/[runId]/recover/dispatch/route.ts");
   const component = read("components/admin/editorial-completion.tsx");
   assert.match(route, /import "server-only"/);
-  assert.match(route, /process\.env\.N8N_WEBHOOK_TOKEN/);
-  assert.match(route, /X-FF90-Webhook-Token/);
-  assert.doesNotMatch(route, /NEXT_PUBLIC_N8N_WEBHOOK_TOKEN/);
-  assert.doesNotMatch(component, /N8N_WEBHOOK_TOKEN|X-FF90-Webhook-Token/);
+  assert.match(route, /process\.env\.AUTOMATION_SECRET/);
+  assert.match(route, /AUTOMATION_SECRET_HEADER/);
+  assert.doesNotMatch(route, /NEXT_PUBLIC_AUTOMATION_SECRET/);
+  assert.match(route, /recovery\.run_id = \$2/);
+  assert.match(route, /recovery\.status = 'queued'/);
+  assert.match(route, /run\.status = 'recovery_queued'/);
+  assert.doesNotMatch(component, /AUTOMATION_SECRET|x-automation-secret/i);
 });

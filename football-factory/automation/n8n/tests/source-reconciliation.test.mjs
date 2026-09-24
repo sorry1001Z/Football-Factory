@@ -57,7 +57,7 @@ test('MASTER keeps its production webhook and accepts the harness through a subw
   assert.equal(harness.nodes.some(n => /trigger|webhook/i.test(n.type)), false);
 });
 
-test('MASTER production webhook requires the provisioned FF90 Header Auth credential', () => {
+test('MASTER production webhook reuses FF90 Automation Secret Header Auth credential', () => {
   const w = read('FF90-MASTER');
   const webhook = w.nodes.find(n => n.id === 'ff90-master-webhook');
   assert.ok(webhook);
@@ -65,15 +65,14 @@ test('MASTER production webhook requires the provisioned FF90 Header Auth creden
   assert.equal(webhook.parameters.path, 'ff90-master-intake');
   assert.equal(webhook.parameters.authentication, 'headerAuth');
   assert.deepEqual(webhook.credentials?.httpHeaderAuth, {
-    id: 'PENDING_HERMES_WEBHOOK_CREDENTIAL_ID',
-    name: 'FF90 Recovery Webhook Token',
+    id: 'oDa6RRKZleN2DC71',
+    name: 'FF90 Automation Secret',
   });
   assert.equal(w.nodes.length, 18, 'auth change must not add a webhook or alter the node count');
   assert.equal(w.id, 'ff90-master');
   assert.equal(w.active, false);
-  assert.doesNotMatch(JSON.stringify(webhook), /N8N_WEBHOOK_TOKEN|unit-test-webhook-token|secret-value/i);
-  assert.match(webhook.notes, /X-FF90-Webhook-Token/);
-  assert.match(webhook.notes, /provision credential.*before runtime sync\/activation/i);
+  assert.doesNotMatch(JSON.stringify(webhook), /AUTOMATION_SECRET\s*[:=]|secret-value/i);
+  assert.match(webhook.notes, /x-automation-secret/);
 });
 
 test('every audit branch reaches its terminal canonical promote', () => {

@@ -17,11 +17,11 @@
         240,
         300
       ],
-      "notes": "Accepts normalized jobs and recovery_id. Protected by n8n Header Auth credential FF90 Recovery Webhook Token; provision credential with header X-FF90-Webhook-Token before runtime sync/activation. Secret value is never stored in this workflow export.",
+      "notes": "Accepts normalized jobs and recovery_id. Protected by the existing n8n Header Auth credential FF90 Automation Secret, using x-automation-secret. Secret value is never stored in this workflow export.",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "PENDING_HERMES_WEBHOOK_CREDENTIAL_ID",
-          "name": "FF90 Recovery Webhook Token"
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
         }
       }
     },

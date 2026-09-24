@@ -18,7 +18,7 @@ beforeEach(() => {
   process.env.DATABASE_URL = "postgres://isolated-test";
   process.env.AUTOMATION_ENABLED = "true";
   process.env.N8N_WEBHOOK_URL = "https://n8n.example.test/webhook/master-id";
-  process.env.N8N_WEBHOOK_TOKEN = "unit-test-webhook-token-never-log";
+  process.env.AUTOMATION_SECRET = "unit-test-automation-secret-never-log-32chars";
 });
 
 afterEach(() => {
@@ -28,7 +28,7 @@ afterEach(() => {
   delete process.env.DATABASE_URL;
   delete process.env.AUTOMATION_ENABLED;
   delete process.env.N8N_WEBHOOK_URL;
-  delete process.env.N8N_WEBHOOK_TOKEN;
+  delete process.env.AUTOMATION_SECRET;
 });
 
 function headers(auth = true, role: "admin" | "editor" | "member" = "admin") {
@@ -185,9 +185,9 @@ test("dispatch requires the kill switch and uses the configured MASTER webhook o
     assert.equal(requests.length, 1);
     assert.equal(requests[0].url, process.env.N8N_WEBHOOK_URL);
     assert.deepEqual(requests[0].body, { recovery_id: RECOVERY_ID });
-    assert.equal(requests[0].headers.get("X-FF90-Webhook-Token"), process.env.N8N_WEBHOOK_TOKEN);
+    assert.equal(requests[0].headers.get("x-automation-secret"), process.env.AUTOMATION_SECRET);
     assert.equal(requests[0].headers.get("content-type"), "application/json");
-    assert.doesNotMatch(JSON.stringify(await opened.clone().json()), /unit-test-webhook-token-never-log/);
+    assert.doesNotMatch(JSON.stringify(await opened.clone().json()), /unit-test-automation-secret-never-log|AUTOMATION_SECRET/);
     assert.equal(calls.filter((sql) => /run_recovery_dispatch_/.test(sql)).length, 2);
   } finally {
     globalThis.fetch = originalFetch;
@@ -205,6 +205,8 @@ test("dispatch rejects unauthenticated and cross-site operators before DB or n8n
   try {
     const anonymous = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(false), body }), { params: Promise.resolve({ runId: RUN_ID }) });
     assert.equal(anonymous.status, 401);
+    const member = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(true, "member"), body }), { params: Promise.resolve({ runId: RUN_ID }) });
+    assert.equal(member.status, 403);
     const crossSiteHeaders = headers(); crossSiteHeaders.set("sec-fetch-site", "cross-site");
     const crossSite = await dispatchRecovery(new Request(url, { method: "POST", headers: crossSiteHeaders, body }), { params: Promise.resolve({ runId: RUN_ID }) });
     assert.equal(crossSite.status, 403);
@@ -213,7 +215,7 @@ test("dispatch rejects unauthenticated and cross-site operators before DB or n8n
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test("dispatch fails closed for missing token, invalid UUID, missing URL, or recovery linked to another run", async () => {
+test("dispatch fails closed for missing secret, malformed IDs, missing URL, or non-dispatchable recovery", async () => {
   const calls: string[] = [];
   const originalFetch = globalThis.fetch;
   let fetchCount = 0;
@@ -222,13 +224,16 @@ test("dispatch fails closed for missing token, invalid UUID, missing URL, or rec
   const url = `https://example.test/api/admin/automation/runs/${RUN_ID}/recover/dispatch`;
   const context = { params: Promise.resolve({ runId: RUN_ID }) };
   try {
-    delete process.env.N8N_WEBHOOK_TOKEN;
-    const noToken = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), context);
-    assert.equal(noToken.status, 503);
-    assert.equal((await noToken.json()).error, "master_webhook_auth_not_configured");
+    delete process.env.AUTOMATION_SECRET;
+    const noSecret = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), context);
+    assert.equal(noSecret.status, 503);
+    assert.equal((await noSecret.json()).error, "automation_secret_not_configured");
     assert.equal(calls.length, 0);
 
-    process.env.N8N_WEBHOOK_TOKEN = "unit-test-webhook-token-never-log";
+    process.env.AUTOMATION_SECRET = "unit-test-automation-secret-never-log-32chars";
+    const malformedRun = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), { params: Promise.resolve({ runId: "bad" }) });
+    assert.equal(malformedRun.status, 400);
+    assert.equal(calls.length, 0);
     const invalidId = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: "nope" }) }), context);
     assert.equal(invalidId.status, 400);
     assert.equal(calls.length, 0);
@@ -242,13 +247,16 @@ test("dispatch fails closed for missing token, invalid UUID, missing URL, or rec
     const wrongRun = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), context);
     assert.equal(wrongRun.status, 409);
     assert.equal((await wrongRun.json()).error, "recovery_not_dispatchable");
+    const notQueued = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), context);
+    assert.equal(notQueued.status, 409);
+    const runNotQueued = await dispatchRecovery(new Request(url, { method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }) }), context);
+    assert.equal(runNotQueued.status, 409);
     assert.equal(fetchCount, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test("dispatch timeout/error remains queued and audit output does not expose its token", async () => {
+test("dispatch timeout and HTTP errors remain queued and do not expose the secret", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () => { throw new Error("upstream failure"); }) as typeof fetch;
   const calls: string[] = [];
   __setDbOverrideForTest({
     async query<T = Record<string, unknown>>(sql: string) {
@@ -257,13 +265,19 @@ test("dispatch timeout/error remains queued and audit output does not expose its
     },
   } as Db);
   try {
-    const response = await dispatchRecovery(new Request(`https://example.test/api/admin/automation/runs/${RUN_ID}/recover/dispatch`, {
-      method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }),
-    }), { params: Promise.resolve({ runId: RUN_ID }) });
-    assert.equal(response.status, 502);
-    const body = await response.text();
-    assert.match(body, /recovery_queued/);
-    assert.doesNotMatch(body, /unit-test-webhook-token-never-log|N8N_WEBHOOK_TOKEN/);
+    for (const fail of [
+      async () => { throw new DOMException("timeout", "TimeoutError"); },
+      async () => new Response("upstream failure", { status: 503 }),
+    ]) {
+      globalThis.fetch = (async () => fail()) as typeof fetch;
+      const response = await dispatchRecovery(new Request(`https://example.test/api/admin/automation/runs/${RUN_ID}/recover/dispatch`, {
+        method: "POST", headers: headers(), body: JSON.stringify({ recovery_id: RECOVERY_ID }),
+      }), { params: Promise.resolve({ runId: RUN_ID }) });
+      assert.equal(response.status, 502);
+      const body = await response.text();
+      assert.match(body, /recovery_queued/);
+      assert.doesNotMatch(body, /unit-test-automation-secret-never-log|AUTOMATION_SECRET/);
+    }
     assert.ok(calls.some((sql) => /run_recovery_dispatch_failed/.test(sql)));
   } finally { globalThis.fetch = originalFetch; }
 });

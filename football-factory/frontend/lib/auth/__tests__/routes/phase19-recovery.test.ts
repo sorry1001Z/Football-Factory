@@ -150,3 +150,59 @@ test("Phase 19 recovery claim requires the automation secret and respects the ki
   assert.equal(disabled.status, 503);
   assert.equal((await disabled.json()).error, "automation_disabled");
 });
+
+test("concurrent duplicate claims serialize on the recovery row and only one can start a downstream chain", async () => {
+  let recoveryStatus = "queued";
+  let lockTail: Promise<void> = Promise.resolve();
+  let successfulClaimUpdates = 0;
+  const sqlSeen: string[] = [];
+  __setTxOverrideForTest(async (fn) => {
+    const prior = lockTail;
+    let release!: () => void;
+    lockTail = new Promise<void>((resolve) => { release = resolve; });
+    await prior;
+    try {
+      return await fn({
+        async query<T = Record<string, unknown>>(sql: string) {
+          sqlSeen.push(sql);
+          if (/WHERE recovery\.id = \$1[\s\S]*FOR UPDATE OF recovery, run, item/i.test(sql)) {
+            return { rows: [{
+              id: "44444444-4444-4444-8444-444444444444", run_id: RUN_ID, editorial_item_id: ITEM_ID,
+              recovery_status: recoveryStatus, available_at: new Date(Date.now() - 1000).toISOString(), claimed_at: null,
+              attempt: 0, resume_stage: "editorial_factory", run_status: "recovery_queued", workflow: "FF90-MASTER",
+              input: { source_url: "https://source.example/story" }, output: {}, run_stage: "editorial_factory",
+              error_class: null, recovery_count: 1, source_id: "src:duplicate-test", wp_post_id: null,
+              approval_state: "pending", editorial_stage: "editorial_created", metadata: { title_th: "หัวข้อ", body_th: CONTENT },
+              draft_operation_status: null,
+            }] as T[], rowCount: 1 };
+          }
+          if (/UPDATE automation_run_recoveries/i.test(sql)) {
+            if (recoveryStatus !== "queued") return { rows: [] as T[], rowCount: 0 };
+            recoveryStatus = "claimed";
+            successfulClaimUpdates += 1;
+            return { rows: [{ id: "44444444-4444-4444-8444-444444444444" }] as T[], rowCount: 1 };
+          }
+          if (/UPDATE automation_runs/i.test(sql)) return { rows: [{ id: RUN_ID }] as T[], rowCount: 1 };
+          return { rows: [], rowCount: 1 };
+        },
+      });
+    } finally { release(); }
+  });
+
+  const url = "https://example.test/api/automation/recovery/claim";
+  const body = JSON.stringify({ recovery_id: "44444444-4444-4444-8444-444444444444" });
+  const makeRequest = () => new Request(url, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-automation-secret": process.env.AUTOMATION_SECRET! },
+    body,
+  });
+  const responses = await Promise.all([claimRecovery(makeRequest()), claimRecovery(makeRequest())]);
+  const results = await Promise.all(responses.map(async (response) => ({ status: response.status, body: await response.json() })));
+  assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+  assert.equal(results.filter((result) => result.status === 200 && result.body.ok === true).length, 1);
+  assert.equal(successfulClaimUpdates, 1);
+  assert.ok(sqlSeen.some((sql) => /FOR UPDATE OF recovery, run, item/.test(sql)));
+  assert.ok(sqlSeen.some((sql) => /WHERE id = \$1 AND status = 'queued' AND available_at <= now\(\)/.test(sql)));
+  // MASTER's recovery branch continues only for the single 2xx claim result;
+  // the concurrent duplicate receives 409 and cannot start a second chain.
+});

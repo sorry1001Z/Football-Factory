@@ -88,12 +88,6 @@ const ENVS = [
     note: "n8n source webhook. Not blocking until n8n is provisioned.",
   },
   {
-    name: "N8N_WEBHOOK_TOKEN",
-    required: "later",
-    shape: (v) => v.length >= 32 && !PLACEHOLDER_RE.test(v),
-    note: "Server-only token for the authenticated FF90 MASTER webhook. Required before recovery dispatch is enabled.",
-  },
-  {
     name: "AI_ASSIST_ENDPOINT",
     required: "later",
     shape: (v) => v.length === 0 || /^https?:\/\//.test(v),

@@ -5,6 +5,7 @@ import { requireAdminOrEditor, guardResponse } from "@/lib/admin/guard";
 import { checkCsrf, csrfRejectResponse } from "@/lib/security/csrf";
 import { getDb } from "@/lib/db/postgres";
 import { assertAutomationEnabled, automationDisabledResponse } from "@/lib/automation/kill-switch";
+import { AUTOMATION_SECRET_HEADER } from "@/lib/automation/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,9 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
 
   const configuredUrl = process.env.N8N_WEBHOOK_URL;
   if (!configuredUrl) return NextResponse.json({ ok: false, error: "master_webhook_not_configured", recovery_queued: true }, { status: 503 });
-  const webhookToken = process.env.N8N_WEBHOOK_TOKEN;
-  if (!webhookToken || !webhookToken.trim()) {
-    return NextResponse.json({ ok: false, error: "master_webhook_auth_not_configured", recovery_queued: true }, { status: 503 });
+  const automationSecret = process.env.AUTOMATION_SECRET;
+  if (typeof automationSecret !== "string" || automationSecret.length < 16 || /(CHANGE_ME|example\.com|replace-with)/i.test(automationSecret)) {
+    return NextResponse.json({ ok: false, error: "automation_secret_not_configured", recovery_queued: true }, { status: 503 });
   }
   let webhookUrl: URL;
   try {
@@ -62,7 +63,7 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "X-FF90-Webhook-Token": webhookToken,
+        [AUTOMATION_SECRET_HEADER]: automationSecret,
       },
       body: JSON.stringify({ recovery_id: body.data.recovery_id }),
       signal: AbortSignal.timeout(10_000),
