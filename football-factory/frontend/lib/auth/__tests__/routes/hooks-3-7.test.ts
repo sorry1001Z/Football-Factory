@@ -552,6 +552,57 @@ test("FF_HOOK_6: default state manual_review → rights_confirmed=false", async 
 // FF_HOOK_7 — seo-check
 // ----------------------------------------------------------------------
 
+test("FF_HOOK_7: terminal stage conflict maps to a safe 409 response", async () => {
+  await withDb(
+    [
+      () => ({ rows: [runRow()], rowCount: 1 }),
+      () => ({ rows: [editorialRow({ stage: "published" })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      () => ({ rows: [editorialRow({ stage: "published" })], rowCount: 1 }),
+      () => ({ rows: [editorialRow({ stage: "published" })], rowCount: 1 }),
+    ],
+    async () => {
+      const r = await Hook7(
+        makeRequest(
+          {
+            run_id: RUN_ID,
+            editorial_item_id: EDITORIAL_ID,
+            title: "Fixture title",
+            content: "Fixture body content",
+            slug: "ff90-e3r5-ece50db1",
+          },
+          { "x-automation-secret": OK_SECRET },
+        ),
+      );
+      assert.equal(r.status, 409);
+      assert.deepEqual(await r.json(), {
+        ok: false,
+        error: "invalid_stage_transition",
+        stage: "published",
+        target_stage: "seo_check",
+      });
+    },
+  );
+});
+
+test("FF_HOOK_7: unexpected database failure maps to non-disclosing 500", async () => {
+  await withDb([() => new Error("database failure with sensitive details")], async () => {
+    const r = await Hook7(
+      makeRequest(
+        {
+          run_id: RUN_ID,
+          editorial_item_id: EDITORIAL_ID,
+          title: "Fixture title",
+          content: "Fixture body content",
+        },
+        { "x-automation-secret": OK_SECRET },
+      ),
+    );
+    assert.equal(r.status, 500);
+    assert.deepEqual(await r.json(), { ok: false, error: "internal_error" });
+  });
+});
+
 test("FF_HOOK_7: missing secret → 401", async () => {
   await withDb([], async () => {
     const r = await Hook7(
@@ -612,14 +663,14 @@ test("FF_HOOK_7: wrong content type → 400 validation_failed", async () => {
 });
 
 test("FF_HOOK_7: corrected FF90-02 contract payload → accepted with deterministic score", async () => {
-  // Stage current is "rights_check" so the forward edge to "seo_check" is allowed.
+  // E3R5 path: ai-assist sets ai_assist; SEO advances to seo_check.
   await withDb(
     [
       () => ({ rows: [runRow()], rowCount: 1 }),                  // 1: runs.get
-      () => ({ rows: [editorialRow({ stage: "rights_check" })], rowCount: 1 }), // 2: findById
+      () => ({ rows: [editorialRow({ stage: "ai_assist" })], rowCount: 1 }), // 2: findById
       () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),    // 3: findByRunId SELECT
-      () => ({ rows: [editorialRow({ stage: "rights_check" })], rowCount: 1 }), // 4: findById inside findByRunId
-      () => ({ rows: [editorialRow({ stage: "rights_check" })], rowCount: 1 }), // 5: findById inside setStage
+      () => ({ rows: [editorialRow({ stage: "ai_assist" })], rowCount: 1 }), // 4: findById inside findByRunId
+      () => ({ rows: [editorialRow({ stage: "ai_assist" })], rowCount: 1 }), // 5: findById inside setStage
       () => ({ rows: [editorialRow({ stage: "seo_check" })], rowCount: 1 }),    // 6: setStage UPDATE
       () => ({ rows: [], rowCount: 0 }),                         // 7: SEO metadata UPDATE
       () => ({ rows: [{ id: 7 }], rowCount: 1 }),                // 8: audit_logs INSERT

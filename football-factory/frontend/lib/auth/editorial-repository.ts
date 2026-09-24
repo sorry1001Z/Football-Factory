@@ -271,9 +271,26 @@ export class EditorialRepository {
     const cur = await this.findById(id);
     if (!cur) throw new Error("editorial_set_stage_no_row");
     // Lazy import to avoid a circular dep at module-eval time.
-    const { assertTransition, isEditorialStage } = await import(
+    const { assertTransition, isEditorialStage, StageTransitionError } = await import(
       "@/lib/auth/stage-machine"
     );
+    if (toStage === "draft_created") {
+      const metadata =
+        cur.metadata && typeof cur.metadata === "object" && !Array.isArray(cur.metadata)
+          ? (cur.metadata as Record<string, unknown>)
+          : {};
+      const missingChecks = ["seo_check", "fact_check", "rights"].filter(
+        (key) => !metadata[key] || typeof metadata[key] !== "object",
+      );
+      if (missingChecks.length > 0) {
+        throw new StageTransitionError(
+          "invalid_stage_transition",
+          cur.stage,
+          toStage,
+          `Required editorial checks are incomplete: ${missingChecks.join(",")}`,
+        );
+      }
+    }
     // If the current stage is non-canonical (e.g. hand-edited), we still
     // accept any forward or terminal move per the stage-machine contract.
     if (isEditorialStage(cur.stage)) {

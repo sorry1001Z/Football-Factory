@@ -197,10 +197,10 @@ export function nextStageIfComplete(currentStage: string): EditorialStage | null
   const map: Partial<Record<EditorialStage, EditorialStage>> = {
     ingested: "editorial_created",
     editorial_created: "ai_assist",
-    ai_assist: "fact_check",
+    ai_assist: "seo_check",
+    seo_check: "fact_check",
     fact_check: "rights_check",
-    rights_check: "seo_check",
-    seo_check: "draft_created",
+    rights_check: "draft_created",
     draft_created: "waiting_approval",
     waiting_approval: "approved",
     approved: "published",

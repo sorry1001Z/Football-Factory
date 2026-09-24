@@ -28,6 +28,8 @@ import {
 } from "@/lib/automation/wp-draft-idempotency";
 import { getDb } from "@/lib/db/postgres";
 import { AutomationRunRepository } from "@/lib/auth/repositories";
+import { EditorialRepository } from "@/lib/auth/editorial-repository";
+import { assertTransition, StageTransitionError } from "@/lib/auth/stage-machine";
 import { AutomationLogRepository } from "@/lib/auth/automation-log-repository";
 import {
   WordPressWriteClient,
@@ -120,6 +122,39 @@ export async function POST(request: Request) {
       },
       { status: 200 },
     );
+  }
+
+  if (v.data.editorial_item_id) {
+    const editorial = new EditorialRepository(getDb());
+    const item = await editorial.findById(v.data.editorial_item_id);
+    if (!item) {
+      return NextResponse.json(
+        { ok: false, error: "editorial_item_not_found" },
+        { status: 404 },
+      );
+    }
+    const metadata =
+      item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+        ? (item.metadata as Record<string, unknown>)
+        : {};
+    const missingChecks = ["seo_check", "fact_check", "rights"].filter(
+      (key) => !metadata[key] || typeof metadata[key] !== "object",
+    );
+    if (missingChecks.length > 0) {
+      return NextResponse.json(
+        { ok: false, error: "editorial_checks_incomplete" },
+        { status: 409 },
+      );
+    }
+    try {
+      assertTransition(item.stage, "draft_created");
+    } catch (error) {
+      if (!(error instanceof StageTransitionError)) throw error;
+      return NextResponse.json(
+        { ok: false, error: "invalid_stage_transition" },
+        { status: 409 },
+      );
+    }
   }
 
   const wp = new WordPressWriteClient();

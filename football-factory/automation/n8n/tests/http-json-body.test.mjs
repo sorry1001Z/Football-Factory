@@ -46,6 +46,7 @@ const input = {
   visual_relevance: 'NOT_CONFIGURED',
 };
 const nodeOutputs = {
+  'Provider adapter': { ...input },
   'POST /api/automation/deduplicate': { run_id: input.run_id },
   'POST /api/automation/editorial-item': { editorial_item_id: input.editorial_item_id },
   'POST /api/automation/ai-assist': { provider_status: 'not_configured', content_hash: 'synthetic' },
@@ -185,6 +186,12 @@ test('FF90-03..05 callers use actual rights, draft, media, and alert route field
   assert.equal(rightsBody.state, 'manual_review');
   assert.equal(rightsBody.source_url, input.source_url);
   assert.equal(rightsBody.source_name, input.publisher);
+  const providerGate = image.connections['Provider configured?'].main;
+  assert.equal(providerGate[0][0].node, 'POST /api/automation/rights-check');
+  assert.equal(providerGate[1][0].node, 'Audit log (held)');
+  assert.equal(image.connections['Audit log (held)'].main[0][0].node, 'POST /api/automation/rights-check');
+  assert.equal(image.connections['POST /api/automation/rights-check'].main[0][0].node, 'Restore rights context');
+  assert.equal(image.connections['Restore rights context'].main[0][0].node, 'Visual relevance gate');
 
   const draftWorkflow = read('FF90-04-wordpress-draft');
   const draft = draftWorkflow.nodes.find(n => n.name === 'POST /api/automation/wp-draft');

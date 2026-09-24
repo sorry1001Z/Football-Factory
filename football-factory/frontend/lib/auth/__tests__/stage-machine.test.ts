@@ -42,6 +42,9 @@ test("stage-machine: stageIndex returns increasing ordinals along the canonical 
   assert.equal(stageIndex("ingested"), 0);
   assert.equal(stageIndex("editorial_created"), 1);
   assert.equal(stageIndex("ai_assist"), 2);
+  assert.equal(stageIndex("fact_check"), 3);
+  assert.equal(stageIndex("rights_check"), 4);
+  assert.equal(stageIndex("seo_check"), 5);
   assert.equal(stageIndex("approved"), 8);
   assert.equal(stageIndex("published"), 9);
   assert.equal(stageIndex("rejected"), 10);
@@ -69,6 +72,18 @@ test("stage-machine: canTransition — forward along canonical path is allowed",
   for (const [a, b] of forward) {
     assert.equal(canTransition(a, b), true, `${a} → ${b}`);
   }
+});
+
+test("stage-machine: FF90 execution path is adjacent while the admin path stays valid", () => {
+  assert.equal(canTransition("ai_assist", "seo_check"), true);
+  assert.equal(canTransition("seo_check", "fact_check"), true);
+  assert.equal(canTransition("fact_check", "rights_check"), true);
+  assert.equal(canTransition("rights_check", "draft_created"), true);
+  assert.equal(canTransition("rights_check", "seo_check"), true);
+  assert.equal(canTransition("seo_check", "draft_created"), true);
+  assert.equal(canTransition("ai_assist", "fact_check"), true);
+  assert.equal(canTransition("ai_assist", "rights_check"), false);
+  assert.equal(canTransition("fact_check", "draft_created"), false);
 });
 
 test("stage-machine: canTransition — backward is rejected", () => {

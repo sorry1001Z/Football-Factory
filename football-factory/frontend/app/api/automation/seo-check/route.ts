@@ -39,6 +39,7 @@ import { getDb } from "@/lib/db/postgres";
 import { AutomationRunRepository } from "@/lib/auth/repositories";
 import { EditorialRepository } from "@/lib/auth/editorial-repository";
 import { AutomationLogRepository } from "@/lib/auth/automation-log-repository";
+import { StageTransitionError } from "@/lib/auth/stage-machine";
 
 export const dynamic = "force-dynamic";
 
@@ -244,120 +245,152 @@ export async function POST(request: Request) {
     );
   }
 
-  const db = getDb();
-  const runs = new AutomationRunRepository(db);
-  const items = new EditorialRepository(db);
-  const logs = new AutomationLogRepository(db);
+  try {
+    const db = getDb();
+    const runs = new AutomationRunRepository(db);
+    const items = new EditorialRepository(db);
+    const logs = new AutomationLogRepository(db);
 
-  const run = await runs.get(v.data.run_id);
-  if (!run) {
-    return NextResponse.json({ ok: false, error: "run_not_found" }, { status: 404 });
-  }
-  const item = await items.findById(v.data.editorial_item_id);
-  if (!item) {
-    return NextResponse.json(
-      { ok: false, error: "editorial_item_not_found" },
-      { status: 404 },
+    const run = await runs.get(v.data.run_id);
+    if (!run) {
+      return NextResponse.json({ ok: false, error: "run_not_found" }, { status: 404 });
+    }
+    const item = await items.findById(v.data.editorial_item_id);
+    if (!item) {
+      return NextResponse.json(
+        { ok: false, error: "editorial_item_not_found" },
+        { status: 404 },
+      );
+    }
+    const linkedItem = await items.findByRunId(v.data.run_id);
+    if (!linkedItem || linkedItem.id !== v.data.editorial_item_id) {
+      return NextResponse.json(
+        { ok: false, error: "association_mismatch" },
+        { status: 409 },
+      );
+    }
+
+    const providerConfigured = Boolean(process.env.SEO_PROVIDER_URL);
+    const providerStatus: "configured" | "not_configured" = providerConfigured
+      ? "configured"
+      : "not_configured";
+
+    const h = inputHash({
+      title: v.data.title,
+      content: v.data.content,
+      slug: v.data.slug,
+      description: v.data.description,
+    });
+    const meta = (item.metadata as Record<string, unknown> | null) ?? {};
+    const prevS = (meta.seo_check as { hash?: string; last_at?: string; score?: number } | undefined) ?? undefined;
+    if (prevS?.hash === h) {
+      return NextResponse.json({
+        ok: true,
+        idempotent: true,
+        provider_status: providerStatus,
+        input_hash: h,
+        score: prevS.score ?? 0,
+        run_id: v.data.run_id,
+        editorial_item_id: item.id,
+        stage: item.stage,
+      });
+    }
+
+    await items.setStage(item.id, "seo_check", v.data.run_id, "FF_HOOK_7");
+
+    const { result, score } = runLocalSeoChecks({
+      title: v.data.title,
+      content: v.data.content,
+      slug: v.data.slug,
+      description: v.data.description,
+    });
+
+    await db.query(
+      `UPDATE editorial_items
+          SET metadata = COALESCE(metadata, '{}'::jsonb)
+                            || jsonb_build_object(
+                                 'seo_check',
+                                 jsonb_build_object(
+                                   'provider_status', $2::text,
+                                   'input_hash', $3::text,
+                                   'checks', $4::jsonb,
+                                   'issues', $5::jsonb,
+                                   'recommendations', $6::jsonb,
+                                   'last_at', to_jsonb(now())
+                                 )
+                               ),
+              seo_score = $7::int
+        WHERE id = $1`,
+      [
+        item.id,
+        providerStatus,
+        h,
+        JSON.stringify(result.checks),
+        JSON.stringify(result.issues),
+        JSON.stringify(result.recommendations),
+        score,
+      ],
     );
-  }
-  const linkedItem = await items.findByRunId(v.data.run_id);
-  if (!linkedItem || linkedItem.id !== v.data.editorial_item_id) {
-    return NextResponse.json(
-      { ok: false, error: "association_mismatch" },
-      { status: 409 },
-    );
-  }
 
-  const providerConfigured = Boolean(process.env.SEO_PROVIDER_URL);
-  const providerStatus: "configured" | "not_configured" = providerConfigured
-    ? "configured"
-    : "not_configured";
+    await logs.insert({
+      run_id: v.data.run_id,
+      action: "editorial_seo_check_completed",
+      stage: "seo_check",
+      status: "ok",
+      message: `FF_HOOK_7 provider=${providerStatus} score=${score}`,
+      metadata: redactSecrets({
+        editorial_item_id: item.id,
+        provider_status: providerStatus,
+        input_hash: h,
+        score,
+        issues: result.issues,
+      }) as Record<string, unknown>,
+      request_id: null,
+      ip_hash: null,
+    });
 
-  const h = inputHash({
-    title: v.data.title,
-    content: v.data.content,
-    slug: v.data.slug,
-    description: v.data.description,
-  });
-  const meta = (item.metadata as Record<string, unknown> | null) ?? {};
-  const prevS = (meta.seo_check as { hash?: string; last_at?: string; score?: number } | undefined) ?? undefined;
-  if (prevS?.hash === h) {
     return NextResponse.json({
       ok: true,
-      idempotent: true,
+      idempotent: false,
       provider_status: providerStatus,
       input_hash: h,
-      score: prevS.score ?? 0,
+      score,
+      checks: result.checks,
+      issues: result.issues,
+      recommendations: result.recommendations,
       run_id: v.data.run_id,
       editorial_item_id: item.id,
-      stage: item.stage,
+      stage: "seo_check",
     });
-  }
+  } catch (error) {
+    if (error instanceof StageTransitionError) {
+      // Stage conflicts are expected client/state conflicts, not server crashes.
+      console.warn("[automation/seo-check] stage transition rejected", {
+        code: error.code,
+        from: error.from,
+        to: error.to,
+        request_id: request.headers.get("x-vercel-id"),
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "invalid_stage_transition",
+          stage: error.from,
+          target_stage: error.to,
+        },
+        { status: 409 },
+      );
+    }
 
-  await items.setStage(item.id, "seo_check", v.data.run_id, "FF_HOOK_7");
-
-  const { result, score } = runLocalSeoChecks({
-    title: v.data.title,
-    content: v.data.content,
-    slug: v.data.slug,
-    description: v.data.description,
-  });
-
-  await db.query(
-    `UPDATE editorial_items
-        SET metadata = COALESCE(metadata, '{}'::jsonb)
-                          || jsonb_build_object(
-                               'seo_check',
-                               jsonb_build_object(
-                                 'provider_status', $2::text,
-                                 'input_hash', $3::text,
-                                 'checks', $4::jsonb,
-                                 'issues', $5::jsonb,
-                                 'recommendations', $6::jsonb,
-                                 'last_at', to_jsonb(now())
-                               )
-                             ),
-            seo_score = $7::int
-      WHERE id = $1`,
-    [
-      item.id,
-      providerStatus,
-      h,
-      JSON.stringify(result.checks),
-      JSON.stringify(result.issues),
-      JSON.stringify(result.recommendations),
-      score,
-    ],
-  );
-
-  await logs.insert({
-    run_id: v.data.run_id,
-    action: "editorial_seo_check_completed",
-    stage: "seo_check",
-    status: "ok",
-    message: `FF_HOOK_7 provider=${providerStatus} score=${score}`,
-    metadata: redactSecrets({
-      editorial_item_id: item.id,
-      provider_status: providerStatus,
-      input_hash: h,
-      score,
-      issues: result.issues,
-    }) as Record<string, unknown>,
-  request_id: null,
-    ip_hash: null,
-  });
-
-  return NextResponse.json({
-    ok: true,
-    idempotent: false,
-    provider_status: providerStatus,
-    input_hash: h,
-    score,
-    checks: result.checks,
-    issues: result.issues,
-    recommendations: result.recommendations,
-    run_id: v.data.run_id,
-    editorial_item_id: item.id,
-    stage: "seo_check",
-  });
+    const details = error as { name?: unknown; code?: unknown } | null;
+    console.error("[automation/seo-check] handler failed", {
+      error_name: typeof details?.name === "string" ? details.name : "UnknownError",
+      error_code: typeof details?.code === "string" ? details.code : null,
+      request_id: request.headers.get("x-vercel-id"),
+    });
+    return NextResponse.json(
+      { ok: false, error: "internal_error" },
+      { status: 500 },
+    );
+    }
 }

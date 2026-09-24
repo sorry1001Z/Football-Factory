@@ -5,11 +5,14 @@
 // the canonical progression the automation routes are expected to
 // follow and provides a validator.
 //
-// Pipeline (forward direction):
+// FF90 automation path:
+//   ingested → editorial_created → ai_assist → seo_check → fact_check
+//           → rights_check → draft_created → waiting_approval → approved
+//           → published
 //
-//   ingested → editorial_created → ai_assist → fact_check
-//           → rights_check → seo_check → draft_created
-//           → waiting_approval → approved → published
+// The admin editor path runs fact-check and rights-check before SEO. The
+// explicit transition graph below supports both paths without permitting
+// arbitrary stage skips.
 //
 // Terminal:
 //   failed    — error path
@@ -71,19 +74,22 @@ export function stageIndex(stage: string): number | null {
   return FORWARD_ORDER[stage];
 }
 
-// Forward adjacency graph: each stage names the single next stage
-// in the canonical pipeline. SEO check -> draft_created is the
-// canonical forward edge; we DO NOT allow skipping stages forward.
-const NEXT_FORWARD: Partial<Record<EditorialStage, EditorialStage>> = {
-  ingested: "editorial_created",
-  editorial_created: "ai_assist",
-  ai_assist: "fact_check",
-  fact_check: "rights_check",
-  rights_check: "seo_check",
-  seo_check: "draft_created",
-  draft_created: "waiting_approval",
-  waiting_approval: "approved",
-  approved: "published",
+// Forward adjacency graph: each stage lists its allowed next stages.
+// Workflow branches are explicit; EditorialRepository separately requires
+// SEO, fact-check, and rights metadata before entering draft_created.
+const NEXT_FORWARD: Partial<Record<EditorialStage, readonly EditorialStage[]>> = {
+  ingested: ["editorial_created"],
+  editorial_created: ["ai_assist"],
+  // FF90 runs SEO before fact-check; the admin editor runs fact-check first.
+  ai_assist: ["seo_check", "fact_check"],
+  seo_check: ["fact_check", "draft_created"],
+  fact_check: ["rights_check"],
+  // FF90 has already completed SEO when it reaches rights-check; the admin
+  // editor performs SEO after rights-check.
+  rights_check: ["seo_check", "draft_created"],
+  draft_created: ["waiting_approval"],
+  waiting_approval: ["approved"],
+  approved: ["published"],
 };
 
 /**
@@ -104,7 +110,7 @@ export function canTransition(from: string, to: string): boolean {
   // permitted transitions: any non-terminal can go to rejected|failed
   if (to === "rejected" || to === "failed") return true;
   // forward: must be the single adjacent next stage
-  return NEXT_FORWARD[from] === to;
+  return NEXT_FORWARD[from]?.includes(to) ?? false;
 }
 
 /**

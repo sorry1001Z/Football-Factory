@@ -187,7 +187,7 @@ No live image source integration yet. Images are sourced from feature candidates
 **Status:** REAL (framework) — full set of FF_HOOK_1..8 routes exist (see §2). The framework enforces:
 - `x-automation-secret` shared-secret auth with constant-time compare.
 - Idempotency via `idempotency_key` UNIQUE at DB level (concurrent submissions resolve to one INSERT).
-- Stage machine forward-only: `ingested → editorial_created → ai_assist → fact_check → rights_check → seo_check → draft_created → waiting_approval → approved → published`. Terminal: `rejected | failed | published`.
+- Stage machine is forward-only and explicitly supports FF90 order (`ai_assist → seo_check → fact_check → rights_check → draft_created`) and admin-editor order (`ai_assist → fact_check → rights_check → seo_check → draft_created`). Terminal: `rejected | failed | published`.
 - Rights gating defense-in-depth: rights cleared → human approval → publish.
 - Retry policy: only transient (`timeout`, `network`, `upstream_temporary`, `wp_retryable`); permanent refusals (`auth`, `validation`, `rights_rejected`, `approval_rejected`, `association_mismatch`, `ownership_mismatch`); retry emits `rerun_stage` only.
 

@@ -206,11 +206,11 @@
           "parameters": [
             {
               "name": "run_id",
-              "value": "={{ $json.run_id }}"
+              "value": "={{ $('Provider adapter').item.json.run_id }}"
             },
             {
               "name": "editorial_item_id",
-              "value": "={{ $json.editorial_item_id }}"
+              "value": "={{ $('Provider adapter').item.json.editorial_item_id }}"
             },
             {
               "name": "state",
@@ -218,11 +218,11 @@
             },
             {
               "name": "source_url",
-              "value": "={{ typeof $json.source_url === 'string' && $json.source_url.trim().length <= 2048 ? $json.source_url.trim() : undefined }}"
+              "value": "={{ typeof $('Provider adapter').item.json.source_url === 'string' && $('Provider adapter').item.json.source_url.trim().length <= 2048 ? $('Provider adapter').item.json.source_url.trim() : undefined }}"
             },
             {
               "name": "source_name",
-              "value": "={{ typeof $json.publisher === 'string' && $json.publisher.trim().length <= 256 ? $json.publisher.trim() : undefined }}"
+              "value": "={{ typeof $('Provider adapter').item.json.publisher === 'string' && $('Provider adapter').item.json.publisher.trim().length <= 256 ? $('Provider adapter').item.json.publisher.trim() : undefined }}"
             }
           ]
         }
@@ -242,6 +242,19 @@
           "name": "FF90 Automation Secret"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const upstream = $('Provider adapter').item.json || {};\nreturn [{ json: { ...upstream, rights_check_result: $json } }];\n"
+      },
+      "id": "ff90-03-restore-rights",
+      "name": "Restore rights context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        200
+      ]
     },
     {
       "parameters": {
@@ -369,7 +382,7 @@
       "main": [
         [
           {
-            "node": "Promote FF90-03 output",
+            "node": "POST /api/automation/rights-check",
             "type": "main",
             "index": 0
           }
@@ -395,6 +408,17 @@
       ]
     },
     "POST /api/automation/rights-check": {
+      "main": [
+        [
+          {
+            "node": "Restore rights context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore rights context": {
       "main": [
         [
           {

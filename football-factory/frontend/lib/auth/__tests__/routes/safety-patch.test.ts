@@ -774,28 +774,65 @@ test("stage-machine: assertTransition from rejected to approved throws StageTran
 //    requires integration with real WP — out of scope here).
 // ----------------------------------------------------------------------
 
+test("wp-draft: missing SEO/fact/rights metadata fails closed before WordPress write", async () => {
+  await withDb(
+    [
+      () => ({ rows: [runRow({ editorial_item_id: EDITORIAL_ID, output: {} })], rowCount: 1 }),
+      () => ({ rows: [editorialRow({ stage: "rights_check", metadata: {} })], rowCount: 1 }),
+    ],
+    async () => {
+      const { WordPressWriteClient } = await import("@/lib/wordpress/write");
+      const originalCreatePost = WordPressWriteClient.prototype.createPost;
+      let createPostCalls = 0;
+      WordPressWriteClient.prototype.createPost = async () => {
+        createPostCalls += 1;
+        return { id: 101, link: "https://example.test/?p=101", slug: "must-not-create", status: "draft" };
+      };
+      try {
+        const r = await Hook9(
+          makeRequest(
+            {
+              run_id: RUN_ID,
+              title: "Fixture title",
+              content: "Fixture body",
+              editorial_item_id: EDITORIAL_ID,
+            },
+            { "x-automation-secret": OK_SECRET },
+          ),
+        );
+        assert.equal(r.status, 409);
+        assert.deepEqual(await r.json(), { ok: false, error: "editorial_checks_incomplete" });
+        assert.equal(createPostCalls, 0);
+      } finally {
+        WordPressWriteClient.prototype.createPost = originalCreatePost;
+      }
+    },
+  );
+});
+
 test("wp-draft: editorial_item_id provided + draft succeeds → stage advances to waiting_approval", async () => {
-  // After my patch, wp-draft also advances the editorial stage from
-  // (say) seo_check → draft_created → waiting_approval. The full plan
-  // includes findById (during setStage) plus two UPDATEs. We provide
-  // enough entries for that flow.
+  // FF90 path reaches rights_check after successful SEO/fact/rights metadata.
   await withDb(
     [
       () => ({ rows: [runRow({ editorial_item_id: EDITORIAL_ID, output: {} })], rowCount: 1 }), // runs.get (1)
+      () => ({ rows: [editorialRow({
+        stage: "rights_check",
+        metadata: { seo_check: {}, fact_check: {}, rights: {} },
+      })], rowCount: 1 }), // preflight editorial checks
       () => ({ rows: [], rowCount: 0 }),        // UPDATE automation_runs (wp_post_id)
-      // setStage findById (current=seo_check)
+      // setStage findById (current=rights_check)
       () => ({
         rows: [
           {
             id: EDITORIAL_ID,
             source_id: "src-test",
             wp_post_id: null,
-            stage: "seo_check",
+            stage: "rights_check",
             approval_state: "pending",
             rights_confirmed: false,
             approved_by: null,
             approved_at: null,
-            metadata: {},
+            metadata: { seo_check: {}, fact_check: {}, rights: {} },
             created_at: "2026-01-01T00:00:00Z",
             updated_at: "2026-01-01T00:00:00Z",
           },
@@ -814,7 +851,7 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
             rights_confirmed: false,
             approved_by: null,
             approved_at: null,
-            metadata: {},
+            metadata: { seo_check: {}, fact_check: {}, rights: {} },
             created_at: "2026-01-01T00:00:00Z",
             updated_at: "2026-01-01T00:00:00Z",
           },
@@ -833,7 +870,7 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
             rights_confirmed: false,
             approved_by: null,
             approved_at: null,
-            metadata: {},
+            metadata: { seo_check: {}, fact_check: {}, rights: {} },
             created_at: "2026-01-01T00:00:00Z",
             updated_at: "2026-01-01T00:00:00Z",
           },
@@ -852,7 +889,7 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
             rights_confirmed: false,
             approved_by: null,
             approved_at: null,
-            metadata: {},
+            metadata: { seo_check: {}, fact_check: {}, rights: {} },
             created_at: "2026-01-01T00:00:00Z",
             updated_at: "2026-01-01T00:00:00Z",
           },

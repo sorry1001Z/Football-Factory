@@ -152,6 +152,11 @@ test("next stage lookup: fact_check → rights_check", () => {
   assert.equal(nextStageIfComplete("fact_check"), "rights_check");
 });
 
+test("next stage lookup follows FF90 execution order through SEO then fact-check", () => {
+  assert.equal(nextStageIfComplete("ai_assist"), "seo_check");
+  assert.equal(nextStageIfComplete("seo_check"), "fact_check");
+});
+
 test("next stage lookup: terminal returns null", () => {
   assert.equal(nextStageIfComplete("rejected"), null);
   assert.equal(nextStageIfComplete("failed"), null);
