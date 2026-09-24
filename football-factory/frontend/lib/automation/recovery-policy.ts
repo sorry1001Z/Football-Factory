@@ -77,7 +77,7 @@ export function inspectRecovery(input: RecoveryInspectionInput): RecoveryDecisio
   }
   if (input.status === "held_for_content") {
     return input.editorialContentComplete
-      ? result(true, "editorial_content_ready", recoveryBackoffMs(attempt))
+      ? result(true, "editorial_content_ready")
       : result(false, "editorial_content_required");
   }
   if (input.status === "running" && !interrupted) {

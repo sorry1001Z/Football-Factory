@@ -226,6 +226,8 @@ test("admin resume: existing wp-draft route still uses runPipelineStep (auth + C
   assert.doesNotMatch(src, /status:\s*"publish"/);
   // Idempotency
   assert.match(src, /decideWpDraft/);
+  assert.match(src, /run\.status === "held_for_content" \|\| run\.status === "recovery_queued"/);
+  assert.match(src, /same_run_recovery_required/);
 });
 
 test("admin resume: existing dedupe route still uses runPipelineStep (auth + CSRF)", () => {

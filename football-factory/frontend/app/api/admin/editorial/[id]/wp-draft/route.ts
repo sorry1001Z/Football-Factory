@@ -79,6 +79,13 @@ async function runner(
       error: "association_mismatch",
     };
   }
+  if (run.status === "held_for_content" || run.status === "recovery_queued") {
+    return {
+      ok: false as const,
+      status: 409 as const,
+      error: "same_run_recovery_required",
+    };
+  }
   const item = await items.findById(editorialItemId);
   if (!item) {
     return {

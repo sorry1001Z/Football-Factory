@@ -22,6 +22,7 @@ test("Phase 19 recovery requires human content for held runs and bounds attempts
   const ready = inspectRecovery({ ...common, status: "held_for_content", editorialContentComplete: true });
   assert.equal(ready.allowed, true);
   assert.equal(ready.reason, "editorial_content_ready");
+  assert.equal(ready.backoffMs, 0, "human completion can dispatch immediately once saved");
   assert.equal(inspectRecovery({ ...common, status: "failed", errorClass: "auth" }).allowed, false);
   assert.equal(inspectRecovery({ ...common, status: "failed", errorClass: "upstream_temporary", hasRunWpPostId: true }).reason, "wordpress_post_already_exists");
   assert.equal(inspectRecovery({ ...common, status: "failed", errorClass: "upstream_temporary", recoveryCount: 3 }).reason, "recovery_attempt_limit_reached");

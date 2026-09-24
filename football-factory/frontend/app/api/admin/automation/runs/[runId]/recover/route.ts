@@ -215,7 +215,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ runId: str
       };
     }
 
-    if (run.status === "held_for_content" && !editorialContent) {
+    if (run.status === "held_for_content" && !hasEditorialContent(metadata)) {
       return { status: 400 as const, body: { ok: false, error: "editorial_content_required" } };
     }
     if (editorialContent) {

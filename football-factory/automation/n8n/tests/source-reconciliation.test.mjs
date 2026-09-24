@@ -81,6 +81,46 @@ test('missing content cannot reach AI or WordPress HTTP calls', () => {
   }
 });
 
+test('operator recovery resumes the same run at FF90-02 without the synthetic fixture path', () => {
+  const master = read('FF90-MASTER');
+  assert.deepEqual(next(master, 'Recovery requested?'), ['POST /api/automation/recovery/claim']);
+  assert.deepEqual(next(master, 'POST /api/automation/recovery/claim'), ['Promote run context']);
+  assert.equal(reaches(master, 'POST /api/automation/recovery/claim', 'Execute FF90-01 Source Intake'), false);
+  assert.equal(reaches(master, 'POST /api/automation/recovery/claim', 'Execute FF90-02 Editorial Factory'), true);
+
+  const normalizer = master.nodes.find(n => n.name === 'Normalize inbound job').parameters.jsCode;
+  assert.match(normalizer, /test_mode:\s*false/);
+  assert.match(normalizer, /delete optional\.test_content/);
+  const classify = read(names[1]).nodes.find(n => n.name === 'Classify news type').parameters.jsCode;
+  const input = {
+    run_id: '11111111-1111-4111-8111-111111111111',
+    editorial_item_id: '22222222-2222-4222-8222-222222222222',
+    source_id: 'src:real-news',
+    source_url: 'https://publisher.example/news/123',
+    source_title: 'Original headline',
+    publisher: 'Verified Publisher',
+    title_th: 'หัวข้อข่าวจริง',
+    body_th: 'ข่าวจากแหล่งจริงที่เขียนโดยบรรณาธิการ '.repeat(10),
+    news_type: 'RESULT',
+    optional_metadata: {},
+    test_mode: false,
+  };
+  const result = new Function('$json', '$', classify)(input, (name) => ({ item: { json: input } }))[0].json;
+  assert.equal(result.pipeline_status, 'accepted');
+  assert.equal(result.run_id, input.run_id);
+  assert.equal(result.editorial_item_id, input.editorial_item_id);
+  assert.equal(result.source_id, input.source_id);
+  assert.equal(result.metadata.test_marker, false);
+  assert.equal(result.optional_metadata.test_content, undefined);
+
+  for (const stage of ['POST /api/automation/seo-check', 'POST /api/automation/fact-check']) {
+    assert.ok(reaches(read(names[1]), 'Classify news type', stage), `FF90-02 does not reach ${stage}`);
+  }
+  assert.ok(reaches(master, 'Execute FF90-02 Editorial Factory', 'Execute FF90-03 Image Factory'));
+  assert.ok(reaches(master, 'Execute FF90-03 Image Factory', 'Execute FF90-04 WordPress Draft'));
+  assert.ok(reaches(master, 'Execute FF90-04 WordPress Draft', 'Execute FF90-05 Human Review Gate'));
+});
+
 test('image-not-configured path returns its envelope without requiring an asset', () => {
   const w = read(names[2]);
   assert.equal(w.nodes.some(n => n.name === 'POST image provider'), false);

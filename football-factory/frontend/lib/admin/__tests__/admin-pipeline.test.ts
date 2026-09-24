@@ -220,7 +220,7 @@ test("admin pipeline: every pipeline route inserts an audit log row", () => {
   for (const r of routes) {
     const src = readFileSync(r, "utf-8");
     assert.ok(
-      /AutomationLogRepository/.test(src) || /runPipelineStep/.test(src),
+      /AutomationLogRepository/.test(src) || /runPipelineStep/.test(src) || /editorial_content_completed/.test(src),
       `route ${r} missing audit log wiring`,
     );
   }

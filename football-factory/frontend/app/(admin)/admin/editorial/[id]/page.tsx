@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { AdminShellHeader } from "@/components/admin/shell-header";
 import { AdminDetail } from "@/components/admin/detail";
 import { AdminResumePipeline } from "@/components/admin/resume-pipeline";
+import { AdminEditorialCompletion } from "@/components/admin/editorial-completion";
 import { getDb } from "@/lib/db/postgres";
 import { EditorialRepository } from "@/lib/auth/editorial-repository";
 
@@ -50,12 +51,29 @@ async function AdminEditorialDetailLoader({
   if (!item) {
     notFound();
   }
+  const runResult = await getDb().query<{
+    id: string;
+    status: string;
+    stage: string | null;
+    output: unknown;
+    input: unknown;
+  }>(
+    `SELECT id, status, stage, output, input FROM automation_runs
+      WHERE editorial_item_id = $1
+      ORDER BY CASE WHEN status = 'held_for_content' THEN 0 ELSE 1 END, started_at DESC
+      LIMIT 1`,
+    [item.id],
+  );
+  const run = runResult.rows[0] ?? null;
   return (
     <>
       <AdminDetail item={item} />
+      <AdminEditorialCompletion item={item} run={run} />
       {/* Phase 17C: resume controls target the existing editorial item.
           No new editorial_item is created here. */}
-      <AdminResumePipeline item={item} />
+      {run?.status === "held_for_content" || run?.status === "recovery_queued"
+        ? null
+        : <AdminResumePipeline item={item} />}
       {/* Wave D: link to the read-only SEO suggestions panel. */}
       <p>
         <a href={`/admin/editorial/${id}/seo-suggestions`}>
