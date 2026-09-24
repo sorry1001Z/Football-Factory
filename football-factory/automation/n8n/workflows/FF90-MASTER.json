@@ -6,7 +6,8 @@
         "httpMethod": "POST",
         "path": "ff90-master-intake",
         "responseMode": "onReceived",
-        "options": {}
+        "options": {},
+        "authentication": "headerAuth"
       },
       "id": "ff90-master-webhook",
       "name": "Webhook: source job intake",
@@ -16,7 +17,13 @@
         240,
         300
       ],
-      "notes": "Accepts a normalized job: { source_url, requested_by, optional_metadata }. We do NOT trust arbitrary public POSTs without auth — for production, gate this webhook behind n8n's built-in auth or a sibling auth node. Returns the run_id synchronously (200) so callers can poll the editorial item."
+      "notes": "Accepts normalized jobs and recovery_id. Protected by n8n Header Auth credential FF90 Recovery Webhook Token; provision credential with header X-FF90-Webhook-Token before runtime sync/activation. Secret value is never stored in this workflow export.",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PENDING_HERMES_WEBHOOK_CREDENTIAL_ID",
+          "name": "FF90 Recovery Webhook Token"
+        }
+      }
     },
     {
       "parameters": {

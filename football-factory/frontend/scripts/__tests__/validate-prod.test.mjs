@@ -103,6 +103,16 @@ test("validate:prod: never prints AUTH_SECRET value", () => {
   );
 });
 
+test("validate:prod: validates N8N_WEBHOOK_TOKEN without printing its value", () => {
+  const sentinel = "SENTINEL-N8N-WEBHOOK-TOKEN-NEVER-PRINT-0123456789";
+  const r = runWith({ ...SAFE_NOW, N8N_WEBHOOK_TOKEN: sentinel });
+  assert.equal(r.status, 0);
+  assert.equal((r.stdout + r.stderr).includes(sentinel), false);
+  const invalid = runWith({ ...SAFE_NOW, N8N_WEBHOOK_TOKEN: "short" });
+  assert.equal(invalid.status, 0, "invalid later configuration remains non-blocking for unrelated validation");
+  assert.match(invalid.stdout, /N8N_WEBHOOK_TOKEN\s+INVALID/);
+});
+
 test("validate:prod: never prints WORDPRESS_APP_PASSWORD value", () => {
   const sentinel = "SENTINEL-WP-PWD-NEVER-PRINT-5f8d";
   const r = runWith({

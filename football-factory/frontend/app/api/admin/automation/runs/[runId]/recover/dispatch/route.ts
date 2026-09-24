@@ -29,6 +29,10 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
 
   const configuredUrl = process.env.N8N_WEBHOOK_URL;
   if (!configuredUrl) return NextResponse.json({ ok: false, error: "master_webhook_not_configured", recovery_queued: true }, { status: 503 });
+  const webhookToken = process.env.N8N_WEBHOOK_TOKEN;
+  if (!webhookToken || !webhookToken.trim()) {
+    return NextResponse.json({ ok: false, error: "master_webhook_auth_not_configured", recovery_queued: true }, { status: 503 });
+  }
   let webhookUrl: URL;
   try {
     webhookUrl = new URL(configuredUrl);
@@ -56,7 +60,10 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
   try {
     const response = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "X-FF90-Webhook-Token": webhookToken,
+      },
       body: JSON.stringify({ recovery_id: body.data.recovery_id }),
       signal: AbortSignal.timeout(10_000),
       cache: "no-store",
