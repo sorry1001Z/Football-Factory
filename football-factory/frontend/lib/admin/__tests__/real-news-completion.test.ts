@@ -49,6 +49,7 @@ test("automation secret stays server-only and is never passed through the editor
   assert.match(route, /process\.env\.AUTOMATION_SECRET/);
   assert.match(route, /AUTOMATION_SECRET_HEADER/);
   assert.doesNotMatch(route, /NEXT_PUBLIC_AUTOMATION_SECRET/);
+  assert.doesNotMatch(route, /console\.(?:log|warn|error)/);
   assert.match(route, /recovery\.run_id = \$2/);
   assert.match(route, /recovery\.status = 'queued'/);
   assert.match(route, /run\.status = 'recovery_queued'/);
