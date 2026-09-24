@@ -2,8 +2,6 @@
 -- This migration is source-only in this batch. Apply it through the normal
 -- reviewed migration process before deploying routes that use these columns.
 
-BEGIN;
-
 ALTER TABLE automation_runs
   ADD COLUMN IF NOT EXISTS stage text,
   ADD COLUMN IF NOT EXISTS error_class text,
@@ -67,5 +65,3 @@ CREATE TABLE IF NOT EXISTS wp_draft_operations (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK ((status <> 'created') OR wp_post_id IS NOT NULL)
 );
-
-COMMIT;

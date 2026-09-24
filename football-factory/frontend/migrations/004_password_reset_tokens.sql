@@ -15,8 +15,6 @@
 --
 -- This migration is idempotent — running twice is safe.
 
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id              bigserial PRIMARY KEY,
   user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -43,5 +41,3 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_lookup
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_unused
   ON password_reset_tokens(user_id)
   WHERE used_at IS NULL;
-
-COMMIT;

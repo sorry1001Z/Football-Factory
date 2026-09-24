@@ -27,6 +27,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import pg from "pg";
+import { hasTransactionControl } from "./migration-safety.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -152,6 +153,9 @@ async function main() {
 
     const t0 = Date.now();
     try {
+      if (hasTransactionControl(sql)) {
+        throw new Error("migration SQL must not control the runner-owned transaction");
+      }
       await client.query("BEGIN");
       await client.query(sql);
       await client.query(

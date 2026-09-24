@@ -72,9 +72,21 @@ test("migrations: 002 uses IF NOT EXISTS for indexes", () => {
   }
 });
 
+test("migrations: unapplied 004 and 005 leave transaction ownership to the runner", () => {
+  const M4 = readFileSync(
+    join(process.cwd(), "migrations", "004_password_reset_tokens.sql"),
+    "utf8",
+  );
+  for (const [name, sql] of [["004", M4], ["005", M5]] as const) {
+    assert.doesNotMatch(
+      sql.replace(/--[^\r\n]*/g, ""),
+      /(?:^|;)\s*(?:BEGIN|START\s+TRANSACTION|COMMIT|END|ROLLBACK)\s*;/im,
+      `migration ${name} must not terminate the runner-owned transaction`,
+    );
+  }
+});
+
 test("migrations: 005 adds only additive recovery and idempotency structures", () => {
-  assert.match(M5, /^\s*BEGIN\s*;/m);
-  assert.match(M5, /^\s*COMMIT\s*;/m);
   for (const field of ["stage", "error_class", "updated_at", "recovery_count"]) {
     assert.match(M5, new RegExp(`ADD COLUMN IF NOT EXISTS ${field}\\b`));
   }

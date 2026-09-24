@@ -21,8 +21,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { hasTransactionControl } from "../migration-safety.mjs";
 
 function runWithEnv(script, env, cwd) {
   return spawnSync("node", [script], {
@@ -120,6 +122,99 @@ test("migrate: no DROP statements in any migration", () => {
     const sql = readFileSync(join(REPO, "migrations", f), "utf8");
     assert.doesNotMatch(sql, /\bDROP\s+(TABLE|INDEX|DATABASE|SCHEMA|FUNCTION)\b/i);
     assert.doesNotMatch(sql, /\bTRUNCATE\b/i);
+  }
+});
+
+test("migrate: pending migration SQL cannot terminate the runner-owned transaction", () => {
+  const migrations = ["004_password_reset_tokens.sql", "005_phase19_run_recovery.sql"];
+  for (const name of migrations) {
+    const sql = readFileSync(join(REPO, "migrations", name), "utf8");
+    assert.equal(hasTransactionControl(sql), false, `${name} contains transaction control`);
+  }
+
+  assert.equal(
+    hasTransactionControl("CREATE TABLE example(id int);\nCOMMIT;"),
+    true,
+    "guard detects a premature commit",
+  );
+  assert.equal(
+    hasTransactionControl("-- COMMIT;\nDO $$ BEGIN PERFORM 1; END $$;"),
+    false,
+    "comments and procedural block keywords are not transaction commands",
+  );
+  const runner = readFileSync(MIGRATE, "utf8");
+  assert.match(runner, /hasTransactionControl\(sql\)/);
+  assert.match(runner, /await client\.query\("BEGIN"\);[\s\S]*?await client\.query\(sql\);[\s\S]*?INSERT INTO ff_schema_migrations[\s\S]*?await client\.query\("COMMIT"\)/);
+});
+
+function createIsolatedRunnerFixture() {
+  const root = mkdtempSync(join(tmpdir(), "ff90-migrate-fixture-"));
+  const scriptsDir = join(root, "scripts");
+  const migrationsDir = join(root, "migrations");
+  mkdirSync(scriptsDir, { recursive: true });
+  mkdirSync(migrationsDir, { recursive: true });
+  const runner = readFileSync(MIGRATE, "utf8")
+    .replace('import pg from "pg";', 'import pg from "../fake-pg.mjs";');
+  writeFileSync(join(scriptsDir, "migrate.mjs"), runner);
+  cpSync(join(REPO, "scripts", "migration-safety.mjs"), join(scriptsDir, "migration-safety.mjs"));
+  cpSync(join(REPO, "scripts", "__tests__", "fixtures", "fake-pg.mjs"), join(root, "fake-pg.mjs"));
+  return { root, scriptsDir, migrationsDir, runnerPath: join(scriptsDir, "migrate.mjs"), statePath: join(root, "state.json") };
+}
+
+function runIsolatedRunner(fixture) {
+  return spawnSync("node", [fixture.runnerPath], {
+    cwd: fixture.root,
+    env: {
+      ...process.env,
+      DATABASE_URL: "postgres://fixture:fixture@127.0.0.1/isolated_test",
+      FAKE_PG_STATE_FILE: fixture.statePath,
+    },
+    encoding: "utf8",
+    timeout: 15_000,
+  });
+}
+
+test("migrate: failed migration rolls back schema and history in isolated fake DB", () => {
+  const fixture = createIsolatedRunnerFixture();
+  try {
+    writeFileSync(
+      join(fixture.migrationsDir, "004_fixture_failure.sql"),
+      "CREATE TABLE fixture_partial_change(id int);\nSELECT FAIL_MIGRATION;\n",
+    );
+    const result = runIsolatedRunner(fixture);
+    assert.equal(result.status, 1, result.stderr + result.stdout);
+    assert.match(result.stdout, /applied=0 skipped=0 failed=1/);
+    const state = JSON.parse(readFileSync(fixture.statePath, "utf8"));
+    assert.deepEqual(state.history, [], "failed migration must not be recorded");
+    assert.deepEqual(state.tables, [], "partial schema change must roll back");
+    const migrationEvents = state.events.slice(state.events.lastIndexOf("BEGIN") + 1);
+    assert.ok(migrationEvents.includes("ROLLBACK"));
+    assert.equal(migrationEvents.includes("COMMIT"), false);
+    assert.equal(migrationEvents.some((event) => event.startsWith("INSERT INTO ff_schema_migrations")), false);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
+
+test("migrate: isolated repeated execution is idempotent", () => {
+  const fixture = createIsolatedRunnerFixture();
+  try {
+    writeFileSync(join(fixture.migrationsDir, "004_fixture_ok.sql"), "CREATE TABLE fixture_ok(id int);\n");
+    const first = runIsolatedRunner(fixture);
+    assert.equal(first.status, 0, first.stderr + first.stdout);
+    assert.match(first.stdout, /applied=1 skipped=0 failed=0/);
+    const firstState = JSON.parse(readFileSync(fixture.statePath, "utf8"));
+    assert.deepEqual(firstState.history, ["004_fixture_ok.sql"]);
+    assert.deepEqual(firstState.tables, ["fixture_ok"]);
+
+    const second = runIsolatedRunner(fixture);
+    assert.equal(second.status, 0, second.stderr + second.stdout);
+    assert.match(second.stdout, /applied=0 skipped=1 failed=0/);
+    const secondState = JSON.parse(readFileSync(fixture.statePath, "utf8"));
+    assert.deepEqual(secondState.history, ["004_fixture_ok.sql"]);
+    assert.deepEqual(secondState.tables, ["fixture_ok"]);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
   }
 });
 
