@@ -585,6 +585,46 @@ test("FF_HOOK_7: terminal stage conflict maps to a safe 409 response", async () 
   );
 });
 
+test("FF_HOOK_3 Phase 19: source provenance and supplied human copy persist without fabricated content", async () => {
+  let captured: (Db & { calls: Array<{ sql: string; values: unknown[] }> }) | undefined;
+  await withDb(
+    [
+      () => ({ rows: [runRow()], rowCount: 1 }),
+      () => ({ rows: [], rowCount: 0 }),
+      () => ({ rows: [editorialRow({ stage: "editorial_created" })], rowCount: 1 }),
+      () => ({ rows: [], rowCount: 0 }),
+      () => ({ rows: [editorialRow({ stage: "editorial_created" })], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: null }], rowCount: 1 }),
+      () => ({ rows: [{ editorial_item_id: EDITORIAL_ID }], rowCount: 1 }),
+      () => ({ rows: [{ id: 1 }], rowCount: 1 }),
+    ],
+    async (db) => {
+      captured = db as Db & { calls: Array<{ sql: string; values: unknown[] }> };
+      const response = await Hook3(makeRequest({
+        run_id: RUN_ID,
+        source_id: "src-real-source",
+        source_url: "https://news.example/story",
+        source_name: "Example News",
+        author: "Reporter",
+        published_at: "2026-09-24T08:00:00Z",
+        source_text: "Original sourced report text",
+        title_th: "หัวข้อที่ส่งโดยบรรณาธิการ",
+        body_th: "เนื้อหาที่ส่งโดยบรรณาธิการ",
+      }, { "x-automation-secret": OK_SECRET }));
+      assert.equal(response.status, 201);
+    },
+  );
+  const insert = captured?.calls.find(({ sql }) => /INSERT INTO editorial_items/i.test(sql));
+  assert.ok(insert, "editorial item insert must persist the source payload");
+  const metadata = JSON.parse(String(insert.values[2]));
+  assert.equal(metadata.source_url, "https://news.example/story");
+  assert.equal(metadata.source_name, "Example News");
+  assert.equal(metadata.author, "Reporter");
+  assert.equal(metadata.title_th, "หัวข้อที่ส่งโดยบรรณาธิการ");
+  assert.equal(metadata.body_th, "เนื้อหาที่ส่งโดยบรรณาธิการ");
+  assert.equal(metadata.source_text, "Original sourced report text");
+});
+
 test("FF_HOOK_7: unexpected database failure maps to non-disclosing 500", async () => {
   await withDb([() => new Error("database failure with sensitive details")], async () => {
     const r = await Hook7(

@@ -108,9 +108,9 @@ function requestBodyNodes() {
 
 test('all FF90 HTTP JSON bodies evaluate to objects using expression or keypair mode', () => {
   const nodes = requestBodyNodes();
-  assert.equal(nodes.length, 14);
+  assert.equal(nodes.length, 16);
   assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'json').length, 0);
-  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'keypair').length, 14);
+  assert.equal(nodes.filter(({ node }) => node.parameters.specifyBody === 'keypair').length, 16);
   for (const { workflowName, node } of nodes) {
     assert.equal(node.parameters.jsonBody, undefined, `${workflowName}:${node.name} must not use JSON/expression hybrid body mode`);
     assert.doesNotMatch(JSON.stringify(node.parameters), /JSON\.stringify\s*\(/, `${workflowName}:${node.name} must not stringify its body`);
@@ -196,7 +196,7 @@ test('FF90-03..05 callers use actual rights, draft, media, and alert route field
   const draftWorkflow = read('FF90-04-wordpress-draft');
   const draft = draftWorkflow.nodes.find(n => n.name === 'POST /api/automation/wp-draft');
   const draftBody = evaluateKeypairBody(draft, draft.name);
-  assert.deepEqual(Object.keys(draftBody).sort(), ['content', 'editorial_item_id', 'run_id', 'title']);
+  assert.deepEqual(Object.keys(draftBody).sort(), ['content', 'editorial_item_id', 'recovery_id', 'run_id', 'title']);
   assert.equal(draftBody.title, input.title_th);
   assert.equal(draftBody.content, input.body_th);
   const media = draftWorkflow.nodes.find(n => n.name === 'POST /api/automation/media');

@@ -146,16 +146,35 @@ test('MASTER direct input and malformed or missing nested fields retain safe def
     source_type: 'other',
     requested_by: 'anonymous',
     optional_metadata: {},
+    recovery_id: null,
+    test_mode: false,
   });
   assert.deepEqual(code(master, 'Normalize inbound job', { headers: { ignored: true }, body: [] }), {
     source_url: '', source_title: '', publisher: '', published_at: null, competition: '', teams: [], people: [],
     source_text: '', source_type: 'other', requested_by: 'anonymous', optional_metadata: {},
+    recovery_id: null, test_mode: false,
   });
+});
+
+test('MASTER production normalization strips synthetic fixture bypass; harness marks it test-only', () => {
+  const master = read('FF90-MASTER');
+  const fixture = {
+    source_url: 'https://example.invalid/real-story',
+    source_title: 'Real source title',
+    optional_metadata: { phase: '18f-b', test_marker: 'fixture', test_content: { title_th: 'Synthetic' } },
+  };
+  const production = code(master, 'Normalize inbound job', fixture);
+  assert.equal(production.test_mode, false);
+  assert.equal(production.optional_metadata.test_content, undefined);
+  assert.equal(production.optional_metadata.test_marker, undefined);
+  const harness = code(master, 'Normalize harness job', fixture);
+  assert.equal(harness.test_mode, true);
+  assert.equal(harness.optional_metadata.test_content.title_th, 'Synthetic');
 });
 
 test('FF90-02 retains canonical fields and synthetic content; missing content stays held', () => {
   const w = read('FF90-02-editorial-factory');
-  const input = code(w, 'Preserve editorial input', { ...source, run_id: envelope.run_id, editorial_item_id: envelope.editorial_item_id });
+  const input = code(w, 'Preserve editorial input', { ...source, run_id: envelope.run_id, editorial_item_id: envelope.editorial_item_id, test_mode: true });
   const classified = code(w, 'Classify news type', { run: {}, editorialItem: null }, { 'Preserve editorial input': input });
   const output = code(w, 'Promote FF90-02 output', { ok: true }, { 'Classify news type': classified });
   retained(output, source);

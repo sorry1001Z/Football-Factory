@@ -40,11 +40,16 @@ test('MASTER keeps its production webhook and accepts the harness through a subw
   assert.equal(sub.length, 1);
   assert.equal(sub[0].typeVersion, 1.1);
   assert.deepEqual(sub[0].parameters, { inputSource: 'passthrough' });
+  assert.deepEqual(next(w, webhook[0].name), ['Normalize inbound job']);
+  assert.deepEqual(next(w, sub[0].name), ['Normalize harness job']);
   for (const entry of [webhook[0], sub[0]]) {
-    assert.deepEqual(next(w, entry.name), ['Normalize inbound job']);
     assert.ok(reaches(w, entry.name, 'Editorial ready?'));
     assert.ok(reaches(w, entry.name, 'STOP (held_for_content)'));
   }
+  const productionNormalize = w.nodes.find(n => n.name === 'Normalize inbound job');
+  const harnessNormalize = w.nodes.find(n => n.name === 'Normalize harness job');
+  assert.match(productionNormalize.parameters.jsCode, /test_mode:\s*false/);
+  assert.match(harnessNormalize.parameters.jsCode, /test_mode:\s*true/);
   assert.equal(w.nodes.some(n => n.type === 'n8n-nodes-base.scheduleTrigger'), false);
   const harness = read('FF90-E2E-Test-Harness');
   assert.equal(harness.active, false);

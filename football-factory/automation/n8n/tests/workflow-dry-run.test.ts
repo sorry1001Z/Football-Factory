@@ -780,6 +780,28 @@ test("ff90 18G: MASTER has Editorial ready? gate (stops chain on held_for_conten
   assert.ok(stop, "MASTER must have a STOP (held_for_content) terminal");
 });
 
+test("ff90 Phase 19: MASTER persists held_for_content before its terminal stop", () => {
+  const wf = readWorkflow("FF90-MASTER");
+  const status = wf.nodes.find((n) => n.name === "POST /api/automation/run/status (held)");
+  const stop = wf.nodes.find((n) => n.name === "STOP (held_for_content)");
+  assert.ok(status, "MASTER must persist the held state through the automation API");
+  assert.match(readHttpUrl(status), /\/api\/automation\/run\/status/);
+  assert.ok(stop, "held-for-content must terminate the chain");
+  const connections = wf.connections as Record<string, { main: Array<Array<{ node: string }>> }>;
+  assert.equal(connections["Editorial ready?"]?.main?.[1]?.[0]?.node, status.name);
+  assert.equal(connections[status.name]?.main?.[0]?.[0]?.node, stop.name);
+});
+
+test("ff90 Phase 19: unavailable image provider is explicit and does not fail visual relevance", () => {
+  const wf = readWorkflow("FF90-03-image-factory");
+  const provider = readWorkflowNode(wf, "Provider adapter").parameters as { jsCode?: string };
+  const visual = readWorkflowNode(wf, "Visual relevance gate").parameters as { jsCode?: string };
+  assert.match(provider.jsCode ?? "", /provider_status:\s*'NOT_CONFIGURED'/);
+  assert.match(visual.jsCode ?? "", /visual_relevance:\s*'not_applicable'/);
+  assert.match(visual.jsCode ?? "", /image_unavailable/);
+  assert.doesNotMatch(visual.jsCode ?? "", /wp-publish/);
+});
+
 test("ff90 18G: MASTER Promote run context uses canonical envelope fields", () => {
   const wf = readWorkflow("FF90-MASTER");
   const promote = wf.nodes.find((n) => n.name === "Promote run context");

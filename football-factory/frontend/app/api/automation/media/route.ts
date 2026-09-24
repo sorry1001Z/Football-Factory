@@ -56,6 +56,7 @@ import {
 import { WordPressWriteError } from "@/lib/wordpress/write";
 import { getDb } from "@/lib/db/postgres";
 import { AutomationLogRepository } from "@/lib/auth/automation-log-repository";
+import { canUploadEditorialImage } from "@/lib/automation/rights-policy";
 
 export const dynamic = "force-dynamic";
 
@@ -68,8 +69,8 @@ const MultipartSchema = z.object({
   alt_text: z.string().trim().max(500).optional(),
   caption: z.string().trim().max(2000).optional(),
   title: z.string().trim().max(500).optional(),
-  run_id: z.string().uuid().optional(),
-  editorial_item_id: z.string().uuid().optional(),
+  run_id: z.string().uuid(),
+  editorial_item_id: z.string().uuid(),
 });
 
 function jsonError(
@@ -137,6 +138,32 @@ export async function POST(request: Request) {
   if (buffer.byteLength === 0) return jsonError(400, "empty_file");
   if (buffer.byteLength > MAX_BODY_BYTES) {
     return jsonError(413, "file_too_large", { max_bytes: MAX_BODY_BYTES });
+  }
+
+  if (!process.env.DATABASE_URL) return jsonError(503, "rights_verification_database_not_configured");
+  const rightsResult = await getDb().query<{ rights_confirmed: boolean; metadata: unknown }>(
+    `SELECT rights_confirmed, metadata FROM editorial_items
+      WHERE id = $1 AND EXISTS (
+        SELECT 1 FROM automation_runs run
+         WHERE run.id = $2 AND run.editorial_item_id = editorial_items.id
+      ) LIMIT 1`,
+    [v.data.editorial_item_id, v.data.run_id],
+  );
+  const rightsMetadata = rightsResult.rows[0]?.metadata;
+  const rights = rightsMetadata && typeof rightsMetadata === "object" && !Array.isArray(rightsMetadata)
+    ? (rightsMetadata as Record<string, unknown>).rights as Record<string, unknown> | undefined
+    : undefined;
+  if (!rightsResult.rows[0]) return jsonError(409, "editorial_run_association_required");
+  if (!canUploadEditorialImage({ rightsConfirmed: rightsResult.rows[0].rights_confirmed, rights })) {
+    await auditMediaAttempt({
+      action: "wp_media_upload",
+      run_id: v.data.run_id,
+      editorial_item_id: v.data.editorial_item_id,
+      status: "failed",
+      message: "rights_evidence_incomplete",
+      metadata: { route: "automation/media", attempt: "rights_preflight", filename, mime_type: mimeType, size_bytes: buffer.byteLength, ip: ipOf(request) },
+    });
+    return jsonError(409, "rights_evidence_incomplete");
   }
 
   // Use the mockable factory if a test injected one; otherwise a real

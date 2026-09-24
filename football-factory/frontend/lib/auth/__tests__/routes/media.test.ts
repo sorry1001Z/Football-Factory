@@ -53,7 +53,12 @@ beforeEach(() => {
   process.env.WORDPRESS_APP_USER = "u";
   process.env.WORDPRESS_APP_PASSWORD = "p".repeat(24);
   process.env.WORDPRESS_WRITE_TIMEOUT_MS = "2000";
-  delete process.env.DATABASE_URL; // default: no audit row written
+  process.env.DATABASE_URL = "postgres://stub";
+  __setDbOverrideForTest(makeStubDb([() => ({ rows: [{ rights_confirmed: true, metadata: { rights: {
+    state: "cleared", source_url: "https://images.example/source", source_name: "Example Archive",
+    license_name: "CC BY 4.0", license_url: "https://creativecommons.org/licenses/by/4.0/",
+    attribution_text: "Photo by Example Archive", commercial_use_confirmed: true,
+  } } }], rowCount: 1 })]) as unknown as Db);
 });
 
 afterEach(() => {
@@ -123,7 +128,9 @@ function makeMultipartForm(opts: {
   if (opts.title) form.append("title", opts.title);
   if (opts.postId !== undefined) form.append("post_id", String(opts.postId));
   if (opts.runId) form.append("run_id", opts.runId);
+  else form.append("run_id", "a1e32f5a-06ff-40ff-a1f0-148cf33e09d7");
   if (opts.editorialItemId) form.append("editorial_item_id", opts.editorialItemId);
+  else form.append("editorial_item_id", "b2c43d6e-7f80-4a91-b2c3-4d5e6f708192");
   return form;
 }
 
@@ -205,6 +212,8 @@ test("media: non-multipart content-type → 400 expected_multipart_form_data", a
 test("media: missing file part → 400 missing_file_part", async () => {
   const form = new FormData();
   form.append("alt_text", "hi");
+  form.append("run_id", "a1e32f5a-06ff-40ff-a1f0-148cf33e09d7");
+  form.append("editorial_item_id", "b2c43d6e-7f80-4a91-b2c3-4d5e6f708192");
   const req = await makeMultipartRequestWithForm(form, {
     "x-automation-secret": OK_SECRET,
   });
@@ -212,6 +221,23 @@ test("media: missing file part → 400 missing_file_part", async () => {
   assert.equal(r.status, 400);
   const body = (await r.json()) as { error: string };
   assert.equal(body.error, "missing_file_part");
+});
+
+test("media: upload is refused before WordPress when rights are incomplete", async () => {
+  __setDbOverrideForTest(makeStubDb([() => ({ rows: [{ rights_confirmed: false, metadata: { rights: { state: "manual_review" } } }], rowCount: 1 })]) as unknown as Db);
+  let uploadCalls = 0;
+  setWordPressWriteClientFactoryForTest(() => ({
+    configured: true,
+    async uploadMedia() { uploadCalls += 1; throw new Error("must not upload"); },
+    async updatePost() { throw new Error("not used"); },
+    async createPost() { throw new Error("not used"); },
+    async trashPost() { throw new Error("not used"); },
+  }));
+  const req = await makeMultipartRequestWithForm(makeMultipartForm({}), { "x-automation-secret": OK_SECRET });
+  const res = await POST(req);
+  assert.equal(res.status, 409);
+  assert.equal((await res.json()).error, "rights_evidence_incomplete");
+  assert.equal(uploadCalls, 0);
 });
 
 // ---------------------------------------------------------------------------
@@ -495,7 +521,9 @@ test("media: audit row never contains the secret or the Authorization header val
     configured: true,
     async query<T = Row>(sql: string, values: unknown[] = []) {
       capturedInserts.push({ sql, values });
-      return { rows: [{ id: 1 }] as T[], rowCount: 1 };
+      return (/SELECT rights_confirmed/i.test(sql)
+        ? { rows: [{ rights_confirmed: true, metadata: { rights: { state: "cleared", source_url: "https://images.example/source", source_name: "Archive", license_name: "CC BY", license_url: "https://license.example/terms", attribution_text: "Photo by Archive", commercial_use_confirmed: true } } }] as T[], rowCount: 1 }
+        : { rows: [{ id: 1 }] as T[], rowCount: 1 });
     },
     async end() {},
   };
@@ -542,7 +570,9 @@ test("media: audit row has action='wp_media_upload' on success", async () => {
     configured: true,
     async query<T = Row>(sql: string, values: unknown[] = []) {
       captured.push({ sql, values });
-      return { rows: [{ id: 1 }] as T[], rowCount: 1 };
+      return (/SELECT rights_confirmed/i.test(sql)
+        ? { rows: [{ rights_confirmed: true, metadata: { rights: { state: "cleared", source_url: "https://images.example/source", source_name: "Archive", license_name: "CC BY", license_url: "https://license.example/terms", attribution_text: "Photo by Archive", commercial_use_confirmed: true } } }] as T[], rowCount: 1 }
+        : { rows: [{ id: 1 }] as T[], rowCount: 1 });
     },
     async end() {},
   };

@@ -55,17 +55,32 @@ const Hook6Schema = z.object({
   media_summary: z.array(z.string().max(512)).max(100).optional(),
   rights_holder: z.string().trim().max(256).optional(),
   license: z.string().trim().max(256).optional(),
+  author: z.string().trim().max(256).optional(),
+  license_url: z.string().trim().url().max(2048).optional(),
+  attribution_text: z.string().trim().max(1024).optional(),
+  permission_evidence: z.string().trim().max(2048).optional(),
+  image_status: z.enum(["not_requested", "held", "available"]).default("held"),
 });
 
 function materialHash(input: {
   source_url?: string | undefined;
   source_name?: string | undefined;
   media_summary?: string[] | undefined;
+  author?: string | undefined;
+  license?: string | undefined;
+  license_url?: string | undefined;
+  attribution_text?: string | undefined;
+  permission_evidence?: string | undefined;
 }): string {
   const s = JSON.stringify({
     source_url: input.source_url ?? null,
     source_name: input.source_name ?? null,
     media_summary: input.media_summary ?? null,
+    author: input.author ?? null,
+    license: input.license ?? null,
+    license_url: input.license_url ?? null,
+    attribution_text: input.attribution_text ?? null,
+    permission_evidence: input.permission_evidence ?? null,
   });
   return crypto.createHash("sha256").update(s, "utf-8").digest("hex").slice(0, 32);
 }
@@ -188,6 +203,11 @@ export async function POST(request: Request) {
                                  'hash', $4::text,
                                  'rights_holder', $5::text,
                                  'license', $6::text,
+                                 'author', $8::text,
+                                 'license_url', $9::text,
+                                 'attribution_text', $10::text,
+                                 'permission_evidence', $11::text,
+                                 'image_status', $12::text,
                                  'last_at', to_jsonb(now())
                                )
                              ),
@@ -201,6 +221,11 @@ export async function POST(request: Request) {
       v.data.rights_holder ?? null,
       v.data.license ?? null,
       rightsConfirmed,
+      v.data.author ?? null,
+      v.data.license_url ?? null,
+      v.data.attribution_text ?? null,
+      v.data.permission_evidence ?? null,
+      v.data.image_status,
     ],
   );
 

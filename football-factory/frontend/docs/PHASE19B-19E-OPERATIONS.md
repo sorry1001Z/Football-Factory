@@ -1,0 +1,15 @@
+# Phase 19B–19E source contracts
+
+This batch adds source code and tests only. Migration `005_phase19_run_recovery.sql` has **not** been applied to any database. Deploying these routes requires the normal reviewed migration process to apply migration 005 first.
+
+`automation_runs.status` is the durable operational lifecycle (`running`, `held_for_content`, `recovery_queued`, `failed`, `waiting_approval`, `success`, `rejected`). The n8n `pipeline_status` is the current workflow-envelope result (`accepted`, `held_for_content`, `held_for_human`, `failed`, and terminal review outcomes). A run may be operationally held while a child envelope still says accepted; the MASTER held-content gate writes the durable held state before stopping. Human recovery returns a fresh envelope with the same run and editorial IDs and removes test-only fixture fields.
+
+The protected admin recovery endpoint supports a dry run by default. A real recovery requires an authenticated admin/editor, same-origin CSRF validation, a non-empty reason, and human editorial content for `held_for_content`. It only queues work. The automation claim route additionally requires the existing automation secret and the kill switch; the operator must provide `recovery_id` to the inactive workflow's recovery input. The retry queue uses three attempts maximum and capped exponential backoff. No scheduler or background worker is enabled by this change.
+
+WordPress draft creation is at-most-once from the application's perspective. A durable `wp_draft_operations` row is inserted before the external request. A prior success is reused; an in-progress or uncertain result is refused for manual reconciliation. If WordPress creates a draft and the application loses the response, this design prevents a duplicate but cannot discover the remote post automatically.
+
+AI and image providers remain unconfigured and are never enabled by this migration. No extraction is fabricated: source text and attribution are preserved, but missing editorial copy is held until an authorized human supplies `title_th` and `body_th`. Text-only drafts remain allowed. Media upload requires a linked run/editorial item, `rights_confirmed=true`, a cleared decision, source provenance, license, attribution, and permission evidence. Publication remains a separate human action; there is no automatic publish path or retry.
+
+Rollback is additive: stop using the new recovery and media routes, deploy the previous application source, then use a separately reviewed down migration only if operational rows are no longer needed. Migration 005 intentionally contains no `DROP TABLE`, `DELETE`, or `TRUNCATE`; do not remove recovery or draft-operation evidence as routine cleanup. Existing WordPress draft #22 is preserved pending an operator retention decision.
+
+Production blockers remain: apply and review migration 005 before deploying; synchronize the recovery branch to n8n before use; keep `AUTOMATION_ENABLED=false` until separately authorized; provision no AI/image provider as part of this change; manually reconcile any uncertain WordPress result; and decide whether to retain WP draft #22.

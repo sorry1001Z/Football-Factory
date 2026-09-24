@@ -45,6 +45,7 @@ const ClearedEvidenceSchema = z
     license_name: z.string().trim().min(1).max(256),
     license_url: z.string().trim().url().max(2048).optional(),
     attribution_text: z.string().trim().min(1).max(1024).optional(),
+    permission_evidence: z.string().trim().min(1).max(2048).optional(),
     commercial_use_confirmed: z.literal(true),
     news_or_editorial_use_confirmed: z.literal(true).optional(),
     notes: z.string().trim().max(2048).optional(),

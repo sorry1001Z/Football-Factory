@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Normalize direct input and production Webhook Trigger payloads into the canonical source-intake shape.\nconst input = items[0].json;\nconst body =\n  input.body &&\n  typeof input.body === 'object' &&\n  !Array.isArray(input.body)\n    ? input.body\n    : input;\nreturn [{\n  json: {\n    source_url: typeof body.source_url === 'string' ? body.source_url : '',\n    source_title: typeof body.source_title === 'string' ? body.source_title : '',\n    publisher: typeof body.publisher === 'string' ? body.publisher : '',\n    published_at: typeof body.published_at === 'string' ? body.published_at : null,\n    competition: typeof body.competition === 'string' || Array.isArray(body.competition) ? body.competition : '',\n    teams: Array.isArray(body.teams) ? body.teams : [],\n    people: Array.isArray(body.people) ? body.people : [],\n    source_text: typeof body.source_text === 'string' ? body.source_text : '',\n    source_type: typeof body.source_type === 'string' ? body.source_type : 'other',\n    requested_by: typeof body.requested_by === 'string' ? body.requested_by : 'anonymous',\n    optional_metadata: typeof body.optional_metadata === 'object' && body.optional_metadata ? body.optional_metadata : {},\n  },\n}];\n"
+        "jsCode": "// Production webhook input is never allowed to enable the synthetic fixture path.\nconst input = items[0].json;\nconst body = input.body && typeof input.body === 'object' && !Array.isArray(input.body) ? input.body : input;\nconst optional = body.optional_metadata && typeof body.optional_metadata === 'object' && !Array.isArray(body.optional_metadata) ? { ...body.optional_metadata } : {};\ndelete optional.phase; delete optional.test_marker; delete optional.test_content;\nreturn [{ json: {\n  source_url: typeof body.source_url === 'string' ? body.source_url : '',\n  source_title: typeof body.source_title === 'string' ? body.source_title : '',\n  publisher: typeof body.publisher === 'string' ? body.publisher : '',\n  published_at: typeof body.published_at === 'string' ? body.published_at : null,\n  competition: typeof body.competition === 'string' || Array.isArray(body.competition) ? body.competition : '',\n  teams: Array.isArray(body.teams) ? body.teams : [],\n  people: Array.isArray(body.people) ? body.people : [],\n  source_text: typeof body.source_text === 'string' ? body.source_text : '',\n  source_type: typeof body.source_type === 'string' ? body.source_type : 'other',\n  requested_by: typeof body.requested_by === 'string' ? body.requested_by : 'anonymous',\n  optional_metadata: optional,\n  recovery_id: typeof body.recovery_id === 'string' && /^[0-9a-f-]{36}$/i.test(body.recovery_id) ? body.recovery_id : null,\n  test_mode: false,\n} }];\n"
       },
       "id": "ff90-master-norm",
       "name": "Normalize inbound job",
@@ -213,7 +213,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Phase 18G — short-circuit when FF90-02 returned held_for_content\n// (or any non-accepted pipeline_status from editorial factory).\n// Do NOT proceed to image factory or WP draft.\nreturn [{\n  json: {\n    ...$json,\n    pipeline_stage: 'editorial_factory',\n    pipeline_status: 'held_for_content',\n    error_code: 'editorial_held_for_content',\n    timestamp: new Date().toISOString(),\n  },\n}];\n"
+        "jsCode": "// Preserve the child envelope after the status endpoint response.\nconst held = $('Execute FF90-02 Editorial Factory').item.json;\nreturn [{ json: { ...held, run_status: 'held_for_content', pipeline_stage: 'editorial_factory', pipeline_status: 'held_for_content', error_code: 'editorial_held_for_content', timestamp: new Date().toISOString() } }];\n"
       },
       "id": "ff90-master-stop-editorial",
       "name": "STOP (held_for_content)",
@@ -238,6 +238,169 @@
         520
       ],
       "notes": "Parent-callable entry for the inactive test harness. Production webhook remains unchanged."
+    },
+    {
+      "parameters": {
+        "jsCode": "// This node is reachable only from the inactive test-harness subworkflow trigger.\nconst input = items[0].json;\nconst body = input.body && typeof input.body === 'object' && !Array.isArray(input.body) ? input.body : input;\nreturn [{ json: { ...body, test_mode: true, recovery_id: null } }];\n"
+      },
+      "id": "ff90-master-normalize-harness",
+      "name": "Normalize harness job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.recovery_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ff90-master-recovery-requested",
+      "name": "Recovery requested?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        640,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/recovery/claim",
+        "authentication": "genericCredentialType",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recovery_id",
+              "value": "={{ $json.recovery_id }}"
+            }
+          ]
+        }
+      },
+      "id": "ff90-master-recovery-claim",
+      "name": "POST /api/automation/recovery/claim",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        850,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ff90.online/api/automation/run/status",
+        "authentication": "genericCredentialType",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "genericAuthType": "httpHeaderAuth",
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}"
+            },
+            {
+              "name": "status",
+              "value": "held_for_content"
+            },
+            {
+              "name": "stage",
+              "value": "editorial_factory"
+            },
+            {
+              "name": "error_class",
+              "value": "validation"
+            },
+            {
+              "name": "reason",
+              "value": "Editorial content is missing; waiting for human completion."
+            },
+            {
+              "name": "recovery_id",
+              "value": "={{ $json.recovery_id }}"
+            }
+          ]
+        }
+      },
+      "id": "ff90-master-record-held",
+      "name": "POST /api/automation/run/status (held)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1450,
+        780
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oDa6RRKZleN2DC71",
+          "name": "FF90 Automation Secret"
+        }
+      }
     }
   ],
   "connections": {
@@ -256,7 +419,7 @@
       "main": [
         [
           {
-            "node": "Execute FF90-01 Source Intake",
+            "node": "Recovery requested?",
             "type": "main",
             "index": 0
           }
@@ -358,7 +521,7 @@
         ],
         [
           {
-            "node": "STOP (held_for_content)",
+            "node": "POST /api/automation/run/status (held)",
             "type": "main",
             "index": 0
           }
@@ -369,7 +532,58 @@
       "main": [
         [
           {
-            "node": "Normalize inbound job",
+            "node": "Normalize harness job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize harness job": {
+      "main": [
+        [
+          {
+            "node": "Recovery requested?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery requested?": {
+      "main": [
+        [
+          {
+            "node": "POST /api/automation/recovery/claim",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute FF90-01 Source Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/recovery/claim": {
+      "main": [
+        [
+          {
+            "node": "Promote run context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/automation/run/status (held)": {
+      "main": [
+        [
+          {
+            "node": "STOP (held_for_content)",
             "type": "main",
             "index": 0
           }

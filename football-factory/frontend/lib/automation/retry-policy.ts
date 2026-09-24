@@ -48,6 +48,9 @@ export type ErrorClass =
 
 export type RunStatus =
   | "running"
+  | "draft_creating"
+  | "held_for_content"
+  | "recovery_queued"
   | "success"
   | "failed"
   | "waiting_approval"

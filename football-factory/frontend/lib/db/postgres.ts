@@ -173,6 +173,8 @@ export function __resetDbOverrideForTest(): void {
 export async function withTx<T>(
   fn: (tx: Pick<Db, "query">) => Promise<T>,
 ): Promise<T> {
+  const testRunner = globalThis.__FF_TX_OVERRIDE__;
+  if (testRunner) return testRunner(fn);
   if (!process.env.DATABASE_URL) {
     throw new PostgresError("AUTH", "DATABASE_URL missing");
   }
@@ -206,4 +208,22 @@ export async function withTx<T>(
   } finally {
     client.release();
   }
+}
+
+type TestTxRunner = <T>(
+  fn: (tx: Pick<Db, "query">) => Promise<T>,
+) => Promise<T>;
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __FF_TX_OVERRIDE__: TestTxRunner | undefined;
+}
+
+/** Test-only transaction runner. Tests should provide an isolated fake DB. */
+export function __setTxOverrideForTest(runner: TestTxRunner): void {
+  globalThis.__FF_TX_OVERRIDE__ = runner;
+}
+
+export function __resetTxOverrideForTest(): void {
+  globalThis.__FF_TX_OVERRIDE__ = undefined;
 }

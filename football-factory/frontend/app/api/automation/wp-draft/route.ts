@@ -49,6 +49,7 @@ const WpDraftSchema = z.object({
   // path can verify approval state. When NULL, wp-publish will refuse
   // to publish with `editorial_link_missing`.
   editorial_item_id: z.string().uuid().optional(),
+  recovery_id: z.string().uuid().optional(),
 });
 
 export async function POST(request: Request) {
@@ -166,6 +167,51 @@ export async function POST(request: Request) {
     );
   }
 
+  // Persist the run↔editorial association before creating an external draft.
+  // A retry after a lost response can then prove it is referring to the same
+  // editorial item instead of silently attaching a different one.
+  if (v.data.editorial_item_id && !run.editorial_item_id) {
+    const linked = await getDb().query(
+      `UPDATE automation_runs SET editorial_item_id = $2, updated_at = now()
+        WHERE id = $1 AND editorial_item_id IS NULL`,
+      [v.data.run_id, v.data.editorial_item_id],
+    );
+    if (linked.rowCount === 0) {
+      const current = await runs.get(v.data.run_id);
+      if (current?.editorial_item_id !== v.data.editorial_item_id) {
+        return NextResponse.json({ ok: false, error: "editorial_linkage_conflict" }, { status: 409 });
+      }
+    }
+  }
+
+  // A unique operation row is the durable at-most-once guard around the
+  // non-transactional WordPress POST. A timed-out/lost response remains
+  // uncertain and is never blindly retried, since WordPress may have made
+  // the draft despite the missing response.
+  const operationClaim = await getDb().query<{ run_id: string }>(
+    `INSERT INTO wp_draft_operations (run_id, editorial_item_id, status)
+     VALUES ($1, $2, 'started')
+     ON CONFLICT (run_id) DO NOTHING
+     RETURNING run_id`,
+    [v.data.run_id, v.data.editorial_item_id ?? run.editorial_item_id],
+  );
+  if (!operationClaim.rows[0]) {
+    const existingOperation = await getDb().query<{ status: string; wp_post_id: number | null }>(
+      `SELECT status, wp_post_id FROM wp_draft_operations WHERE run_id = $1 LIMIT 1`,
+      [v.data.run_id],
+    );
+    const op = existingOperation.rows[0];
+    if (op?.status === "created" && op.wp_post_id) {
+      await runs.setStatus(v.data.run_id, "waiting_approval", { wp_post_id: op.wp_post_id });
+      await completeRecovery(v.data.recovery_id, v.data.run_id);
+      return NextResponse.json({ ok: true, run_id: v.data.run_id, wp_post_id: op.wp_post_id, status: "draft", idempotent: true }, { status: 200 });
+    }
+    return NextResponse.json(
+      { ok: false, error: op?.status === "uncertain" ? "draft_creation_uncertain_manual_reconciliation_required" : "draft_creation_already_started" },
+      { status: 409 },
+    );
+  }
+
   try {
     const post = await wp.createPost({
       title: v.data.title,
@@ -175,7 +221,14 @@ export async function POST(request: Request) {
       tags: v.data.tags,
       featured_media: v.data.featured_media,
     });
+    await getDb().query(
+      `UPDATE wp_draft_operations
+          SET status = 'created', wp_post_id = $2, updated_at = now()
+        WHERE run_id = $1 AND status = 'started'`,
+      [v.data.run_id, post.id],
+    );
     await runs.setStatus(v.data.run_id, "waiting_approval", { wp_post_id: post.id });
+    await completeRecovery(v.data.recovery_id, v.data.run_id);
     // If caller provided editorial_item_id, persist it on the run so the
     // publish path can verify approval state. Best-effort: a failure
     // here must NOT roll back the draft creation. We surface the error
@@ -183,12 +236,6 @@ export async function POST(request: Request) {
     let editorialLinkError: string | null = null;
     if (v.data.editorial_item_id) {
       try {
-        await getDb().query(
-          `UPDATE automation_runs
-              SET editorial_item_id = $2
-            WHERE id = $1`,
-          [v.data.run_id, v.data.editorial_item_id],
-        );
         // Sync editorial_items.stage to draft_created → waiting_approval.
         // Stage advance uses the published stage-machine; if the item is
         // currently at a non-canonical stage (hand-edited), we accept the
@@ -229,10 +276,28 @@ export async function POST(request: Request) {
     );
   } catch (e) {
     const msg = e instanceof WordPressWriteError ? e.kind : "wp_error";
+    const uncertain = !(e instanceof WordPressWriteError) ||
+      ["timeout", "network", "http_5xx"].includes(e.kind);
+    await getDb().query(
+      `UPDATE wp_draft_operations
+          SET status = $2, error_class = $3, updated_at = now()
+        WHERE run_id = $1 AND status = 'started'`,
+      [v.data.run_id, uncertain ? "uncertain" : "failed", uncertain ? (msg === "wp_error" ? "unknown" : msg) : "validation"],
+    );
     await runs.setStatus(v.data.run_id, "failed", undefined, msg);
     if (e instanceof WordPressWriteError) {
       return NextResponse.json({ ok: false, error: e.kind }, { status: 502 });
     }
     throw e;
   }
+}
+
+async function completeRecovery(recoveryId: string | undefined, runId: string): Promise<void> {
+  if (!recoveryId) return;
+  await getDb().query(
+    `UPDATE automation_run_recoveries
+        SET status = 'completed', finished_at = now(), updated_at = now()
+      WHERE id = $1 AND run_id = $2 AND status = 'claimed'`,
+    [recoveryId, runId],
+  );
 }

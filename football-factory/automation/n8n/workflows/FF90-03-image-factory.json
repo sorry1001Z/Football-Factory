@@ -43,7 +43,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const current = $json;\n// Visual relevance gate. The image rights are NOT enough on their own —\n// the cover must communicate the news.\nconst prompt = current.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...current,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
+        "jsCode": "const current = $json;\n// No image provider means there is no image to evaluate. Text-only drafts\n// remain allowed, while actual provider output still passes this gate.\nif (current.provider_status === 'NOT_CONFIGURED' || !current.output_asset) {\n  return [{ json: { ...current, visual_relevance: 'not_applicable', relevance_basis: { reason: 'image_unavailable' } } }];\n}\nconst prompt = current.image_prompt || {};\nconst newsType = prompt.news_type || '';\nconst hasVisualCues = !!(prompt.teams?.length || prompt.score || prompt.headline_th || prompt.key_visual);\nconst relevant = hasVisualCues && ['RESULT','PREVIEW','ANALYSIS','TRANSFER','BREAKING'].includes(newsType);\nreturn [{\n  json: {\n    ...current,\n    visual_relevance: relevant ? 'PASS' : 'FAIL',\n    relevance_basis: { hasVisualCues, newsType },\n  },\n}];\n"
       },
       "id": "ff90-03-relevance",
       "name": "Visual relevance gate",
@@ -96,7 +96,7 @@
             },
             {
               "name": "event_type",
-              "value": "ff90_03_image_factory_held"
+              "value": "ff90_03_image_provider_unavailable"
             },
             {
               "name": "stage",
@@ -108,11 +108,11 @@
             },
             {
               "name": "message",
-              "value": "Image provider not configured OR visual relevance failed; item held for human"
+              "value": "Image provider is not configured; text-only path continues with human review"
             },
             {
               "name": "metadata",
-              "value": "={{ {\n    \"provider_status\": $json.provider_status\n  } }}"
+              "value": "={{ {\n    \"provider_status\": $json.provider_status,\n    \"image_status\": $json.image_status,\n    \"visual_relevance\": \"not_applicable\"\n  } }}"
             }
           ]
         }

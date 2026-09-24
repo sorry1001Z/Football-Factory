@@ -819,7 +819,9 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
         stage: "rights_check",
         metadata: { seo_check: {}, fact_check: {}, rights: {} },
       })], rowCount: 1 }), // preflight editorial checks
-      () => ({ rows: [], rowCount: 0 }),        // UPDATE automation_runs (wp_post_id)
+      () => ({ rows: [{ run_id: RUN_ID }], rowCount: 1 }), // claim unique wp_draft_operations row
+      () => ({ rows: [], rowCount: 1 }),        // mark operation created with wp_post_id
+      () => ({ rows: [], rowCount: 1 }),        // update automation_runs status/output
       // setStage findById (current=rights_check)
       () => ({
         rows: [

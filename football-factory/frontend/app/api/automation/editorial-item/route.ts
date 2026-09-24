@@ -47,6 +47,16 @@ const Hook3Schema = z.object({
   title: z.string().trim().min(1).max(500).optional(),
   source_url: z.string().trim().max(2048).optional(),
   source_name: z.string().trim().max(256).optional(),
+  // Real editorial copy must arrive from a human or a separately
+  // provisioned extraction provider; this endpoint never fabricates it.
+  author: z.string().trim().max(256).optional(),
+  published_at: z.string().datetime().optional(),
+  source_text: z.string().max(200_000).optional(),
+  title_th: z.string().trim().min(1).max(500).optional(),
+  body_th: z.string().trim().min(1).max(1_000_000).optional(),
+  excerpt_th: z.string().trim().max(500).optional(),
+  slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  news_type: z.enum(["RESULT", "PREVIEW", "ANALYSIS", "TRANSFER", "BREAKING"]).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -121,9 +131,19 @@ export async function POST(request: Request) {
         title: v.data.title,
         source_url: v.data.source_url,
         source_name: v.data.source_name,
-        metadata: v.data.metadata
-          ? (redactSecrets(v.data.metadata) as Record<string, unknown>)
-          : undefined,
+        metadata: redactSecrets({
+          ...(v.data.metadata ?? {}),
+          ...(v.data.author ? { author: v.data.author } : {}),
+          ...(v.data.published_at ? { published_at: v.data.published_at } : {}),
+          ...(v.data.source_text ? { source_text: v.data.source_text } : {}),
+          ...(v.data.title_th ? { title_th: v.data.title_th } : {}),
+          ...(v.data.body_th ? { body_th: v.data.body_th } : {}),
+          ...(v.data.excerpt_th ? { excerpt_th: v.data.excerpt_th } : {}),
+          ...(v.data.slug ? { slug: v.data.slug } : {}),
+          ...(v.data.news_type ? { news_type: v.data.news_type } : {}),
+          source_url: v.data.source_url ?? v.data.metadata?.source_url ?? null,
+          source_name: v.data.source_name ?? v.data.metadata?.source_name ?? null,
+        }) as Record<string, unknown>,
       });
       created = true;
     } catch (e) {

@@ -160,7 +160,7 @@ export class AutomationRunRepository {
 
   async setStatus(
     run_id: string,
-    status: "running" | "success" | "failed" | "waiting_approval" | "rejected",
+    status: "running" | "draft_creating" | "held_for_content" | "recovery_queued" | "success" | "failed" | "waiting_approval" | "rejected",
     output?: unknown,
     error?: string,
   ): Promise<void> {
@@ -169,6 +169,7 @@ export class AutomationRunRepository {
           SET status = $2,
               output = COALESCE($3::jsonb, output),
               error = COALESCE($4, error),
+              updated_at = now(),
               finished_at = CASE WHEN $2 IN ('success','failed','rejected') THEN now() ELSE finished_at END
         WHERE id = $1`,
       [
@@ -183,20 +184,31 @@ export class AutomationRunRepository {
   async get(run_id: string): Promise<{
     id: string;
     status: string;
+    workflow: string;
     input: unknown;
     output: unknown;
     editorial_item_id: string | null;
     idempotency_key: string;
+    stage: string | null;
+    error_class: string | null;
+    updated_at: string;
+    recovery_count: number;
   } | null> {
     const r = await this.db.query<{
       id: string;
       status: string;
+      workflow: string;
       input: unknown;
       output: unknown;
       editorial_item_id: string | null;
       idempotency_key: string;
+      stage: string | null;
+      error_class: string | null;
+      updated_at: string;
+      recovery_count: number;
     }>(
-      `SELECT id, status, input, output, editorial_item_id, idempotency_key
+      `SELECT id, status, workflow, input, output, editorial_item_id,
+              idempotency_key, stage, error_class, updated_at, recovery_count
          FROM automation_runs
         WHERE id = $1
         LIMIT 1`,
