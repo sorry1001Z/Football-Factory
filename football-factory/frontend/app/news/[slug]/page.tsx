@@ -6,6 +6,7 @@ import { mockNews } from '@/lib/mock-data';
 import { ArticleInlineAd } from "@/components/ads/ad-slot";
 import { AD_PRESETS } from "@/components/ads/presets";
 import { ArticleViewTracker } from '@/lib/analytics/trackers';
+import { extractWpSourceAttribution } from '@/lib/content/source-attribution';
 
 export const revalidate = 300;
 
@@ -56,12 +57,15 @@ export default async function NewsPage({ params }: Props) {
     newsItem?.category ?? 'ข่าวฟุตบอล';
   const author = post?.author?.name ?? 'Football Factory Newsroom';
   const featuredImage = post?.featuredImage?.url ?? newsItem?.image;
+  const sourceAttribution = post
+    ? extractWpSourceAttribution(post.content)
+    : { body: "", attribution: null };
 
   // For mock fallback, surface a useful body. For real WordPress posts,
   // render the canonical content. (Phase 2 deliberately keeps the existing
   // body structure rather than blindly trusting raw HTML.)
   const bodyParagraphs = post
-    ? (post.content ? post.content.split(/\n\n+/).slice(0, 8) : [post.excerpt || 'เนื้อหากำลังเตรียม'])
+    ? (sourceAttribution.body ? sourceAttribution.body.split(/\n\n+/).slice(0, 8) : [post.excerpt || 'เนื้อหากำลังเตรียม'])
     : [
         'เมื่อเชื่อม WordPress แล้ว เนื้อหาบทความจริงจะถูกดึงผ่าน WPGraphQL และแสดงในส่วนนี้ โดยหน้าเว็บยังคงถูก cache ผ่าน Vercel เพื่อความเร็วสูง',
         'หน้านี้เตรียม canonical, Open Graph และ NewsArticle structured data ไว้แล้ว และสามารถต่อข้อมูล SEO จาก Yoast/Rank Math ได้ในขั้นถัดไป',
@@ -97,6 +101,11 @@ export default async function NewsPage({ params }: Props) {
           {bodyParagraphs.map((p, i) => (
             <p key={i}>{p}</p>
           ))}
+          {sourceAttribution.attribution ? (
+            <p className="muted">แหล่งข่าว: {sourceAttribution.attribution.href
+              ? <a href={sourceAttribution.attribution.href} target="_blank" rel="nofollow noopener noreferrer">{sourceAttribution.attribution.label}</a>
+              : sourceAttribution.attribution.label}</p>
+          ) : null}
         </div>
         {related.length > 0 ? (
           <section className="relatedSection">
