@@ -108,6 +108,28 @@ test("wp-write: createPost defaults to draft when status omitted", async () => {
   clearEnv();
 });
 
+test("wp-write: draft maps excerpt and slug and omits unmapped taxonomy IDs", async () => {
+  setEnv();
+  const { calls } = setupFetchReturning(201, { id: 124, status: "draft" });
+  const c = new WordPressWriteClient();
+  await c.createPost({
+    title: "หัวข้อ",
+    content: "เนื้อหา",
+    excerpt: "คำโปรย",
+    slug: "sample-story",
+    status: "draft",
+  });
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.title, "หัวข้อ");
+  assert.equal(body.content, "เนื้อหา");
+  assert.equal(body.excerpt, "คำโปรย");
+  assert.equal(body.slug, "sample-story");
+  assert.equal(body.status, "draft");
+  assert.equal("categories" in body, false);
+  assert.equal("tags" in body, false);
+  clearEnv();
+});
+
 test("wp-write: createPost REJECTS status='publish'", async () => {
   setEnv();
   const c = new WordPressWriteClient();

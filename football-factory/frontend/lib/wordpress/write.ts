@@ -26,6 +26,8 @@ import "server-only";
 export type WpPostInput = {
   title: string;
   content: string;
+  excerpt?: string;
+  slug?: string;
   status?: "draft" | "pending" | "publish";
   categories?: number[];
   tags?: number[];
@@ -182,6 +184,8 @@ export class WordPressWriteClient {
       body: {
         title: input.title,
         content: input.content,
+        ...(input.excerpt !== undefined ? { excerpt: input.excerpt } : {}),
+        ...(input.slug !== undefined ? { slug: input.slug } : {}),
         status,
         ...(input.categories ? { categories: input.categories } : {}),
         ...(input.tags ? { tags: input.tags } : {}),

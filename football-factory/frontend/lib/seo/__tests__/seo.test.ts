@@ -138,6 +138,18 @@ test('buildNewsArticleJsonLd: produces valid structure', () => {
   assert.equal(ld['@type'], 'NewsArticle');
   assert.equal(ld.headline, 'A');
   assert.equal(ld.author?.['@type'], 'Person');
+  assert.equal(ld.datePublished, '2026-09-08T00:00:00');
+});
+
+test('buildNewsArticleJsonLd: omits dates when WordPress has no factual dates', () => {
+  const ld = buildNewsArticleJsonLd({
+    id: 'p.5', databaseId: null, slug: 'undated', uri: '/news/undated/',
+    title: 'Undated', excerpt: '', content: '', date: null, modified: null,
+    status: 'publish', featuredImage: null, author: null, categories: [], tags: [],
+    seo: null, canonical: null,
+  }, '/news/undated');
+  assert.equal('datePublished' in ld, false);
+  assert.equal('dateModified' in ld, false);
 });
 
 // Restore env at the end

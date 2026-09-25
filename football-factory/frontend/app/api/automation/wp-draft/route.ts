@@ -35,6 +35,7 @@ import {
   WordPressWriteClient,
   WordPressWriteError,
 } from "@/lib/wordpress/write";
+import { buildEditorialWpFields } from "@/lib/automation/wp-draft-editorial-fields";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,8 @@ const WpDraftSchema = z.object({
   run_id: z.string().uuid(),
   title: z.string().trim().min(1).max(500),
   content: z.string().min(1).max(1_000_000),
+  excerpt: z.string().trim().max(500).optional(),
+  slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
   categories: z.array(z.number().int().positive()).max(50).optional(),
   tags: z.array(z.number().int().positive()).max(100).optional(),
   featured_media: z.number().int().positive().optional(),
@@ -125,6 +128,12 @@ export async function POST(request: Request) {
     );
   }
 
+  let editorialWpFields = {
+    title: v.data.title,
+    content: v.data.content,
+    ...(v.data.excerpt !== undefined ? { excerpt: v.data.excerpt } : {}),
+    ...(v.data.slug !== undefined ? { slug: v.data.slug } : {}),
+  };
   if (v.data.editorial_item_id) {
     const editorial = new EditorialRepository(getDb());
     const item = await editorial.findById(v.data.editorial_item_id);
@@ -138,6 +147,15 @@ export async function POST(request: Request) {
       item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
         ? (item.metadata as Record<string, unknown>)
         : {};
+    // Editorial metadata is the saved source of truth for the CMS fields.
+    // The workflow's title/content remain a fallback for legacy callers.
+    editorialWpFields = buildEditorialWpFields({
+      metadata,
+      fallbackTitle: v.data.title,
+      fallbackContent: v.data.content,
+      fallbackExcerpt: v.data.excerpt,
+      fallbackSlug: v.data.slug,
+    });
     const missingChecks = ["seo_check", "fact_check", "rights"].filter(
       (key) => !metadata[key] || typeof metadata[key] !== "object",
     );
@@ -214,8 +232,7 @@ export async function POST(request: Request) {
 
   try {
     const post = await wp.createPost({
-      title: v.data.title,
-      content: v.data.content,
+      ...editorialWpFields,
       status: "draft",
       categories: v.data.categories,
       tags: v.data.tags,

@@ -20,6 +20,7 @@ import {
   setWordPressWriteClientFactoryForTest,
   resetWordPressWriteClientFactoryForTest,
 } from "@/lib/wordpress/__test-hooks__/write";
+import type { WpPostInput } from "@/lib/wordpress/write";
 import {
   canTransition,
   assertTransition,
@@ -817,7 +818,16 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
       () => ({ rows: [runRow({ editorial_item_id: EDITORIAL_ID, output: {} })], rowCount: 1 }), // runs.get (1)
       () => ({ rows: [editorialRow({
         stage: "rights_check",
-        metadata: { seo_check: {}, fact_check: {}, rights: {} },
+        metadata: {
+          seo_check: {}, fact_check: {}, rights: {},
+          title_th: "หัวข้อจาก editorial",
+          body_th: "เนื้อหาจาก editorial",
+          excerpt_th: "คำโปรยจาก editorial",
+          slug: "editorial-story",
+          source_url: "https://news.example/story",
+          source_title: "ข่าวต้นทาง",
+          publisher: "สำนักข่าว",
+        },
       })], rowCount: 1 }), // preflight editorial checks
       () => ({ rows: [{ run_id: RUN_ID }], rowCount: 1 }), // claim unique wp_draft_operations row
       () => ({ rows: [], rowCount: 1 }),        // mark operation created with wp_post_id
@@ -906,12 +916,16 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
       // import the class once.
       const { WordPressWriteClient } = await import("@/lib/wordpress/write");
       const orig = WordPressWriteClient.prototype.createPost;
-      WordPressWriteClient.prototype.createPost = async () => ({
+      let sentToWordPress: WpPostInput | undefined;
+      WordPressWriteClient.prototype.createPost = async (input) => {
+        sentToWordPress = input;
+        return {
         id: 100,
         link: "https://example.test/?p=100",
         slug: "ff-wp-draft-stub",
         status: "draft",
-      });
+        };
+      };
       try {
         const r = await Hook9(
           makeRequest(
@@ -931,6 +945,14 @@ test("wp-draft: editorial_item_id provided + draft succeeds → stage advances t
         };
         assert.equal(body.status, "draft");
         assert.equal(body.wp_post_id, 100);
+        assert.equal(sentToWordPress?.title, "หัวข้อจาก editorial");
+        assert.equal(sentToWordPress?.content.startsWith("เนื้อหาจาก editorial"), true);
+        assert.match(sentToWordPress?.content ?? "", /href="https:\/\/news\.example\/story"/);
+        assert.equal(sentToWordPress?.excerpt, "คำโปรยจาก editorial");
+        assert.equal(sentToWordPress?.slug, "editorial-story");
+        assert.equal(sentToWordPress?.status, "draft");
+        assert.equal(sentToWordPress?.categories, undefined);
+        assert.equal(sentToWordPress?.tags, undefined);
       } finally {
         WordPressWriteClient.prototype.createPost = orig;
       }

@@ -75,8 +75,10 @@ export function buildNewsArticleJsonLd(post: WordPressPost, path: string) {
     "@type": "NewsArticle",
     headline: post.title,
     description: post.excerpt,
-    datePublished: post.date || new Date().toISOString(),
-    dateModified: post.modified || post.date || new Date().toISOString(),
+    ...(post.date ? { datePublished: post.date } : {}),
+    ...(post.modified || post.date
+      ? { dateModified: post.modified || post.date! }
+      : {}),
     mainEntityOfPage: buildCanonical(path),
     author: post.author ? {
       "@type": "Person",
