@@ -12,7 +12,7 @@ npm run test:scripts
 node --test scripts/__tests__/validate-prod.test.mjs scripts/__tests__/postgres-tls-contract.test.mjs scripts/__tests__/production-healthcheck.test.mjs
 ```
 
-`npm run lint` is currently blocked because `next lint` starts an interactive setup prompt. PHP lint/PHPCS is not available in this workstation environment. The migration suite currently fails because an existing test references migration 007, absent from the tracked migrations directory.
+`npm run test:scripts` passes 74/74 on the clean PR worktree. The original dirty workstation checkout had one additional modified migration test that expected an untracked migration 007; that test was excluded from this PR. `npm run lint` is blocked because `next lint` starts an interactive setup prompt. PHP lint/PHPCS is not available in this workstation environment.
 
 ## Read-only HTTP health check
 

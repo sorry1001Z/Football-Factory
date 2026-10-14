@@ -2,7 +2,8 @@
 
 **Audit mode:** source and local-test inspection only
 **Branch:** `codex/ff90-production-readiness`
-**Audit baseline:** `2b1bcbf8658c8a5204e178de3e149ab4678cf6ce`
+**PR base:** `9b75fae5bb7fc44864ede5f890e07512d385fab0`
+**Original audit worktree:** two local commits ahead of `origin/main` plus unrelated dirty files; these were excluded from this PR.
 **Production changes:** none
 
 ## Executive result
@@ -17,7 +18,7 @@ One confirmed P0 source security defect was repaired: application and migration 
 |---|---|---|
 | Architecture | PARTIAL | Next.js App Router under `football-factory/frontend`; separate WordPress classic theme and `wordpress-plugins/football-factory-core`; workflows in `football-factory/automation/n8n/workflows`. Repository docs describe Vercel, not Ubuntu hosting. |
 | Dependencies | PARTIAL | `frontend/package.json` uses Next 15, React 19, TypeScript, `pg`, `zod`; package-lock exists. Runtime Node version is not pinned in package `engines` or `.nvmrc`. |
-| Unit/API tests | PASS | Final `npm test`: 1,226/1,226 passed. Tests use local stubs/fixtures; they do not establish Production behavior. |
+| Unit/API tests | PASS | Clean PR worktree `npm test`: 1,169/1,169 passed. Tests use local stubs/fixtures; they do not establish Production behavior. |
 | Typecheck | PASS | Final `npm run typecheck` passed after the build completed. |
 | Build | PASS | Final `npm run build` completed. The invalid config warnings were fixed (`poweredByHeader`, top-level `typedRoutes`). No deployment artifact was installed. |
 | Lint | BLOCKED | `npm run lint` invokes deprecated `next lint`, which opens an interactive ESLint setup prompt. No top-level ESLint dependency/config is present. |
@@ -32,18 +33,19 @@ One confirmed P0 source security defect was repaired: application and migration 
 2. **Webhook payload values were logged** by the WordPress plugin when `WP_DEBUG` is enabled. `rest_n8n_event` now logs sanitized top-level key names only. PHP lint/runtime tests remain NOT TESTED because PHP tooling is absent.
 3. **Ubuntu deployment path is missing.** No service unit, reverse-proxy configuration, Node runtime pin, build artifact contract, or CI release gate exists. Do not deploy to Ubuntu until these are deliberately specified and tested.
 4. **Lint gate is not automated.** `npm run lint` is interactive and cannot be a CI/release check as currently configured.
-5. **Migration source/test mismatch:** the current test suite references `007_editorial_draft_operations.sql`, but the tracked migration directory ends at `006_image_jobs.sql`. A corresponding untracked `.drafts` directory exists in the dirty workspace, but this audit did not read or adopt it. The mismatch causes the migration test suite to fail and blocks release readiness.
+5. **Unreleased local work is outside this PR.** The original workstation checkout was two local commits ahead of `origin/main` and contained unrelated image-automation/migration work, including a modified migration test that expected an untracked migration 007. Those files were not read, staged, or included. The clean branch migration suite passes. Any planned migration 006/007 rollout needs its own reviewed branch, isolated database acceptance and release gate.
 
-## Final local test results
+## Final clean-branch test results
 
-- `npm test`: PASS, 1,226/1,226.
+- `npm test`: PASS, 1,169/1,169.
 - `npm run typecheck`: PASS.
-- `npm run build`: PASS.
-- Targeted TLS, environment-validator, migration TLS-contract and mocked health-check tests: PASS, 26/26 total across the targeted runs (5 TLS + 21 script tests).
-- `npm run test:scripts`: FAIL, 73/74. The single failure is from the pre-existing modified `scripts/__tests__/migrate.test.mjs`, which attempts to read `migrations/007_editorial_draft_operations.sql`; that file is absent. The modified test file is unrelated dirty operator work and was left untouched.
+- `npm run build`: PASS; two existing Autoprefixer compatibility warnings remain.
+- Targeted TLS, environment-validator, migration TLS-contract and mocked health-check tests: PASS, 26/26 total (5 TLS + 21 script tests).
+- `npm run test:scripts`: PASS, 74/74.
+- The original dirty workstation checkout had one migration-test failure because its modified test expected untracked migration 007; that local file was excluded, and the clean branch suite passes.
 - `npm run lint`: BLOCKED by the interactive deprecated `next lint` setup prompt; no lint config/dependency is installed.
 - PHP lint/PHPCS: NOT TESTED; PHP CLI is unavailable.
-- `git diff --check`: result recorded in final status after staging review.
+- `git diff --check`: PASS.
 
 ## Scope limits
 

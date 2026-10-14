@@ -5,7 +5,7 @@
 ## Release prerequisites
 
 1. Decide whether the frontend remains on Vercel (documented current target) or moves to Ubuntu 24.04. Do not treat the source as Ubuntu-ready until Node version, process manager, reverse proxy, TLS, logs, health probes, static assets and rollback are tested together.
-2. Resolve the missing tracked `007_editorial_draft_operations.sql` referenced by current migration tests. Review the migration and run migration 006/007 on an isolated restored PostgreSQL database using the actual runner. Never apply them to Production as part of this runbook.
+2. This PR base tracks migrations 001–005. Before a future release, identify every schema migration required by the selected source commit. Any planned image/draft-operation migrations beyond 005 must be reviewed and tested on an isolated restored PostgreSQL database with the actual runner; do not apply them to Production as part of this runbook.
 3. Install a non-interactive lint tool/config and make CI gates reproducible. No CI workflow is tracked now.
 4. Run PHP lint/PHPCS on the theme and plugin in a PHP 8+ environment; run WordPress compatibility checks against the declared minimum version.
 5. Run all tests, typecheck, build, static workflow validation and the new mocked health-check tests on a clean release candidate.
