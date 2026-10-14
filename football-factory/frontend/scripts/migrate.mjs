@@ -35,22 +35,53 @@ const MIGRATIONS_DIR = join(__dirname, "..", "migrations");
 
 const PLACEHOLDER_RE = /(CHANGE_ME|example\.com|replace-with)/i;
 
-/**
- * Redact a database connection string for safe printing. We only ever
- * print this if a sanity-check fails; the routine output never includes
- * the connection string.
- *
- * postgres://user:password@host:port/db?sslmode=require
- *   becomes
- * postgres://*** @host:port/db?sslmode=require
- */
-function redact(url) {
+function safeSqlState(err) {
+  const code = typeof err?.code === "string" ? err.code : "";
+  return /^[0-9A-Z]{5}$/.test(code) ? code : "unavailable";
+}
+
+function postgresConnectionConfig(connectionString) {
+  let url;
   try {
-    const u = new URL(url);
-    return `${u.protocol}//*** @${u.host}${u.pathname}${u.search}`;
+    url = new URL(connectionString);
   } catch {
-    return "postgres://*** (invalid URL)";
+    throw new Error("DATABASE_URL invalid");
   }
+  if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") {
+    throw new Error("DATABASE_URL invalid");
+  }
+
+  const urlMode = url.searchParams.get("sslmode") || undefined;
+  const envMode = process.env.PGSSLMODE || undefined;
+  const modes = ["disable", "require", "verify-ca", "verify-full"];
+  if ((urlMode && !modes.includes(urlMode)) || (envMode && !modes.includes(envMode))) {
+    throw new Error("PostgreSQL SSL mode invalid");
+  }
+  const mode = envMode || urlMode || "verify-full";
+  if (mode === "disable") {
+    const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+    if (process.env.NODE_ENV === "production" || !loopbackHosts.has(url.hostname)) {
+      throw new Error("PostgreSQL TLS required except for non-production loopback databases");
+    }
+  }
+
+  const certParams = ["sslrootcert", "sslcert", "sslkey"];
+  if (url.searchParams.has("sslcert") || url.searchParams.has("sslkey")) {
+    throw new Error("Client-certificate PostgreSQL authentication is unsupported");
+  }
+  if (certParams.some((name) => url.searchParams.has(name)) && !process.env.PGSSL_CA_CERT) {
+    throw new Error("Custom PostgreSQL certificate parameters are unsupported; configure PGSSL_CA_CERT");
+  }
+  for (const name of ["sslmode", ...certParams, "sslpassword"]) url.searchParams.delete(name);
+  return {
+    connectionString: url.toString(),
+    ssl: mode === "disable"
+      ? false
+      : {
+          rejectUnauthorized: true,
+          ...(process.env.PGSSL_CA_CERT ? { ca: process.env.PGSSL_CA_CERT } : {}),
+        },
+  };
 }
 
 function safeSummary(filename, status, ms) {
@@ -75,8 +106,7 @@ async function main() {
       .filter((f) => f.endsWith(".sql"))
       .sort();
   } catch (err) {
-    console.error(`[migrate] FAIL: cannot read migrations dir (${MIGRATIONS_DIR})`);
-    console.error(`[migrate] ${err?.message ?? String(err)}`);
+    console.error("[migrate] FAIL: cannot read migrations directory");
     process.exit(2);
   }
   if (files.length === 0) {
@@ -84,13 +114,18 @@ async function main() {
     process.exit(2);
   }
 
-  // Establish pool. SSL on by default for managed PG (Neon / RDS).
+  // Establish a verified TLS connection by default. URL options are
+  // stripped because node-postgres may otherwise override the explicit SSL
+  // object with connection-string parsing.
+  let connectionConfig;
+  try {
+    connectionConfig = postgresConnectionConfig(url);
+  } catch {
+    console.error("[migrate] FAIL: DATABASE_URL TLS configuration invalid");
+    process.exit(2);
+  }
   const pool = new pg.Pool({
-    connectionString: url,
-    ssl:
-      process.env.PGSSLMODE === "disable"
-        ? false
-        : { rejectUnauthorized: false },
+    ...connectionConfig,
     max: 1, // one connection is enough; simpler
     connectionTimeoutMillis: 10_000,
   });
@@ -100,8 +135,7 @@ async function main() {
   let failed = 0;
 
   const client = await pool.connect().catch((err) => {
-    console.error(`[migrate] FAIL: cannot connect: ${err?.message ?? String(err)}`);
-    console.error(`[migrate] connection string: ${redact(url)}`);
+    console.error(`[migrate] FAIL: cannot connect (SQLSTATE ${safeSqlState(err)})`);
     process.exit(2);
   });
 
@@ -122,7 +156,7 @@ async function main() {
     } catch {
       /* ignore */
     }
-    console.error(`[migrate] FAIL: cannot create ff_schema_migrations: ${err?.message ?? String(err)}`);
+    console.error(`[migrate] FAIL: cannot create migration history (SQLSTATE ${safeSqlState(err)})`);
     client.release();
     await pool.end().catch(() => {});
     process.exit(1);
@@ -134,7 +168,7 @@ async function main() {
     const r = await client.query("SELECT name FROM ff_schema_migrations");
     appliedSet = new Set(r.rows.map((row) => row.name));
   } catch (err) {
-    console.error(`[migrate] FAIL: cannot read ff_schema_migrations: ${err?.message ?? String(err)}`);
+    console.error(`[migrate] FAIL: cannot read migration history (SQLSTATE ${safeSqlState(err)})`);
     client.release();
     await pool.end().catch(() => {});
     process.exit(1);
@@ -172,7 +206,7 @@ async function main() {
         /* ignore secondary rollback failure */
       }
       console.error(safeSummary(file, "FAIL", Date.now() - t0));
-      console.error(`[migrate]   reason: ${err?.message ?? String(err)}`);
+      console.error(`[migrate]   SQLSTATE: ${safeSqlState(err)}`);
       failed += 1;
       break;
     }
@@ -188,6 +222,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(`[migrate] FAIL: unexpected: ${err?.message ?? String(err)}`);
+  console.error(`[migrate] FAIL: unexpected (SQLSTATE ${safeSqlState(err)})`);
   process.exit(1);
 });

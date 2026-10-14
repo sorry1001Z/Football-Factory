@@ -50,6 +50,21 @@ test("validate:prod: fails when DATABASE_URL is missing", () => {
   assert.match(r.stdout, /DATABASE_URL/);
 });
 
+test("validate:prod: rejects PostgreSQL URLs that disable TLS", () => {
+  const r = runWith({
+    ...SAFE_NOW,
+    DATABASE_URL: "postgres://ff_app:abcdef@db.local/football_factory?sslmode=disable",
+  });
+  assert.equal(r.status, 2);
+  assert.match(r.stdout, /DATABASE_URL.*INVALID/);
+});
+
+test("validate:prod: rejects PGSSLMODE=disable", () => {
+  const r = runWith({ ...SAFE_NOW, PGSSLMODE: "disable" });
+  assert.equal(r.status, 2);
+  assert.match(r.stdout, /PGSSLMODE.*INVALID/);
+});
+
 test("validate:prod: fails when AUTH_SECRET is too short", () => {
   const r = runWith({ ...SAFE_NOW, AUTH_SECRET: "short" });
   assert.equal(r.status, 2);

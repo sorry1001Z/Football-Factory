@@ -20,6 +20,7 @@
 
 import "server-only";
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
+import { buildPostgresTlsConfig } from "./postgres-tls";
 
 export type Db = {
   query<T extends QueryResultRow = QueryResultRow>(
@@ -58,13 +59,12 @@ function classify(err: unknown): PostgresError {
   // driver types are loose, so we read defensively.
   const e = err as { code?: unknown; message?: unknown };
   const code = typeof e?.code === "string" ? e.code : "";
-  const msg = typeof e?.message === "string" ? e.message : "pg_error";
   // Postgres SQLSTATE codes (subset that matters for app code).
   if (code === "23505" || code === "23503" || code === "23514") {
-    return new PostgresError("CONSTRAINT", `pg_constraint_${code}`, err);
+    return new PostgresError("CONSTRAINT", `pg_constraint_${code}`);
   }
   if (code === "28P01" || code === "28000") {
-    return new PostgresError("AUTH", `pg_auth_${code}`, err);
+    return new PostgresError("AUTH", `pg_auth_${code}`);
   }
   if (
     code === "08000" ||
@@ -74,9 +74,11 @@ function classify(err: unknown): PostgresError {
     code === "57P02" ||
     code === "57P03"
   ) {
-    return new PostgresError("NETWORK", `pg_network_${code}`, err);
+    return new PostgresError("NETWORK", `pg_network_${code}`);
   }
-  return new PostgresError("INTERNAL", msg, err);
+  // Driver messages may contain host, database or server details. Do not
+  // retain or expose the raw driver error.
+  return new PostgresError("INTERNAL", "pg_internal_error");
 }
 
 function getPool(): Pool {
@@ -85,15 +87,24 @@ function getPool(): Pool {
   if (!cs) {
     throw new PostgresError("AUTH", "DATABASE_URL missing");
   }
+  let tls: ReturnType<typeof buildPostgresTlsConfig>;
+  try {
+    tls = buildPostgresTlsConfig({
+      connectionString: cs,
+      nodeEnv: process.env.NODE_ENV,
+      sslMode: process.env.PGSSLMODE,
+      caCertificate: process.env.PGSSL_CA_CERT,
+    });
+  } catch {
+    // Do not propagate parser errors that could embed connection details.
+    throw new PostgresError("AUTH", "DATABASE_TLS_CONFIGURATION_INVALID");
+  }
   const pool = new Pool({
-    connectionString: cs,
+    connectionString: tls.connectionString,
     max: 5, // small for serverless
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
-    ssl:
-      process.env.PGSSLMODE === "disable"
-        ? false
-        : { rejectUnauthorized: false },
+    ssl: tls.ssl,
   });
   // Surface pool-level errors without printing the connection string.
   pool.on("error", (err) => {
@@ -102,10 +113,7 @@ function getPool(): Pool {
     const code = typeof (err as { code?: unknown })?.code === "string"
       ? (err as { code?: string }).code
       : "";
-    const msg = typeof (err as { message?: unknown })?.message === "string"
-      ? (err as { message?: string }).message
-      : "";
-    console.warn("[pg] pool error", code || msg || "unknown");
+    console.warn("[pg] pool error", code || "unknown");
   });
   globalThis.__FF_PG_POOL__ = pool;
   return pool;
