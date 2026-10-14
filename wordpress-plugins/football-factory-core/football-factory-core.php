@@ -386,7 +386,9 @@ final class Football_Factory_Core {
 	 * @return WP_REST_Response
 	 */
 	public static function rest_n8n_event( WP_REST_Request $request ): WP_REST_Response {
-		ff_log_event( 'n8n_event', array( 'payload' => $request->get_json_params() ) );
+		$payload = $request->get_json_params();
+		$keys    = is_array( $payload ) ? array_map( 'sanitize_key', array_keys( $payload ) ) : array();
+		ff_log_event( 'n8n_event', array( 'payload_keys' => $keys ) );
 
 		return rest_ensure_response(
 			array(

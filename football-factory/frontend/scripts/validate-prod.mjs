@@ -17,6 +17,19 @@ import process from "node:process";
 
 const PLACEHOLDER_RE = /(CHANGE_ME|example\.com|replace-with)/i;
 
+function secureDatabaseUrl(value) {
+  try {
+    const url = new URL(value);
+    const mode = url.searchParams.get("sslmode");
+    return ["postgres:", "postgresql:"].includes(url.protocol) &&
+      Boolean(url.hostname && url.username && url.password && url.pathname.length > 1) &&
+      !PLACEHOLDER_RE.test(value) &&
+      (!mode || ["require", "verify-ca", "verify-full"].includes(mode));
+  } catch {
+    return false;
+  }
+}
+
 const ENVS = [
   // -------- REQUIRED NOW (FIRST SLICE staging) --------
   {
@@ -40,9 +53,8 @@ const ENVS = [
   {
     name: "DATABASE_URL",
     required: "now",
-    shape: (v) =>
-      /^postgres(ql)?:\/\//.test(v) && !PLACEHOLDER_RE.test(v),
-    note: "Server-only Postgres connection string. Required for /api/auth/*, /api/admin/*, /api/automation/deduplicate, /api/automation/wp-draft.",
+    shape: secureDatabaseUrl,
+    note: "Server-only PostgreSQL URL. TLS certificate verification is required; sslmode=disable is rejected.",
   },
   {
     name: "AUTH_SECRET",
@@ -225,8 +237,8 @@ const ENVS = [
   {
     name: "PGSSLMODE",
     required: "optional",
-    shape: (v) => v.length === 0 || ["disable", "require", "verify-ca", "verify-full"].includes(v),
-    note: "Postgres SSL mode. Default uses sslmode=require unless disabled.",
+    shape: (v) => v.length === 0 || ["require", "verify-ca", "verify-full"].includes(v),
+    note: "PostgreSQL TLS mode. Certificate verification is enforced; disable is rejected for production.",
   },
   {
     name: "REQUIRE_GA4",
@@ -279,8 +291,11 @@ console.log(`  OPTIONAL : ${buckets.optional.filter((x) => x.status === "OK").le
 
 console.log();
 const blocking = missingNow + invalidNow + placeholderNow;
-if (blocking > 0) {
-  console.log(`[validate:prod] FAIL: ${blocking} REQUIRED_NOW env vars missing or invalid.`);
+const invalidTlsMode = buckets.optional.some(
+  (entry) => entry.name === "PGSSLMODE" && entry.status === "INVALID",
+);
+if (blocking > 0 || invalidTlsMode) {
+  console.log(`[validate:prod] FAIL: ${blocking + Number(invalidTlsMode)} required or security-sensitive env values missing or invalid.`);
   process.exit(2);
 }
 console.log("[validate:prod] PASS: every REQUIRED_NOW env var is present and shape-valid.");

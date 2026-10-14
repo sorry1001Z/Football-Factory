@@ -42,15 +42,12 @@ const next_config = {
   // walk upward and pick up unrelated lockfiles (e.g. C:\Users\<user>\package-lock.json).
   outputFileTracingRoot: __dirname,
   reactStrictMode: true,
-  // Kill X-Powered-By header leakage (was: "Next.js").
-  removePoweredByHeader: true,
+  // Disable the framework-identifying response header.
+  poweredByHeader: false,
+  typedRoutes: false,
   // Transpile the in-repo lib/football layer if needed by App Router
   // route handlers. Keeps the dev server aligned with production builds.
   transpilePackages: [],
-  experimental: {
-    // Reserved for Phase 2 / 9 features (WordPress GraphQL client, ISR).
-    typedRoutes: false,
-  },
   async headers() {
     return [
       {
