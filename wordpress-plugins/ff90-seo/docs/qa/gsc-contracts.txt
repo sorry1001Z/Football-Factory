@@ -1,0 +1,30 @@
+PASS: anonymous OAuth denied
+PASS: anonymous metrics denied
+PASS: not connected returns error, no fake metrics
+PASS: HTTP transport rejects arbitrary hosts
+PASS: tokens encrypted with random authenticated nonce
+PASS: truncated ciphertext rejected without exception
+PASS: OAuth requests readonly scope with PKCE
+PASS: authorization URL excludes client secret and verifier
+PASS: PKCE challenge binds stored verifier
+PASS: callback rejects a different login session
+PASS: valid OAuth contract stores encrypted grant
+PASS: encrypted grant round trips
+PASS: OAuth state cannot replay
+PASS: unexpired access token reused without provider call
+PASS: unverified properties excluded from selection
+PASS: Search Analytics response maps without invented metrics
+PASS: bounded metrics identify source, timestamp and truncation
+PASS: invalid date/range/limit rejected before network
+PASS: invalid date/range/limit rejected before network
+PASS: invalid date/range/limit rejected before network
+PASS: caller cannot override selected property
+PASS: provider authorization errors redact response payload
+PASS: network errors remain errors rather than fake empty success
+PASS: expired token refreshes through fixed token endpoint
+PASS: refresh token retained when provider omits rotation
+PASS: refresh lock prevents concurrent refresh storm
+PASS: concurrent disconnect cannot resurrect tokens during refresh
+PASS: disconnect revokes and clears local grant/property
+PASS: insufficient/wrong OAuth scope is not stored as connection
+TOTAL: 29 HTTP-DOUBLED checks passed; live Google NOT_RUN

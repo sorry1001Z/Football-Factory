@@ -1,0 +1,17 @@
+[
+  {
+    "plugin": "ff90-seo",
+    "php_files_linted": 13,
+    "installed_source_zip_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-seo-football",
+    "php_files_linted": 2,
+    "installed_source_zip_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-seo-gsc",
+    "php_files_linted": 4,
+    "installed_source_zip_bytes": "PASS"
+  }
+]

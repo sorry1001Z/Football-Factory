@@ -28,29 +28,27 @@ final class Policy {
         return array( 'ok' => true, 'reason' => 'OK', 'url' => strtolower( $url['scheme'] ) . '://' . strtolower( $url['host'] ) . ( isset( $url['port'] ) ? ':' . $url['port'] : '' ) . ( $path ?: '/' ) . ( $kept ? '?' . http_build_query( $kept ) : '' ) );
     }
     public static function analyze( array $input ): array {
-        $blocking = array(); $warnings = array(); $score = 100;
-        $title = trim( strip_tags( (string) ( $input['title'] ?? '' ) ) );
-        $meta = trim( strip_tags( (string) ( $input['description'] ?? '' ) ) );
         $html = (string) ( $input['content'] ?? '' );
-        $text = trim( html_entity_decode( strip_tags( preg_replace( '~<(script|style)\b[^>]*>.*?</\1>~is', '', $html ) ), ENT_QUOTES, 'UTF-8' ) );
-        $len = static function ( $s ) { return preg_match_all( '/./us', $s ); };
-        if ( empty( $input['canonical_valid'] ) ) { $blocking[] = 'INVALID_CANONICAL'; $score -= 25; }
-        // WordPress themes normally render the post title as the one H1. Raw body H1s add to it.
-        $headings = preg_replace( '~<(script|style)\b[^>]*>.*?</\1>|<!--.*?-->~is', '', $html );
-        $h1 = preg_match_all( '/<h1\b/i', $headings ) + ( $input['theme_title_h1'] ?? true ? 1 : 0 );
-        if ( 1 !== $h1 ) { $blocking[] = 'H1_COUNT'; $score -= 15; }
-        if ( '' === $title ) { $blocking[] = 'MISSING_TITLE'; $score -= 15; }
-        if ( $len( $title ) < 20 || $len( $title ) > 65 ) { $warnings[] = 'TITLE_LENGTH'; $score -= 6; }
-        if ( $len( $meta ) < 70 || $len( $meta ) > 170 ) { $warnings[] = 'META_LENGTH'; $score -= 5; }
-        $thai = (bool) preg_match( '/[\x{0E00}-\x{0E7F}]/u', $text );
-        $terms = preg_match_all( '/[\p{L}\p{N}]+/u', $text );
-        if ( $thai ) { $terms = max( $terms, (int) ceil( $len( preg_replace( '/\s/u', '', $text ) ) / 5 ) ); }
-        if ( $terms < 300 ) { $warnings[] = 'THIN_CONTENT'; $score -= 12; }
-        preg_match_all( '/<img\b[^>]*>/i', $html, $images );
-        foreach ( $images[0] as $image ) {
-            if ( ! preg_match( '/\balt\s*=\s*([\'"])(.*?)\1/is', $image, $alt ) || '' === trim( $alt[2] ) ) { $warnings[] = 'IMAGE_ALT_REVIEW'; $score -= 4; break; }
+        $clean = preg_replace( '~<(script|style)\b[^>]*>.*?</\1>|<!--.*?-->~is', '', $html );
+        $h1 = array(); $h2 = array(); $images = array(); $links = 0;
+        if ( class_exists( '\DOMDocument' ) ) {
+            $dom = new \DOMDocument(); $before = libxml_use_internal_errors( true );
+            $dom->loadHTML( '<?xml encoding="UTF-8">' . $clean, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING );
+            libxml_clear_errors(); libxml_use_internal_errors( $before );
+            foreach ( $dom->getElementsByTagName( 'h1' ) as $node ) { $h1[] = $node->textContent; }
+            foreach ( $dom->getElementsByTagName( 'h2' ) as $node ) { $h2[] = $node->textContent; }
+            foreach ( $dom->getElementsByTagName( 'img' ) as $node ) { $images[] = array( 'alt' => $node->getAttribute( 'alt' ) ); }
+        } else {
+            foreach ( array( 'h1', 'h2' ) as $tag ) { preg_match_all( '~<' . $tag . '\b[^>]*>(.*?)</' . $tag . '>~is', $clean, $m ); foreach ( $m[1] as $heading ) { if ( 'h1' === $tag ) { $h1[] = strip_tags( $heading ); } else { $h2[] = strip_tags( $heading ); } } }
         }
-        return array( 'policy_version' => 'wp-0.1', 'score' => max( 0, $score ), 'blocking' => array_values( array_unique( $blocking ) ), 'warnings' => array_values( array_unique( $warnings ) ), 'signals' => array( 'h1_count' => $h1, 'term_count' => $terms, 'heuristic' => $thai ), 'fact_check' => 'not_performed' );
+        if ( $input['theme_title_h1'] ?? true ) { array_unshift( $h1, (string) ( $input['title'] ?? '' ) ); }
+        $body = html_entity_decode( strip_tags( preg_replace( '~</(?:p|div|section|article|h[1-6]|li)>~i', "\n\n", $clean ) ), ENT_QUOTES, 'UTF-8' );
+        $locale = $input['locale'] ?? ( preg_match( '/[\x{0E00}-\x{0E7F}]/u', $body ) ? 'th' : 'en' );
+        $quality_input = array_merge( array( 'title' => $input['title'] ?? '', 'meta' => $input['description'] ?? '', 'body' => $body, 'h1' => $h1, 'h2' => $h2, 'images' => $images, 'locale' => $locale, 'canonicalValid' => (bool) ( $input['canonical_valid'] ?? false ), 'targetKeyword' => $input['target_keyword'] ?? '', 'internalLinks' => $input['internal_links'] ?? 0 ), $input['quality_input'] ?? array() );
+        $deep = Quality::score( $quality_input, $input['thresholds'] ?? array() );
+        $blocking = array_column( $deep['blockingIssues'], 'code' );
+        if ( '' === trim( strip_tags( $input['title'] ?? '' ) ) ) { $blocking[] = 'MISSING_TITLE'; }
+        return array( 'policy_version' => 'wp-0.2', 'score' => $deep['score'], 'blocking' => $blocking, 'warnings' => array_column( $deep['warnings'], 'code' ), 'opportunities' => array_column( $deep['opportunities'], 'code' ), 'deep_quality' => $deep, 'signals' => array_merge( $deep['signals'], array( 'h1_count' => count( $h1 ), 'term_count' => $deep['signals']['termCount'] ) ), 'fact_check' => 'not_performed' );
     }
     public static function gate( array $report ): bool { return empty( $report['blocking'] ); }
 }

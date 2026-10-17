@@ -35,3 +35,10 @@ SportsEvent/ข้อมูลทีมและนักเตะอัตโ�
 
 ปลั๊กอินไม่ส่งบทความไป API วิเคราะห์ภายนอก ไม่ต้องรัน Next.js และไม่มี JavaScript
 เพิ่มในหน้าผู้อ่าน ปิดปลั๊กอินแล้วข้อมูล SEO ยังเก็บอยู่ ไม่ลบข่าวหรือ Featured Image
+
+## อัปเดต 0.2.0
+
+เพิ่ม Target keyword, Intent, Deep Quality และ Schema graph validation
+รายละเอียดการติดตั้งปลั๊กอินฟุตบอล/GSC แยกตัว ดู **MODULES_TH.md**
+GSC connector มีโค้ด OAuth พร้อมตั้งค่าแล้ว แต่ต้องให้ผู้ดูแล Connect/Consent
+และเลือก Property จริงก่อนดูสถิติ ส่วนบันทึก 0.1.0 ด้านบนเป็นสถานะรุ่นก่อนหน้า

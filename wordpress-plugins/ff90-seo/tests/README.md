@@ -35,3 +35,33 @@ Compare every source/install/package byte before claiming install validation.
 
 No actual GSC, original external SEO V4, football data provider, Hermes/n8n,
 MySQL/MariaDB, Firefox/Safari, production/CDN or external staging has been tested.
+
+## 0.2.0 modular tests
+
+The compatibility build entry point now calls `modules/ff90/build.py`, which
+packages base SEO, optional Football and optional GSC separately. Install those
+ZIPs in a disposable sandbox; activate base first, then the optional plugins.
+
+Additional checks, sequential (WordPress/browser scripts mutate sandbox state):
+
+```sh
+# Export references from frontend cwd with its existing tsx dependency:
+node --import tsx ../../wordpress-plugins/ff90-seo/tests/export-v3.cjs
+# Remaining commands from repository root:
+/workspace/ff90-tools/bin/php wordpress-plugins/ff90-seo/tests/parity.php
+/workspace/ff90-tools/bin/wp eval-file /workspace/Football-Factory/wordpress-plugins/ff90-seo/tests/advanced-contracts.php
+/workspace/ff90-tools/bin/wp eval-file /workspace/Football-Factory/wordpress-plugins/ff90-seo-gsc/tests/contracts.php
+python3 wordpress-plugins/ff90-seo/tests/portability.py
+node wordpress-plugins/ff90-seo/tests/browser.cjs
+```
+
+Parity: 47 original-TS reference cases under PHP Intl (including fullwidth NFKC).
+Advanced: 28 module/link/quality/graph contracts with disposable term mappings.
+GSC: 29 explicitly HTTP-doubled OAuth/PKCE/encryption/refresh/property/query/revoke
+checks; refuses to overwrite any existing real client config or token connection.
+No actual client IDs, client secrets, grants, properties or metric rows are saved
+by those tests. Pure/WordPress checks never substitute for Google live verification.
+Browser adds real target-keyword intent and schema results, disconnected GSC UI,
+POST-only OAuth action, nonce rejection and explicit missing-config response.
+PHP local toolchain added Intl from signature/checksum-verified Debian APT sources;
+no TLS/checksum verification was bypassed. It remains outside the checkout.

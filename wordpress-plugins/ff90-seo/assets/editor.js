@@ -18,16 +18,17 @@
         wp.element.useEffect(function () {
             var active = true;
             var timer = setTimeout(function () {
-                wp.apiFetch({ path: '/ff90-seo/v1/analyze/' + state.id, method: 'POST', data: { title: state.title, content: state.content, description: meta.description || '', canonical: meta.canonical || '' } }).then(function (r) { if (active) { setReport(r); setError(''); } }).catch(function (e) { if (active) { setReport(null); setError(e.message || 'Analysis unavailable'); } });
+                wp.apiFetch({ path: '/ff90-seo/v1/analyze/' + state.id, method: 'POST', data: { title: state.title, content: state.content, description: meta.description || '', canonical: meta.canonical || '', target_keyword: meta.target_keyword || '' } }).then(function (r) { if (active) { setReport(r); setError(''); } }).catch(function (e) { if (active) { setReport(null); setError(e.message || 'Analysis unavailable'); } });
             }, 800);
             return function () { active = false; clearTimeout(timer); };
-        }, [state.id, state.title, state.content, meta.description, meta.canonical]);
+        }, [state.id, state.title, state.content, meta.description, meta.canonical, meta.target_keyword]);
         return el(Panel, { name: 'ff90-seo-panel', title: 'FF90 SEO', className: 'ff90-seo-panel' },
+            el(wp.components.TextControl, { label: 'Target keyword', value: meta.target_keyword || '', onChange: function (v) { update('target_keyword', v); } }),
             el(wp.components.TextareaControl, { label: 'Meta description', value: meta.description || '', onChange: function (v) { update('description', v); } }),
             el(wp.components.TextControl, { label: 'Canonical override (optional)', value: meta.canonical || '', onChange: function (v) { update('canonical', v); } }),
             el(wp.components.CheckboxControl, { label: 'Noindex', checked: !!meta.noindex, onChange: function (v) { update('noindex', v); } }),
             error ? el(wp.components.Notice, { status: 'error', isDismissible: false }, error) : null,
-            report ? el('div', { 'aria-live': 'polite' }, el('p', null, 'Score: ' + report.score + ' / 100'), el('p', null, 'Blocking: ' + (report.blocking.join(', ') || 'none')), el('p', null, 'Warnings: ' + (report.warnings.join(', ') || 'none')), el('p', null, report.signals.heuristic ? 'Thai term count is an estimate.' : 'Scores are advisory.'), el('ul', null, report.links.map(function (link) { return el('li', { key: link.taxonomy + ':' + link.term_id }, el('a', { href: link.url, target: '_blank', rel: 'noopener' }, link.label)); })), el('p', null, 'GSC: not connected. Fact checking: not performed.')) : el('p', null, 'Analyzing locally…'));
+            report ? el('div', { 'aria-live': 'polite' }, el('p', null, 'Score: ' + report.score + ' / 100'), el('p', null, 'Blocking: ' + (report.blocking.join(', ') || 'none')), el('p', null, 'Warnings: ' + (report.warnings.join(', ') || 'none')), el('p', null, report.signals.heuristic ? 'Thai term count is an estimate.' : 'Scores are advisory.'), el('ul', null, report.links.map(function (link) { return el('li', { key: link.taxonomy + ':' + link.term_id }, el('a', { href: link.url, target: '_blank', rel: 'noopener' }, link.label)); })), report.normalization !== 'NFKC' ? el('p', null, 'PHP intl enables full Unicode normalization.') : null, el('p', null, 'Intent: ' + (report.intent ? report.intent.intent + (report.intent.ambiguous ? ' (ambiguous)' : '') : 'no confident match')), el('p', null, 'Schema graph: ' + (report.schema_validation.valid ? 'valid structure' : report.schema_validation.issues.map(function (i) { return i.code; }).join(', '))), el('p', null, 'Opportunities: ' + (report.opportunities.join(', ') || 'none')), el('p', null, 'GSC: ' + (report.gsc.connected ? 'OAuth stored; verify metrics in Search Console settings' : 'not connected') + '. Fact checking: not performed.')) : el('p', null, 'Analyzing locally…'));
     }
     wp.plugins.registerPlugin('ff90-seo', { render: Sidebar });
 }());

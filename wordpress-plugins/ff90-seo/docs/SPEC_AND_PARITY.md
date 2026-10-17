@@ -1,76 +1,53 @@
-# SEO WordPress port — accepted scope and implementation map
+# SEO WordPress port — 0.2.0 scope and V3 comparison
 
-User authorization: migrate reusable modules A–L; SEO additions supplied in chat
-2026-10-17. Package version **0.1.0**, deliberately **not a completed SEO V4**.
-Pure PHP policy with WordPress adapters and native Gutenberg React packages.
-No Node service, external content analysis, theme requirement or FF90 domain URL.
+Current scope and known differences: see **MODULES_TH.md**. This supersedes
+0.1.0's incomplete implementation inventory. These are independent plugins,
+not a claim that an external product named SEO V4 is complete.
 
-## Current implementation
+## Implemented from the previously identified missing capabilities
 
-| Requirement | Implemented behavior |
-|---|---|
-| Gutenberg | Native document sidebar, debounced analysis of unsaved title/body/meta, ignores stale responses; native meta save |
-| Classic editor | Nonce/capability-protected meta box, saved-content report |
-| Metadata | Private `_ff90_seo` post meta exposed to authorized native editing; global `ff90_seo_settings` via Settings API |
-| Canonical | Native permalink default; same-origin HTTP(S) overrides; no credentials, control characters, backslashes or dot segments; strips tracking, preserves native identity query keys and trailing slash |
-| Content quality | Title/meta length, approximate Thai term count, thin-content and image-alt review warnings; body H1 plus configurable theme-title H1 |
-| Gate | OFF by default; optional structural title/canonical/H1 veto; warning scores never independently veto Thai content |
-| Internal linking | Suggestions to assigned public category/tag/taxonomy archives when labels appear in plain body text; excludes anchors/headings/scripts/styles/comments/attributes; ambiguous assigned labels withheld; no content mutation |
-| Schema | Optional standalone NewsArticle/WebPage with actual post dates, author, publisher and attachment URL; JSON safely encoded |
-| Indexing | Optional noindex through `wp_robots`; respects native site privacy, excludes noindex/password content from native sitemap |
-| Sitemap | Uses native WordPress sitemap, not a second ordinary sitemap generator |
-| News sitemap | `/ff90-news-sitemap.xml`, last 48 hours of public nonpassword post content; 1000 URLs per child file, paginated sitemap index if necessary; robots discovery; no HTTP output in advisory/private mode |
-| Domain extension | Framework-independent `FF90\SEO\DomainAdapter` interface and `ff90_seo_domain_adapter` filter; entity/schema suggestions exposed to analysis only |
-| Ownership | Advisory default; explicit standalone; known Yoast/RankMath/AIOSEO/SEOPress constants or `ff90_seo_external_owner` suppress standalone; exact known Core schema callback coordinated on singular pages |
+- `Intent.php`: weighted rules, negative phrases, locale, minimum confidence,
+  deterministic ties, ambiguity, NFKC with PHP intl. Framework independent.
+- `Quality.php`: V3 title/meta/heading/content/sentence/paragraph/stuffing/repeated
+  phrase/freshness/provenance/schema/image/internal/external/duplicate policies,
+  issue severities, recommendations and signals. Original Thai cluster heuristic.
+- `Schema.php`: graph structure/duplicate IDs/references, safe depth bound.
+- `ff90-seo-football`: V3 seed identities and intent rules in a separate package;
+  explicit registry relations and advisory schema; real verified WordPress term
+  landing pages rather than fabricated Next.js route assumptions.
+- `ff90-seo-gsc`: separate OAuth code+PKCE/state/session validation, readonly scope,
+  encrypted nonautoloaded per-site token options, refresh lock, selected property
+  verification, query/page Search Analytics, admin UI and authenticated REST,
+  disconnect+revocation. No SDK/Node requirement or production mock data.
 
-## V3 parity limits and remaining work
+## Reference evidence
 
-This release is an initial port, not byte-for-byte V3 output parity. V3 original
-sources remain unchanged. In particular:
+`tests/export-v3.cjs` reads the unmodified TypeScript implementation and generates
+47 reference cases: 20 deep-quality cases, 19 intent cases including Thai and
+fullwidth Unicode, 8 schema cases. `tests/parity.php` compares complete quality
+output and intent output; schema comparisons cover validity and issue codes,
+allowing explanatory wording differences. Not an exhaustive proof over all input.
 
-- Canonical overrides are stricter than V3 (same origin including scheme/port,
-  no external allowlist, root-relative paths only). Native `?p=ID` identity must
-  not be stripped like arbitrary tracking parameters. WordPress trailing slashes
-  must be retained. These are intentional WordPress compatibility changes.
-- Quality scoring is a subset of V3. Sentence/paragraph/repetition/stuffing,
-  provenance and schema completeness scoring, refresh/duplicate signals and
-  threshold customization have not been ported. Score is not a ranking promise.
-- Thai counting is an explicitly approximate length-based signal, not a real
-  segmenter or the exact V3 orthographic-cluster algorithm. Never a hard veto.
-- Full V3 intent classification, entity relations, link offsets/confidence and
-  registered football identity datasets are not ported. Assigned-taxonomy
-  suggestions alone are not a complete football knowledge graph.
-- Football SportsEvent/SportsOrganization/Person auto-generation awaits the
-  verified entity/match data adapter. Schema is not invented from article text.
-- GSC OAuth, Google PHP client, encrypted token storage/refresh/revoke,
-  property ownership selection and Search Analytics fetching are **NOT IMPLEMENTED**.
-  UI reports disconnected; no mock clicks, impressions or positions are shown.
-- News sitemap inclusion is not a Google News eligibility/acceptance guarantee.
-  Google Indexing API is **not appropriate for ordinary news/live scores**:
-  only eligible JobPosting or BroadcastEvent embedded in VideoObject content.
-  No indexing API request, retired sitemap ping or automatic URL Inspection
-  indexing request is implemented.
+47/47 pass under PHP 8.4 with Intl. Additional WordPress contracts test adapters,
+server permissions, post metadata, link protection and UTF-16 offsets. GSC tests
+use explicitly named HTTP doubles, not live Google credentials or authorization.
 
-## Integration / security boundaries
+## Retained behavior and deliberate adaptations
 
-WordPress REST analysis is authenticated and requires `edit_post` per post.
-Cookie requests use WordPress REST nonce; Application Passwords use native HTTPS
-WordPress authentication. This module adds no token or public write endpoint.
-REST accepts bounded string inputs; it neither fetches source URLs nor sends
-article content externally. Third-party domain adapters are trusted server code.
+Native WordPress title/canonical/permalink/meta/robots/editor APIs remain in use.
+Advisory output is default; standalone ownership is opt-in, with recognized SEO
+plugin suppression and exact known Core schema coordination. Thai/score advice
+alone never becomes a publishing veto. Generated article schema uses actual
+native dates, authors and attachment URLs. Football suggestions do not silently
+claim current squads/matches or insert entity graphs into public HTML.
 
-The SEO gate is an editorial structural check, not an authorization perimeter.
-Final-state rechecks catch canonical metadata changes and direct `wp_publish_post`,
-but direct trusted plugin calls/SQL and other hooks can observe intermediate
-transitions. Do not use it as a substitute for transactional approval/rights gates.
-Existing published content is not bulk-demoted on activation. Gate deactivation
-removes enforcement, retains settings/meta. Existing FF90/Hermes publishing and
-kill-switch rules must remain authoritative.
+Full canonical semantics intentionally differ from V3: stricter origin checks,
+no external override allowlist, WordPress identity query preservation and trailing
+slash retention. WP gate final-state enforcement is not a transactional approval
+security perimeter. Unknown SEO plugins must declare external ownership or keep
+advisory mode. Full-page caches require explicit invalidation integration.
 
-Advisory mode stores recommendations without emitting canonical/schema/robots or
-changing the sitemap. An SEO plugin whose signatures are unknown must declare
-ownership using `ff90_seo_external_owner` or keep FF90 advisory. Do not claim
-compatibility with an actual unavailable V4 product. Full-cache delivery requires
-cache invalidation after publish/meta/privacy/settings changes; no CDN purge
-adapter is implemented. News sitemap is uncached at origin and requires CDN
-bypass or an appropriate short TTL. No external staging or production tested.
+The V3 GSC opportunity classifier/aggregate helpers and a full external SEO V4
+specification are not claimed as completed here. GSC API now supports actual
+read-only data once the operator supplies OAuth/consent/property access; actual
+Google verification is still NOT_RUN. No ordinary-news Google Indexing API.

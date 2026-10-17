@@ -16,11 +16,11 @@ PASS: theme H1 ownership configurable
 PASS: REST/private object creates queryable noindex marker
 PASS: news sitemap is valid XML
 PASS: recent public article included
-PASS: exclude old/future/private/password/noindex article 1208
-PASS: exclude old/future/private/password/noindex article 1209
-PASS: exclude old/future/private/password/noindex article 1210
-PASS: exclude old/future/private/password/noindex article 1211
-PASS: exclude old/future/private/password/noindex article 1212
+PASS: exclude old/future/private/password/noindex article 2233
+PASS: exclude old/future/private/password/noindex article 2234
+PASS: exclude old/future/private/password/noindex article 2235
+PASS: exclude old/future/private/password/noindex article 2236
+PASS: exclude old/future/private/password/noindex article 2237
 PASS: publication dates emitted in news namespace
 PASS: private site sitemap empty
 PASS: standalone explicit opt-in

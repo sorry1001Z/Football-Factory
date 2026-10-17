@@ -1,0 +1,29 @@
+PASS: football is an optional separate domain plugin
+PASS: English and Thai identities resolved from explicit registry
+PASS: unknown player/match identities never guessed
+PASS: no route invented for unmapped football identity
+PASS: relations explicitly marked static, not live membership
+PASS: known team produces advisory SportsOrganization
+PASS: Person schema refused without authoritative registry
+PASS: real V3 football intent rules run in PHP
+PASS: unverified route mapping excluded
+PASS: verified real taxonomy archive used as landing URL
+PASS: article target keyword drives intent separately from headline
+PASS: deep quality issues surface in native article analysis
+PASS: candidate article plus domain graph structurally validated
+PASS: domain link uses one existing verified archive without duplicate aliases
+PASS: generic SEO works independently with football adapter absent
+PASS: duplicate graph node IDs reported to editor
+PASS: ambiguous verified routes withheld instead of arbitrarily chosen
+PASS: link engine protects existing markup
+PASS: link engine protects existing markup
+PASS: link engine protects existing markup
+PASS: link engine protects existing markup
+PASS: link engine protects existing markup
+PASS: link engine protects existing markup
+PASS: Thai/emoji link offsets use UTF-16 units for JS editor
+PASS: existing target URL not suggested again
+PASS: ambiguous shared anchor label withheld
+PASS: unconfigured optional GSC reports disconnected, no metrics
+PASS: live typing analysis never sends content or calls GSC externally
+TOTAL: 28 advanced module checks passed

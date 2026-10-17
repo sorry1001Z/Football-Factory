@@ -31,6 +31,9 @@ async function test(name,fn){await fn();results.push({name,status:'PASS'});conso
    await p.getByText('Score:',{exact:false}).waitFor();
    await p.evaluate(()=>wp.data.dispatch('core/editor').editPost({content:'<h1>Unsaved extra heading</h1><p>ภาษาไทย</p>'}));
    await p.getByText('Blocking: H1_COUNT',{exact:true}).waitFor();
+   await p.getByLabel('Target keyword',{exact:true}).fill('premier league standings');
+   await p.getByText('Intent: STANDINGS',{exact:true}).waitFor();
+   await p.getByText('Schema graph: valid structure',{exact:true}).waitFor();
    await p.getByLabel('Meta description',{exact:true}).fill('Description edited in real Gutenberg sidebar');
    await p.getByLabel('Canonical override (optional)',{exact:true}).fill('https://untrusted.example/article');
    await p.getByText(/Blocking: INVALID_CANONICAL, H1_COUNT/).waitFor();
@@ -65,6 +68,18 @@ async function test(name,fn){await fn();results.push({name,status:'PASS'});conso
    await p.locator('[name="ff90_seo[description]"]').fill('Classic editor native nonce-protected metadata');
    await Promise.all([p.waitForNavigation({waitUntil:'domcontentloaded'}),p.locator('#save-post').click()]);
    check(JSON.parse(wp('post','meta','get',String(id),'_ff90_seo','--format=json')).description==='Classic editor native nonce-protected metadata','Classic meta not saved');
+  });
+  await test('Optional GSC settings stays disconnected without exposing credentials or fake metrics',async()=>{
+   await p.goto(base+'/wp-admin/options-general.php?page=ff90-seo-gsc',{waitUntil:'domcontentloaded'});
+   await p.getByText('Not connected.',{exact:true}).waitFor();
+   check(await p.getByRole('button',{name:'Connect Google',exact:true}).count()===1,'Connect control missing');
+   check(await p.getByRole('button',{name:'Fetch real metrics',exact:true}).count()===0,'Disconnected UI pretends metrics available');
+   check((await c.request.get(base+'/wp-admin/admin-post.php?action=ff90_gsc_connect')).status()===405,'OAuth start accepts GET');
+   check((await c.request.post(base+'/wp-admin/admin-post.php',{form:{action:'ff90_gsc_connect'}})).status()===403,'OAuth start missing nonce accepted');
+   var nonce=await p.locator('form[action*="admin-post.php"]').first().locator('[name="_wpnonce"]').inputValue();
+   var connect=await c.request.post(base+'/wp-admin/admin-post.php',{form:{action:'ff90_gsc_connect',_wpnonce:nonce}});
+   check(connect.status()===400&&(await connect.text()).includes('oauth configuration missing'),'Missing configuration did not fail explicitly');
+   await p.screenshot({path:path.join(out,'gsc-disconnected.png'),fullPage:true});
   });
   check(!errors.length,'Browser exceptions: '+errors.join('; '));results.push({name:'No browser exceptions',status:'PASS'});
   fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({environment:'WordPress 6.9 / PHP 8.4 / SQLite / Chromium; loopback only',results},null,2));

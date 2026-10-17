@@ -1,0 +1,2170 @@
+[
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 91,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": false
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 66,
+      "blockingIssues": [
+        {
+          "code": "INVALID_CANONICAL",
+          "kind": "blocking"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 76,
+      "blockingIssues": [
+        {
+          "code": "H1_COUNT",
+          "kind": "blocking",
+          "detail": "h1Count=0"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "One",
+        "Two"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 76,
+      "blockingIssues": [
+        {
+          "code": "H1_COUNT",
+          "kind": "blocking",
+          "detail": "h1Count=2"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "thin",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 88,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "THIN_CONTENT",
+          "kind": "warning"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [
+        "Increase useful content depth"
+      ],
+      "signals": {
+        "termCount": 1,
+        "sentenceCount": 1,
+        "averageSentenceLength": 1,
+        "maxParagraphTerms": 1,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 0,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "Tiny",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 85,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "TITLE_LENGTH",
+          "kind": "warning",
+          "detail": "tlen=4"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "short",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 86,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "META_LENGTH",
+          "kind": "warning",
+          "detail": "mlen=5"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Dup"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "h2": [
+        "dup"
+      ]
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 86,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "DUPLICATE_HEADING",
+          "kind": "warning"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "Same",
+      "meta": "Same",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 77,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "TITLE_LENGTH",
+          "kind": "warning",
+          "detail": "tlen=4"
+        },
+        {
+          "code": "META_LENGTH",
+          "kind": "warning",
+          "detail": "mlen=4"
+        },
+        {
+          "code": "META_DUPLICATES_TITLE",
+          "kind": "warning"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 74,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "THIN_CONTENT",
+          "kind": "warning"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=180.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=180"
+        },
+        {
+          "code": "REPEATED_PHRASE_RISK",
+          "kind": "warning",
+          "detail": "maxTrigram=178"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [
+        "Increase useful content depth"
+      ],
+      "signals": {
+        "termCount": 180,
+        "sentenceCount": 1,
+        "averageSentenceLength": 180,
+        "maxParagraphTerms": 180,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 178,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "targetKeyword": "word1"
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 83,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        },
+        {
+          "code": "KEYWORD_STUFFING_RISK",
+          "kind": "warning",
+          "detail": "ratio=0.347"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0.346875,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase repeat the phrase",
+      "internalLinks": 1,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 78,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "THIN_CONTENT",
+          "kind": "warning"
+        },
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=90.0"
+        },
+        {
+          "code": "REPEATED_PHRASE_RISK",
+          "kind": "warning",
+          "detail": "maxTrigram=30"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [
+        "Increase useful content depth"
+      ],
+      "signals": {
+        "termCount": 90,
+        "sentenceCount": 1,
+        "averageSentenceLength": 90,
+        "maxParagraphTerms": 90,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 30,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "updatedAt": "2020-01-01"
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 87,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [
+        {
+          "code": "CONTENT_REFRESH",
+          "kind": "opportunity",
+          "detail": "ageDays=2483"
+        }
+      ],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": 2482.5,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "sourceComplete": false
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 84,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        },
+        {
+          "code": "PROVENANCE_INCOMPLETE",
+          "kind": "warning"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "pageType": "ARTICLE",
+      "schemaTypes": []
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 83,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        },
+        {
+          "code": "SCHEMA_INCOMPLETE",
+          "kind": "warning",
+          "detail": "missing=NewsArticle"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [
+          "NewsArticle"
+        ],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "images": [
+        {
+          "alt": ""
+        },
+        {
+          "alt": "good"
+        }
+      ]
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 87,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        },
+        {
+          "code": "IMAGE_ALT_GAPS",
+          "kind": "warning",
+          "detail": "coverage=0.50"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 0.5,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 0,
+      "canonicalValid": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 86,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        }
+      ],
+      "opportunities": [
+        {
+          "code": "INTERNAL_LINK_OPPORTUNITY",
+          "kind": "opportunity"
+        }
+      ],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63 word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word85 word86 word87 word88 word89 word90 word91 word92 word93 word94 word95 word96 word97 word98 word99 word100 word101 word102 word103 word104 word105 word106 word107 word108 word109 word110 word111 word112 word113 word114 word115 word116 word117 word118 word119 word120 word121 word122 word123 word124 word125 word126 word127 word128 word129 word130 word131 word132 word133 word134 word135 word136 word137 word138 word139 word140 word141 word142 word143 word144 word145 word146 word147 word148 word149 word150 word151 word152 word153 word154 word155 word156 word157 word158 word159 word160 word161 word162 word163 word164 word165 word166 word167 word168 word169 word170 word171 word172 word173 word174 word175 word176 word177 word178 word179 word180 word181 word182 word183 word184 word185 word186 word187 word188 word189 word190 word191 word192 word193 word194 word195 word196 word197 word198 word199 word200 word201 word202 word203 word204 word205 word206 word207 word208 word209 word210 word211 word212 word213 word214 word215 word216 word217 word218 word219 word220 word221 word222 word223 word224 word225 word226 word227 word228 word229 word230 word231 word232 word233 word234 word235 word236 word237 word238 word239 word240 word241 word242 word243 word244 word245 word246 word247 word248 word249 word250 word251 word252 word253 word254 word255 word256 word257 word258 word259 word260 word261 word262 word263 word264 word265 word266 word267 word268 word269 word270 word271 word272 word273 word274 word275 word276 word277 word278 word279 word280 word281 word282 word283 word284 word285 word286 word287 word288 word289 word290 word291 word292 word293 word294 word295 word296 word297 word298 word299 word300 word301 word302 word303 word304 word305 word306 word307 word308 word309 word310 word311 word312 word313 word314 word315 word316 word317 word318 word319",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "duplicateContentSignal": true
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 83,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "LONG_SENTENCES",
+          "kind": "warning",
+          "detail": "avg=320.0"
+        },
+        {
+          "code": "LONG_PARAGRAPH",
+          "kind": "warning",
+          "detail": "maxPara=320"
+        },
+        {
+          "code": "DUPLICATE_CONTENT_SIGNAL",
+          "kind": "warning"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [],
+      "signals": {
+        "termCount": 320,
+        "sentenceCount": 1,
+        "averageSentenceLength": 320,
+        "maxParagraphTerms": 320,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": false
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "A sufficiently descriptive football news title",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "ข่าวลิเวอร์พูล วันนี้ ทีมฟุตบอล ลงสนาม ทดสอบภาษาไทย",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "locale": "th"
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 88,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "THIN_CONTENT",
+          "kind": "warning"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [
+        "Increase useful content depth"
+      ],
+      "signals": {
+        "termCount": 32,
+        "sentenceCount": 1,
+        "averageSentenceLength": 32,
+        "maxParagraphTerms": 32,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": true
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "quality",
+    "input": {
+      "title": "Football ⚽ emoji title sample",
+      "meta": "A useful description covering the football story, sources and important context for readers.",
+      "h1": [
+        "Main heading"
+      ],
+      "body": "ภาษาไทย football mixed ข่าวบอล.",
+      "internalLinks": 1,
+      "canonicalValid": true,
+      "locale": "th"
+    },
+    "thresholds": {
+      "requiredSchemaByPageType": {
+        "ARTICLE": [
+          "NewsArticle"
+        ]
+      }
+    },
+    "now": 1792324800,
+    "expected": {
+      "score": 88,
+      "blockingIssues": [],
+      "warnings": [
+        {
+          "code": "THIN_CONTENT",
+          "kind": "warning"
+        }
+      ],
+      "opportunities": [],
+      "recommendations": [
+        "Increase useful content depth"
+      ],
+      "signals": {
+        "termCount": 11,
+        "sentenceCount": 1,
+        "averageSentenceLength": 11,
+        "maxParagraphTerms": 11,
+        "keywordOccurrenceRatio": 0,
+        "maxRepeatedTrigram": 1,
+        "freshnessDays": null,
+        "imageAltCoverage": 1,
+        "missingSchema": [],
+        "titleH1Duplicate": false,
+        "heuristic": true
+      },
+      "policyVersion": "1"
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "football news today",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": {
+      "keyword": "football news today",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=en",
+      "locale": "en",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "football news today",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": {
+      "keyword": "football news today",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=th",
+      "locale": "th",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "FOOTBALL, NEWS!",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": {
+      "keyword": "FOOTBALL, NEWS!",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=en",
+      "locale": "en",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "FOOTBALL, NEWS!",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": {
+      "keyword": "FOOTBALL, NEWS!",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=th",
+      "locale": "th",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "ＦＯＯＴＢＡＬＬ ＮＥＷＳ",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": {
+      "keyword": "ＦＯＯＴＢＡＬＬ ＮＥＷＳ",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=en",
+      "locale": "en",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "ＦＯＯＴＢＡＬＬ ＮＥＷＳ",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": {
+      "keyword": "ＦＯＯＴＢＡＬＬ ＮＥＷＳ",
+      "intent": "NEWS",
+      "priority": 90,
+      "confidence": 0.82,
+      "matchedRules": [
+        "a"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=3; margin=2; locale=th",
+      "locale": "th",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "footballnews",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "footballnews",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "ตารางคะแนน วันนี้",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "ตารางคะแนน วันนี้",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": {
+      "keyword": "ตารางคะแนน วันนี้",
+      "intent": "STANDINGS",
+      "priority": 50,
+      "confidence": 0.98,
+      "matchedRules": [
+        "c"
+      ],
+      "explanation": "Matched weighted phrases: ตารางคะแนน; score=4; margin=4; locale=th",
+      "locale": "th",
+      "ambiguous": false
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "ไม่ใช่ตารางคะแนน",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "ไม่ใช่ตารางคะแนน",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "unknown",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "unknown",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "en"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          {
+            "phrase": "football news",
+            "weight": 3
+          }
+        ],
+        "priority": 90
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ],
+        "priority": 50
+      },
+      {
+        "id": "c",
+        "locale": "th",
+        "intent": "STANDINGS",
+        "patterns": [
+          {
+            "phrase": "ตารางคะแนน",
+            "weight": 4
+          }
+        ],
+        "negativePatterns": [
+          "ไม่ใช่ตารางคะแนน"
+        ]
+      }
+    ],
+    "options": {
+      "locale": "th"
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "football news",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          "football news"
+        ]
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ]
+      }
+    ],
+    "options": {},
+    "expected": {
+      "keyword": "football news",
+      "intent": "NEWS",
+      "priority": 50,
+      "confidence": 0.58,
+      "matchedRules": [
+        "a",
+        "b"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=1; margin=0; locale=en",
+      "locale": "en",
+      "ambiguous": true
+    }
+  },
+  {
+    "kind": "intent",
+    "input": "football news",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          "football news"
+        ]
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ]
+      }
+    ],
+    "options": {
+      "minConfidence": 1
+    },
+    "expected": null
+  },
+  {
+    "kind": "intent",
+    "input": "football news",
+    "rules": [
+      {
+        "id": "a",
+        "intent": "NEWS",
+        "patterns": [
+          "football news"
+        ]
+      },
+      {
+        "id": "b",
+        "intent": "RESULTS",
+        "patterns": [
+          "football news"
+        ]
+      }
+    ],
+    "options": {
+      "minConfidence": 0.5
+    },
+    "expected": {
+      "keyword": "football news",
+      "intent": "NEWS",
+      "priority": 50,
+      "confidence": 0.58,
+      "matchedRules": [
+        "a",
+        "b"
+      ],
+      "explanation": "Matched weighted phrases: football news; score=1; margin=0; locale=en",
+      "locale": "en",
+      "ambiguous": true
+    }
+  },
+  {
+    "kind": "schema",
+    "input": null,
+    "expected": {
+      "valid": false,
+      "issues": [
+        {
+          "code": "EMPTY_GRAPH",
+          "detail": "document is not an object"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {},
+    "expected": {
+      "valid": false,
+      "issues": [
+        {
+          "code": "EMPTY_GRAPH",
+          "detail": "@graph missing or empty"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": []
+    },
+    "expected": {
+      "valid": false,
+      "issues": [
+        {
+          "code": "EMPTY_GRAPH",
+          "detail": "@graph missing or empty"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": [
+        {
+          "@type": "NewsArticle",
+          "@id": "#a"
+        }
+      ]
+    },
+    "expected": {
+      "valid": true,
+      "issues": []
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": [
+        {},
+        {
+          "@type": "Person",
+          "@id": "#a"
+        },
+        {
+          "@type": "Person",
+          "@id": "#a"
+        }
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_TYPE",
+          "detail": "node at index 0"
+        },
+        {
+          "code": "DUPLICATE_ID",
+          "detail": "#a"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": [
+        {
+          "@type": "NewsArticle",
+          "author": {
+            "@id": "#missing"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNRESOLVED_REF",
+          "detail": "#missing"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": [
+        {
+          "@type": "NewsArticle",
+          "author": {
+            "@id": "https://example.org/person"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "valid": true,
+      "issues": []
+    }
+  },
+  {
+    "kind": "schema",
+    "input": {
+      "@graph": [
+        {
+          "@type": "NewsArticle",
+          "author": {
+            "@id": "#person"
+          }
+        },
+        {
+          "@type": "Person",
+          "@id": "#person"
+        }
+      ]
+    },
+    "expected": {
+      "valid": true,
+      "issues": []
+    }
+  }
+]

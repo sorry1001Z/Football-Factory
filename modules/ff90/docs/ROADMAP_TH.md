@@ -9,7 +9,7 @@
 
 | โมดูล | ลำดับ/สถานะ |
 |---|---|
-| A SEO V4 | เริ่มพอร์ตเป็น `ff90-seo` 0.1.0; ไม่ใช่ V4 ครบชุด ดู SPEC_AND_PARITY.md |
+| A SEO V4 | พอร์ตเป็น `ff90-seo` 0.2.0 พร้อม Intent/Deep Quality/Schema; Football และ GSC แยก ZIP แล้ว ยังไม่ใช่ V4 ครบชุด ดู MODULES_TH.md |
 | B Security V4 | ถัดไป: ต้องกำหนดขอบเขต V4; ของเดิม Next.js มี guards/CSRF/rate limit ไม่ถือว่าเป็น WP security plugin |
 | C Editorial Approval | ต้นแบบยังไม่เปิดใช้ เก็บนอก source ที่ส่งมอบ; รอกำหนดนโยบายคนอนุมัติ/ประวัติ/audit/การแก้ข่าวหลังอนุมัติให้ครบ |
 | D Football Data Engine | มี Next.js adapters เดิม; ต้องทำ WordPress bridge และตรวจ credentials/provider จริงก่อนเปิดใช้ |
@@ -24,7 +24,7 @@
 
 ## ลำดับงาน
 
-1. A: PHP SEO + Editor + sitemap/internal links แล้วเชื่อม GSC และ football adapter เมื่อ prerequisites พร้อม
+1. A: PHP SEO + Editor + sitemap/internal links + Intent/Deep Quality/Schema เสร็จ local; Football และ GSC adapter พร้อมตั้งค่า ส่วน live GSC/provider verification รอภายหลัง
 2. B/C/K: สิทธิ์/การอนุมัติ/การตรวจเนื้อหา ออกแบบร่วมกัน แต่แยกแพ็กเกจ
 3. D/G: ข้อมูลที่มี source + renderer ที่ไม่สร้างคะแนน/โปรแกรมเอง
 4. H/I: ภาพมีสิทธิ์และเลือกไม่ซ้ำ + renderer

@@ -22,6 +22,10 @@
       "status": "PASS"
     },
     {
+      "name": "Optional GSC settings stays disconnected without exposing credentials or fake metrics",
+      "status": "PASS"
+    },
+    {
       "name": "No browser exceptions",
       "status": "PASS"
     }

@@ -1,5 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
+function ff90_seo_article_schema( $post, $url, $description ) {
+    $schema = array( '@context' => 'https://schema.org', '@type' => 'post' === $post->post_type ? 'NewsArticle' : 'WebPage', '@id' => $url . '#article', 'url' => $url, 'headline' => wp_strip_all_tags( get_the_title( $post ) ), 'description' => $description, 'datePublished' => get_post_time( 'c', true, $post ), 'dateModified' => get_post_modified_time( 'c', true, $post ), 'author' => array( '@type' => 'Person', 'name' => get_the_author_meta( 'display_name', $post->post_author ), 'url' => get_author_posts_url( $post->post_author ) ), 'publisher' => array( '@type' => 'Organization', 'name' => get_bloginfo( 'name' ), 'url' => home_url( '/' ) ) );
+    $image = wp_get_attachment_image_url( get_post_thumbnail_id( $post ), 'full' ); if ( $image ) { $schema['image'] = array( $image ); }
+    return $schema;
+}
 add_action( 'wp', function () {
     if ( ! ff90_seo_owns_output() || ! is_singular( array( 'post', 'page' ) ) || is_preview() ) { return; }
     remove_action( 'wp_head', 'rel_canonical' );
@@ -25,8 +30,7 @@ add_action( 'wp_head', function () {
     $description = $meta['description'] ?: mb_substr( wp_strip_all_tags( strip_shortcodes( $post->post_excerpt ?: $post->post_content ) ), 0, 170, 'UTF-8' );
     echo '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
     if ( $description ) { echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n"; }
-    $schema = array( '@context' => 'https://schema.org', '@type' => 'post' === $post->post_type ? 'NewsArticle' : 'WebPage', '@id' => $url . '#article', 'url' => $url, 'headline' => wp_strip_all_tags( get_the_title( $post ) ), 'description' => $description, 'datePublished' => get_post_time( 'c', true, $post ), 'dateModified' => get_post_modified_time( 'c', true, $post ), 'author' => array( '@type' => 'Person', 'name' => get_the_author_meta( 'display_name', $post->post_author ), 'url' => get_author_posts_url( $post->post_author ) ), 'publisher' => array( '@type' => 'Organization', 'name' => get_bloginfo( 'name' ), 'url' => home_url( '/' ) ) );
-    $image = wp_get_attachment_image_url( get_post_thumbnail_id( $post ), 'full' ); if ( $image ) { $schema['image'] = array( $image ); }
+    $schema = ff90_seo_article_schema( $post, $url, $description );
     echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
 }, 25 );
 // Derived private scalar enables efficient WordPress sitemap queries; source remains _ff90_seo.

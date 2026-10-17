@@ -1,0 +1,562 @@
+{
+  "provenance": "Repository V3 static identity seed; not live match/season data",
+  "teams": [
+    {
+      "canonical_id": "team:manchester-united",
+      "display_name": "Manchester United",
+      "short_name": "Man Utd",
+      "country": "England",
+      "competition_canonical_ids": [
+        "league:premier-league",
+        "cup:fa-cup",
+        "cup:carabao-cup"
+      ],
+      "aliases": [
+        "Man United",
+        "Manchester Utd",
+        "MUFC",
+        "แมนยู"
+      ]
+    },
+    {
+      "canonical_id": "team:arsenal",
+      "display_name": "Arsenal",
+      "short_name": "ARS",
+      "country": "England",
+      "competition_canonical_ids": [
+        "league:premier-league",
+        "cup:fa-cup",
+        "cup:carabao-cup"
+      ],
+      "aliases": [
+        "The Gunners",
+        "อาร์เซนอล"
+      ]
+    },
+    {
+      "canonical_id": "team:liverpool",
+      "display_name": "Liverpool",
+      "short_name": "LIV",
+      "country": "England",
+      "competition_canonical_ids": [
+        "league:premier-league",
+        "cup:fa-cup",
+        "cup:carabao-cup"
+      ],
+      "aliases": [
+        "The Reds",
+        "ลิเวอร์พูล"
+      ]
+    },
+    {
+      "canonical_id": "team:real-madrid",
+      "display_name": "Real Madrid",
+      "short_name": "RM",
+      "country": "Spain",
+      "competition_canonical_ids": [
+        "league:laliga",
+        "cup:copa-del-rey",
+        "competition:uefa-champions-league"
+      ],
+      "aliases": [
+        "Real Madrid CF",
+        "เรอัล มาดริด"
+      ]
+    },
+    {
+      "canonical_id": "team:barcelona",
+      "display_name": "Barcelona",
+      "short_name": "BAR",
+      "country": "Spain",
+      "competition_canonical_ids": [
+        "league:laliga",
+        "cup:copa-del-rey",
+        "competition:uefa-champions-league"
+      ],
+      "aliases": [
+        "FC Barcelona",
+        "บาร์เซโลนา"
+      ]
+    },
+    {
+      "canonical_id": "team:bayern-munich",
+      "display_name": "Bayern Munich",
+      "short_name": "FCB",
+      "country": "Germany",
+      "competition_canonical_ids": [
+        "league:bundesliga",
+        "cup:dfb-pokal",
+        "competition:uefa-champions-league"
+      ],
+      "aliases": [
+        "FC Bayern",
+        "Bayern München",
+        "บาเยิร์น มิวนิค"
+      ]
+    },
+    {
+      "canonical_id": "team:juventus",
+      "display_name": "Juventus",
+      "short_name": "JUV",
+      "country": "Italy",
+      "competition_canonical_ids": [
+        "league:serie-a",
+        "cup:coppa-italia",
+        "competition:uefa-champions-league"
+      ],
+      "aliases": [
+        "Juve",
+        "ยูเวนตุส"
+      ]
+    },
+    {
+      "canonical_id": "team:paris-saint-germain",
+      "display_name": "Paris Saint-Germain",
+      "short_name": "PSG",
+      "country": "France",
+      "competition_canonical_ids": [
+        "league:ligue-1",
+        "cup:coupe-de-france",
+        "competition:uefa-champions-league"
+      ],
+      "aliases": [
+        "PSG",
+        "ปารีส แซง-แชร์แม็ง"
+      ]
+    }
+  ],
+  "competitions": [
+    {
+      "canonical_id": "league:premier-league",
+      "name": "Premier League",
+      "short_name": "PL",
+      "country": "England",
+      "competition_type": "league",
+      "priority": 100,
+      "enabled": true,
+      "aliases": [
+        "EPL",
+        "พรีเมียร์ลีก"
+      ]
+    },
+    {
+      "canonical_id": "league:laliga",
+      "name": "LaLiga",
+      "short_name": "PD",
+      "country": "Spain",
+      "competition_type": "league",
+      "priority": 95,
+      "enabled": true,
+      "aliases": [
+        "La Liga",
+        "ลาลีกา"
+      ]
+    },
+    {
+      "canonical_id": "league:bundesliga",
+      "name": "Bundesliga",
+      "short_name": "BL1",
+      "country": "Germany",
+      "competition_type": "league",
+      "priority": 95,
+      "enabled": true,
+      "aliases": [
+        "บุนเดสลีกา"
+      ]
+    },
+    {
+      "canonical_id": "league:serie-a",
+      "name": "Serie A",
+      "short_name": "SA",
+      "country": "Italy",
+      "competition_type": "league",
+      "priority": 90,
+      "enabled": true,
+      "aliases": [
+        "เซเรีย อา"
+      ]
+    },
+    {
+      "canonical_id": "league:ligue-1",
+      "name": "Ligue 1",
+      "short_name": "FL1",
+      "country": "France",
+      "competition_type": "league",
+      "priority": 85,
+      "enabled": true,
+      "aliases": [
+        "ลีกเอิง"
+      ]
+    },
+    {
+      "canonical_id": "competition:uefa-champions-league",
+      "name": "UEFA Champions League",
+      "short_name": "UCL",
+      "country": "UEFA",
+      "competition_type": "continental",
+      "priority": 100,
+      "enabled": true,
+      "aliases": [
+        "Champions League",
+        "UEFA Champions League",
+        "UEFA-Champions-League",
+        "ยูฟ่า แชมเปียนส์ลีก"
+      ]
+    },
+    {
+      "canonical_id": "competition:uefa-europa-league",
+      "name": "UEFA Europa League",
+      "short_name": "UEL",
+      "country": "UEFA",
+      "competition_type": "continental",
+      "priority": 80,
+      "enabled": true,
+      "aliases": [
+        "Europa League"
+      ]
+    },
+    {
+      "canonical_id": "competition:uefa-conference-league",
+      "name": "UEFA Conference League",
+      "short_name": "UECL",
+      "country": "UEFA",
+      "competition_type": "continental",
+      "priority": 75,
+      "enabled": true,
+      "aliases": [
+        "Conference League"
+      ]
+    },
+    {
+      "canonical_id": "cup:fa-cup",
+      "name": "FA Cup",
+      "short_name": "FAC",
+      "country": "England",
+      "competition_type": "cup",
+      "priority": 60,
+      "enabled": true,
+      "aliases": [
+        "The FA Cup"
+      ]
+    },
+    {
+      "canonical_id": "cup:carabao-cup",
+      "name": "Carabao Cup",
+      "short_name": "LC",
+      "country": "England",
+      "competition_type": "cup",
+      "priority": 50,
+      "enabled": true,
+      "aliases": [
+        "EFL Cup",
+        "League Cup"
+      ]
+    },
+    {
+      "canonical_id": "cup:copa-del-rey",
+      "name": "Copa del Rey",
+      "short_name": "CDR",
+      "country": "Spain",
+      "competition_type": "cup",
+      "priority": 60,
+      "enabled": true,
+      "aliases": [
+        "คัลปา เดล เรย์"
+      ]
+    },
+    {
+      "canonical_id": "cup:dfb-pokal",
+      "name": "DFB-Pokal",
+      "short_name": "DFB",
+      "country": "Germany",
+      "competition_type": "cup",
+      "priority": 60,
+      "enabled": true,
+      "aliases": [
+        "German Cup"
+      ]
+    },
+    {
+      "canonical_id": "cup:coppa-italia",
+      "name": "Coppa Italia",
+      "short_name": "CIT",
+      "country": "Italy",
+      "competition_type": "cup",
+      "priority": 60,
+      "enabled": true,
+      "aliases": [
+        "Italian Cup"
+      ]
+    },
+    {
+      "canonical_id": "cup:coupe-de-france",
+      "name": "Coupe de France",
+      "short_name": "CDF",
+      "country": "France",
+      "competition_type": "cup",
+      "priority": 55,
+      "enabled": true,
+      "aliases": [
+        "French Cup"
+      ]
+    }
+  ],
+  "intent_rules": [
+    {
+      "id": "fb-news-team-th",
+      "intent": "NEWS",
+      "entityType": "TEAM",
+      "landingPageType": "TEAM_HUB",
+      "priority": 90,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "ข่าวแมนยู",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวลิเวอร์พูล",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวอาร์เซนอล",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวเชลซี",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวแมนซิตี้",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวสเปอร์ส",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวบาร์เซโลนา",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวเรอัลมาดริด",
+          "weight": 3
+        },
+        {
+          "phrase": "ข่าวบาเยิร์น",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "fb-news-team-en",
+      "intent": "NEWS",
+      "entityType": "TEAM",
+      "landingPageType": "TEAM_HUB",
+      "priority": 80,
+      "locale": "en",
+      "patterns": [
+        {
+          "phrase": "manchester united news",
+          "weight": 3
+        },
+        {
+          "phrase": "liverpool news",
+          "weight": 3
+        },
+        {
+          "phrase": "arsenal news",
+          "weight": 3
+        },
+        {
+          "phrase": "chelsea news",
+          "weight": 3
+        },
+        {
+          "phrase": "manchester city news",
+          "weight": 3
+        },
+        {
+          "phrase": "tottenham news",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "fb-standings-th",
+      "intent": "STANDINGS",
+      "entityType": "COMPETITION",
+      "landingPageType": "STANDINGS",
+      "priority": 90,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "ตารางคะแนน",
+          "weight": 3
+        },
+        {
+          "phrase": "ตารางคะแนนพรีเมียร์ลีก",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-standings-en",
+      "intent": "STANDINGS",
+      "entityType": "COMPETITION",
+      "landingPageType": "STANDINGS",
+      "priority": 80,
+      "locale": "en",
+      "patterns": [
+        {
+          "phrase": "premier league standings",
+          "weight": 4
+        },
+        {
+          "phrase": "la liga standings",
+          "weight": 4
+        },
+        {
+          "phrase": "bundesliga standings",
+          "weight": 4
+        },
+        {
+          "phrase": "serie a standings",
+          "weight": 4
+        },
+        {
+          "phrase": "ligue 1 standings",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-fixtures-th",
+      "intent": "FIXTURES",
+      "entityType": "COMPETITION",
+      "landingPageType": "FIXTURES",
+      "priority": 85,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "โปรแกรมบอลคืนนี้",
+          "weight": 4
+        },
+        {
+          "phrase": "โปรแกรมพรีเมียร์ลีก",
+          "weight": 4
+        },
+        {
+          "phrase": "โปรแกรมบอลวันนี้",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "fb-fixtures-en",
+      "intent": "FIXTURES",
+      "entityType": "COMPETITION",
+      "landingPageType": "FIXTURES",
+      "priority": 75,
+      "locale": "en",
+      "patterns": [
+        {
+          "phrase": "fixtures tonight",
+          "weight": 4
+        },
+        {
+          "phrase": "premier league fixtures",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-results-th",
+      "intent": "RESULTS",
+      "entityType": "COMPETITION",
+      "landingPageType": "RESULTS",
+      "priority": 85,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "ผลบอลเมื่อคืน",
+          "weight": 4
+        },
+        {
+          "phrase": "ผลบอลสด",
+          "weight": 3
+        },
+        {
+          "phrase": "ผลพรีเมียร์ลีก",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-results-en",
+      "intent": "RESULTS",
+      "entityType": "COMPETITION",
+      "landingPageType": "RESULTS",
+      "priority": 75,
+      "locale": "en",
+      "patterns": [
+        {
+          "phrase": "results yesterday",
+          "weight": 4
+        },
+        {
+          "phrase": "premier league results",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-player-th",
+      "intent": "INFORMATIONAL",
+      "entityType": "PLAYER",
+      "landingPageType": "PLAYER_HUB",
+      "priority": 70,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "นักเตะอาร์เซนอล",
+          "weight": 4
+        },
+        {
+          "phrase": "นักเตะแมนยู",
+          "weight": 4
+        },
+        {
+          "phrase": "นักเตะลิเวอร์พูล",
+          "weight": 4
+        },
+        {
+          "phrase": "นักเตะบาร์เซโลนา",
+          "weight": 4
+        },
+        {
+          "phrase": "นักเตะเรอัลมาดริด",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "id": "fb-ucl-th",
+      "intent": "INFORMATIONAL",
+      "entityType": "COMPETITION",
+      "landingPageType": "COMPETITION_HUB",
+      "priority": 80,
+      "locale": "th",
+      "patterns": [
+        {
+          "phrase": "ยูฟ่าแชมเปียนส์ลีก",
+          "weight": 4
+        },
+        {
+          "phrase": "ยูฟ่า แชมเปียนส์ลีก",
+          "weight": 4
+        }
+      ]
+    }
+  ]
+}
