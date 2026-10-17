@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 — 2026-10-17
+
+- Add original SVG menu icons, selected native Contact page and public email.
+- Add Facebook/YouTube/TikTok placeholders with no fake social links.
+- Add three separately configurable banner image/URL controls, sponsored-link
+  markup and mobile-safe available-space designs.
+- Render source-backed NEW/BEST/HOT on news and category menu ribbons through
+  a separate optional FF90 News Insights plugin; NEW still works without it.
+- Verify native Media Library/Publish, exact NEW expiry, site-day/week rankings,
+  cookie deduplication and no DNT/bot/HEAD collection using isolated QA events.
+
 ## 1.1.0 — 2026-10-17
 
 - Adapt selected Smart Variety 1.0.7 decoration under its GPL v2-or-later grant.

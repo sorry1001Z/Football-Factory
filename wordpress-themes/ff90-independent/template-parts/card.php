@@ -8,7 +8,7 @@ $categories = get_the_category();
 <a class="card-image" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true"><?php if ( has_post_thumbnail() ) {
     the_post_thumbnail( 'large', array( 'class' => 'banner-image', 'alt' => '', 'loading' => 'hero' === $style ? 'eager' : 'lazy' ) );
 } else { ?><span class="image-placeholder" aria-hidden="true">FF<span>90</span><small>THE FOOTBALL EDIT</small></span><?php } ?></a>
-<div class="card-copy"><?php if ( $categories ) : ?><a class="category-label" href="<?php echo esc_url( get_category_link( $categories[0] ) ); ?>"><?php echo esc_html( $categories[0]->name ); ?></a><?php endif; ?>
+<div class="card-copy"><?php echo ff90_badges_html( ff90_post_badges( get_the_ID() ) ); ?><?php if ( $categories ) : ?><a class="category-label" href="<?php echo esc_url( get_category_link( $categories[0] ) ); ?>"><?php echo esc_html( $categories[0]->name ); ?></a><?php endif; ?>
 <h2 class="card-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 <div class="post-meta"><time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time></div>
 <?php if ( 'feed' === $style ) : ?><div class="card-excerpt"><?php the_excerpt(); ?></div><?php endif; ?></div></article>

@@ -1,0 +1,73 @@
+/* FF90 original menu icons, news indicators, social links and sellable ad slots. */
+.ff90-icon{display:inline-block;width:19px;height:19px;flex:0 0 19px;vertical-align:middle}
+.primary-nav a{display:flex;align-items:center;gap:7px;position:relative}
+.primary-nav .menu-label{min-width:0;overflow-wrap:anywhere}
+.primary-nav .sub-menu a{font-size:.8rem;line-height:1.65}
+.primary-nav>ul>li>a{padding-inline:14px}
+.ff90-post-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.ff90-badge{display:inline-block;flex-shrink:0;color:#fff;font:700 10px/1.6 Arial,sans-serif;letter-spacing:.03em;padding:1px 5px;border-radius:2px}
+.badge-new{background:#b81c32}.badge-best{background:#175e96}.badge-hot{background:#9b4006}
+.ff90-menu-badges{position:absolute;top:-6px;right:12px;display:flex;z-index:2;pointer-events:none}
+.ff90-menu-badges .ff90-badge{position:relative;line-height:1.5}
+.ff90-menu-badges .ff90-badge:after{content:"";position:absolute;bottom:-4px;left:5px;border-top:4px solid #b81c32;border-right:4px solid transparent}
+.ff90-menu-badges .badge-best:after{border-top-color:#175e96}.ff90-menu-badges .badge-hot:after{border-top-color:#9b4006}
+.ff90-social-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-width:0}
+.ff90-social-links a{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;line-height:1.5}
+.ff90-social-links .ff90-icon{width:15px;height:15px;flex-basis:15px}
+.utility .ff90-social-links{margin-left:auto}.utility .ff90-social-links a{color:#edf2fa;font-size:.65rem}
+.site-footer .ff90-social-links{margin-block:12px 22px}.site-footer .ff90-social-links a{color:#edf2fa}
+.masthead-tools{display:none}.masthead-sale{min-width:0;width:100%}
+.ff90-sale-slot{min-width:0;max-width:100%;padding:10px 12px;background:var(--paper);border:1px solid var(--line);margin:24px 0;position:relative;border-radius:5px;clear:both}
+.sale-label{display:block;color:var(--muted);font-size:9px;letter-spacing:.1em;text-align:center;margin-bottom:6px;line-height:1.5}
+.sale-available{display:flex;align-items:center;justify-content:center;gap:18px;min-height:100px;background:var(--soft);border:1px dashed var(--line);border-radius:3px;padding:16px;text-align:left}
+.sale-available strong{display:block;font-size:.9rem;line-height:1.65}.sale-available small{display:block;font:11px/1.8 Arial,sans-serif;letter-spacing:.08em;color:var(--muted)}
+.sale-mark{font:800 22px/1 Arial,sans-serif;letter-spacing:-.04em;border:1px solid var(--line);border-radius:4px;padding:12px;color:var(--muted);flex-shrink:0}
+.sale-contact{display:inline-block;background:var(--accent);color:var(--accent-ink);padding:9px 13px;border-radius:3px;font-size:.75rem;font-weight:bold;line-height:1.5;flex-shrink:0;text-align:center}
+.sale-contact:hover{color:var(--accent-ink);text-decoration:underline}
+.sale-widget{max-width:100%;min-width:0}.sale-widget img{width:100%;height:auto;object-fit:contain}.sale-widget figure{margin:0}.sale-widget p:last-child{margin-bottom:0}
+.sale-header{margin:0;padding:0;border:0;background:transparent}.sale-header .sale-label{text-align:right;margin-bottom:4px}.sale-header .sale-available{min-height:60px;padding:8px 10px;gap:10px}.sale-header .sale-mark{font-size:15px;padding:8px}.sale-header strong{font-size:.7rem}.sale-header small{font-size:9px}.sale-header .sale-contact{font-size:.65rem;padding:7px}
+.latest-feed>.ff90-sale-slot{margin-block:8px;grid-column:1/-1}
+@media(min-width:1025px){
+ .masthead .identity{grid-column:2;grid-row:1}
+ .masthead-tools{display:flex;flex-direction:column;gap:10px;grid-column:1;grid-row:1;min-width:0}
+ .masthead .masthead-tools .header-note{grid-column:auto;grid-row:auto}
+ .masthead .masthead-tools .header-note strong{font-size:.78rem}
+ .masthead .masthead-tools .header-note span{font-size:.55rem}
+ .masthead .masthead-tools .masthead-search{display:block;grid-column:auto;grid-row:auto;justify-self:auto;width:260px;max-width:100%}
+ .masthead-sale{grid-column:3;grid-row:1}
+ .primary-nav>ul{gap:0}.primary-nav>ul>li>a{font-size:.8rem}
+ .primary-nav .sub-menu .ff90-menu-badges{position:static;margin-left:auto}
+ .primary-nav .sub-menu .ff90-menu-badges .ff90-badge:after{content:none}
+}
+@media(min-width:768px) and (max-width:1024px){
+ .masthead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px}
+ .masthead-sale{max-width:468px;justify-self:end}
+}
+@media(max-width:1024px){
+ .primary-nav>ul>li>a{padding-block:12px}
+ .primary-nav .ff90-menu-badges{position:static;margin-left:4px;align-self:center}
+ .primary-nav .ff90-menu-badges .ff90-badge:after{content:none}
+ .utility-inner{flex-wrap:wrap;padding-block:6px;gap:8px}
+ .utility .ff90-social-links{order:3;flex-basis:100%;margin-left:0}
+}
+@media(max-width:767px){
+ .masthead{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding-block:18px}
+ .masthead .identity{text-align:left}
+ .masthead-sale{width:100%;max-width:468px}
+ .sale-header .sale-label{text-align:left}
+}
+@media(max-width:520px){
+ .sale-available{flex-wrap:wrap;gap:10px;padding:12px;justify-content:flex-start;min-height:100px}
+ .sale-available>div{flex:1;min-width:0}.sale-available strong{font-size:.8rem}
+ .sale-available .sale-contact{margin-left:auto}.sale-mark{font-size:17px;padding:10px}
+ .sale-header .sale-available{flex-wrap:nowrap;gap:8px;min-height:66px;padding:8px}
+ .sale-header strong{font-size:.65rem}.sale-header .sale-contact{font-size:.6rem;padding:7px}
+ .sale-header .sale-mark{font-size:14px;padding:6px}
+ .ff90-sale-slot{padding:8px;margin-block:20px}.sale-header{padding:0;margin:0}
+}
+.ff90-social-links a,.ff90-social-placeholder{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid currentColor;border-radius:50%;color:inherit}
+.ff90-social-placeholder{opacity:.85;cursor:default}
+.ff90-social-links .ff90-icon{width:17px;height:17px;flex-basis:17px}
+.ff90-contact-details h2{font-size:1rem;margin-top:20px}.ff90-contact-details a{display:inline-flex;align-items:center;gap:8px;max-width:100%;overflow-wrap:anywhere;font-size:.85rem}.ff90-contact-details a span{min-width:0}
+.site-footer .ff90-contact-details a{color:#edf2fa}.utility .ff90-social-links a{color:#edf2fa}
+.sale-creative,.sale-creative-link{display:block;width:100%;max-width:100%;height:auto;object-fit:contain}.sale-creative-link img{width:100%;height:auto;object-fit:contain}

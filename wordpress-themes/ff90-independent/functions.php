@@ -2,6 +2,7 @@
 /** FF90 presentation bootstrap. @package ff90-independent */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 require get_template_directory() . '/inc/presentation.php';
+require get_template_directory() . '/inc/editorial-features.php';
 add_action( 'after_setup_theme', function () {
     load_theme_textdomain( 'ff90-independent', get_template_directory() . '/languages' );
     add_theme_support( 'title-tag' );
@@ -20,6 +21,7 @@ add_action( 'wp_enqueue_scripts', function () {
     $version = wp_get_theme()->get( 'Version' );
     wp_enqueue_style( 'ff90-independent', get_stylesheet_uri(), array(), $version );
     wp_enqueue_style( 'ff90-smartvariety-skin', get_template_directory_uri() . '/assets/css/smartvariety-skin.css', array( 'ff90-independent' ), $version );
+    wp_enqueue_style( 'ff90-editorial-features', get_template_directory_uri() . '/assets/css/editorial-features.css', array( 'ff90-smartvariety-skin' ), $version );
     wp_enqueue_script( 'ff90-independent', get_template_directory_uri() . '/assets/js/theme.js', array(), $version, true );
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) { wp_enqueue_script( 'comment-reply' ); }
 } );

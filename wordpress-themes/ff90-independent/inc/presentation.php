@@ -27,11 +27,12 @@ function ff90_card( $style = 'grid' ) {
     get_template_part( 'template-parts/card', null, array( 'style' => $style ) );
 }
 function ff90_fallback_menu() {
-    echo '<ul class="menu"><li><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'หน้าแรก', 'ff90-independent' ) . '</a></li>';
+    echo '<ul class="menu"><li><a href="' . esc_url( home_url( '/' ) ) . '">' . ff90_icon( 'home' ) . '<span class="menu-label">' . esc_html__( 'หน้าแรก', 'ff90-independent' ) . '</span></a></li>';
     $categories = get_categories( array( 'number' => 6, 'hide_empty' => true ) );
     foreach ( $categories as $category ) {
-        echo '<li><a href="' . esc_url( get_category_link( $category ) ) . '">' . esc_html( $category->name ) . '</a></li>';
+        echo '<li><a href="' . esc_url( get_category_link( $category ) ) . '">' . ff90_icon( 'football' ) . '<span class="menu-label">' . esc_html( $category->name ) . '</span></a></li>';
     }
+    if ( ff90_contact_page_id() ) { echo '<li><a href="' . esc_url( get_permalink( ff90_contact_page_id() ) ) . '">' . ff90_icon( 'contact' ) . '<span class="menu-label">' . esc_html__( 'ติดต่อเรา', 'ff90-independent' ) . '</span></a></li>'; }
     echo '</ul>';
 }
 function ff90_fixture_date() {

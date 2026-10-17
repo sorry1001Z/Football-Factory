@@ -3,7 +3,7 @@ Contributors: ff90
 Requires at least: 6.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Version: 1.1.0
+Version: 1.2.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -25,6 +25,11 @@ No third-party photography, fonts or paid ColorMag assets are included.
 See LICENSE and NOTICE. Screenshot images are original synthetic QA artwork.
 
 == Changelog ==
+= 1.2.0 =
+Original menu icons, contact/email/social placeholders, three native banner
+image/link controls, and optional source-backed news badges. Statistics live
+in a separate FF90 News Insights plugin, not in theme data tables.
+
 = 1.1.0 =
 Selected licensed Smart Variety decoration: centered desktop header, rounded
 search, category pills and navigation/section accents; preserve native menus,
