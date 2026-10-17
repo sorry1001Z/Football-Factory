@@ -1,0 +1,6 @@
+# Codex assignment — FF90 Independent Theme
+Issue: https://github.com/sorry1001Z/Football-Factory/issues/2
+Only modify isolated new `wordpress-themes/ff90-independent/` source on branch `codex/ff90-independent-theme`. Adapt free GPL ColorMag patterns only under valid license or build original theme. Paid ColorMag Pro demo visual reference only.
+Implement both layouts per `FF90_DUAL_LAYOUT_BLUEPRINT.md`. Preserve existing `football-factory/`, plugins, n8n, production database, kill switch and publishing gates. Use only published post content for both, presentation-only switch. Graceful absence of FF90 Core and SEO modules.
+Run PHP lint, JS parse, WP Theme Check and **real** staging WordPress switch/install; Playwright 2x5 viewport, article/search/archive/404, menu, long Thai/empty/news content; unit/security/SEO collision checks; add screenshots and ZIP build recipe.
+Send PR from feature branch including pass/fail/not-run QA and screenshots. Do not assert WordPress E2E passed before real runtime test. If Codex environment unconfigured, comment blocker in Issue #2.
