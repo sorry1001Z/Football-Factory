@@ -1,0 +1,3 @@
+# FF90 agent instructions (Codex / Hermes / Claude Code)
+Use `docs/FF90_DUAL_LAYOUT_BLUEPRINT.md`, `docs/FF90_CODEX_TASK.md` and `docs/FF90_HERMES_TASK.md`.
+Theme presentation is owned by Codex; source-backed news and Image Factory by Hermes; SEO/Analytics are independent plugins. No simultaneous edits to the same files. No live database/production/active n8n/paid API changes without explicit operator approval. Any data displayed as score, fixture, quote, player or traffic figure must come from a verified source. No unlicensed player photography or unauthorized ColorMag Pro content. Preserve user approval, image rights and fail-closed kill switch. Any E2E tests not run must say NOT_RUN; open PR with reproducible QA.
