@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "theme": "twentytwentyfive",
+  "checks": [
+    "one canonical",
+    "one description",
+    "one NewsArticle schema",
+    "Core schema coordinated"
+  ],
+  "scope": "local sandbox"
+}

@@ -1,0 +1,10 @@
+PASS: 1001+ articles produce valid sitemap index XML
+PASS: no silent truncation at 1000 articles
+PASS: index references child sitemap pages
+PASS: child 1 is valid XML
+PASS: child 1 respects 1000 URL maximum
+PASS: child 2 is valid XML
+PASS: child 2 respects 1000 URL maximum
+PASS: all 1001 fixture articles included across pages
+PASS: no duplicate URLs between pages
+TOTAL: 9 checks passed

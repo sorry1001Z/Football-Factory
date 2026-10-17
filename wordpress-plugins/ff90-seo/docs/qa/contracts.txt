@@ -1,0 +1,43 @@
+PASS: default advisory owns no metadata
+PASS: reject unsafe/cross-origin canonical: javascript:alert(1)
+PASS: reject unsafe/cross-origin canonical: https://attacker.example/x
+PASS: reject unsafe/cross-origin canonical: http://example.org/x
+PASS: reject unsafe/cross-origin canonical: https://user:pass@example.org/
+PASS: reject unsafe/cross-origin canonical: //attacker.example/
+PASS: reject unsafe/cross-origin canonical: https://example.org/a\b
+PASS: reject unsafe/cross-origin canonical: https://example.org/a/../b
+PASS: reject unsafe/cross-origin canonical: https://example.org/%2e%2e/b
+PASS: canonical keeps permalink trailing slash, removes tracking
+PASS: plain WordPress permalink retains identity
+PASS: pagination retained
+PASS: Thai short content warns without hard blocking
+PASS: body H1 adds to theme H1
+PASS: theme H1 ownership configurable
+PASS: REST/private object creates queryable noindex marker
+PASS: news sitemap is valid XML
+PASS: recent public article included
+PASS: exclude old/future/private/password/noindex article 1208
+PASS: exclude old/future/private/password/noindex article 1209
+PASS: exclude old/future/private/password/noindex article 1210
+PASS: exclude old/future/private/password/noindex article 1211
+PASS: exclude old/future/private/password/noindex article 1212
+PASS: publication dates emitted in news namespace
+PASS: private site sitemap empty
+PASS: standalone explicit opt-in
+PASS: external metadata owner takes precedence
+PASS: native sitemap excludes noindex and password posts
+PASS: assigned taxonomy entity suggests a real landing page
+PASS: link suggestions ignore protected markup
+PASS: link suggestions ignore protected markup
+PASS: link suggestions ignore protected markup
+PASS: link suggestions ignore protected markup
+PASS: link suggestions ignore protected markup
+PASS: anonymous analysis denied
+PASS: authorized unsaved editor content analyzed without saving
+PASS: analysis never modifies article
+PASS: malformed REST analysis input rejected
+PASS: opt-in structural gate demotes invalid publish
+PASS: warning-only content may publish
+PASS: post-meta canonical mutation rechecks published content
+PASS: direct publish final state rechecked
+TOTAL: 42 checks passed
