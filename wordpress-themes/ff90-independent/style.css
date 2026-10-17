@@ -1000,3 +1000,9 @@ figure{
   color:#fff}
 .site-footer a:hover,.priority-panel a:hover,.fixture-nav a:hover{
   color:#ff8ba0}
+/* Native WordPress child items: visible disclosure cue without replacing links. */
+.primary-nav .menu-item-has-children>a::after{
+  content:" ▾";
+  margin-inline-start:.35em;
+  font-size:.8em;
+}

@@ -85,3 +85,18 @@ local deliverable, not silently force-added to Git. Source-controlled reports,
 screenshots, tests, GPL text, notices and plugin contracts remain in this theme
 folder. Follow `tests/README.md` to reproduce the runtime QA. No production
 approval is implied by these local results.
+
+## League submenu update
+
+Added a disclosure arrow for native parent menu items and configured five real
+WordPress category links beneath ข่าวฟุตบอล in the disposable sandbox:
+พรีเมียร์ลีก, ลาลีกา, บุนเดสลีกา, กัลโช่ เซเรีย อา, ลีกเอิง. No production
+menu/category records were changed. See LEAGUE_MENU.md for the native admin
+configuration; theme installation does not silently create site content.
+
+`qa/submenu-results.json` records the added regression run for both layouts at
+all five widths, desktop keyboard/hover, mobile child links, five HTTP 200
+category destinations, and axe at 390/1440. Updated screenshots are
+`qa/screenshots/league-menu-desktop.png` and `league-menu-mobile.png`; earlier
+gallery images document the preceding baseline. The refreshed ZIP checksum is
+recorded in `qa/package-results.json`.

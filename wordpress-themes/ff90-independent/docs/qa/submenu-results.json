@@ -1,0 +1,64 @@
+{
+  "leagues": [
+    "พรีเมียร์ลีก",
+    "ลาลีกา",
+    "บุนเดสลีกา",
+    "กัลโช่ เซเรีย อา",
+    "ลีกเอิง"
+  ],
+  "results": [
+    {
+      "layout": "main-v2",
+      "width": 360,
+      "status": "PASS"
+    },
+    {
+      "layout": "main-v2",
+      "width": 390,
+      "status": "PASS"
+    },
+    {
+      "layout": "main-v2",
+      "width": 768,
+      "status": "PASS"
+    },
+    {
+      "layout": "main-v2",
+      "width": 1024,
+      "status": "PASS"
+    },
+    {
+      "layout": "main-v2",
+      "width": 1440,
+      "status": "PASS"
+    },
+    {
+      "layout": "colormag-01",
+      "width": 360,
+      "status": "PASS"
+    },
+    {
+      "layout": "colormag-01",
+      "width": 390,
+      "status": "PASS"
+    },
+    {
+      "layout": "colormag-01",
+      "width": 768,
+      "status": "PASS"
+    },
+    {
+      "layout": "colormag-01",
+      "width": 1024,
+      "status": "PASS"
+    },
+    {
+      "layout": "colormag-01",
+      "width": 1440,
+      "status": "PASS"
+    }
+  ],
+  "archiveLinks": "5/5 HTTP 200; empty categories show honest empty state",
+  "keyboard": "desktop Tab enters submenu",
+  "axe": "zero violations at 390/1440"
+}
