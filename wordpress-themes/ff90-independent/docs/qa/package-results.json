@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "files": 27,
+  "sha256": "7f6325f357b925dd606d31bf3dca3ab03ad628f0132192eeeb6662824024f32c",
+  "installed_file_match": true,
+  "repeat_build_hash_match": true,
+  "archive": "dist/ff90-independent-1.0.0.zip"
+}

@@ -49,3 +49,5 @@ must suppress core canonical if replacing it, as WordPress SEO plugins normally
 do. Analytics owns its tracking hooks and consent handling. Neither plugin's
 actual source is in this repository; real-version integration remains NOT_RUN.
 Contract-test doubles must be clearly reported as doubles, not plugin QA.
+
+Core 0.1.0 currently emits its own JSON-LD using `Football_Factory_Core::print_schema` on `wp_head` (the concrete class/callback must be checked in the installed version). A real SEO plugin must coordinate schema ownership with Core as well as core WordPress canonical; the theme intentionally does not suppress plugin output. This cross-plugin production collision check is NOT_RUN without SEO Growth V4.

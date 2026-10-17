@@ -16,12 +16,17 @@ $posts = ff90_news_query( array( 'posts_per_page' => -1 ) )->posts;
 $before = array();
 foreach ( $posts as $post ) { $before[ $post->ID ] = array( get_permalink( $post ), get_post_thumbnail_id( $post ), $post->post_content, get_post_meta( $post->ID ) ); $assert( $post->post_status === 'publish', 'only published query result' ); }
 $initial = get_theme_mod( 'ff90_home_layout' );
+$match_id = wp_insert_post( array( 'post_type' => 'ff_match', 'post_status' => 'draft', 'post_title' => 'FF90 synthetic QA metadata record, not a real match' ) );
+$kickoff = '2026-10-18T20:00:00+07:00';
+update_post_meta( $match_id, '_ff90_kickoff_at', $kickoff );
 foreach ( array( 'main-v2', 'colormag-01', 'main-v2', 'colormag-01' ) as $layout ) {
     set_theme_mod( 'ff90_home_layout', $layout );
     $assert( ff90_layout() === $layout, 'layout selection roundtrip ' . $layout );
+    $assert( get_post_meta( $match_id, '_ff90_kickoff_at', true ) === $kickoff, 'ISO-8601 kickoff remains unchanged ' . $layout );
     foreach ( $posts as $post ) { $now = get_post( $post ); $assert( $before[ $post->ID ] === array( get_permalink( $post ), get_post_thumbnail_id( $post ), $now->post_content, get_post_meta( $post->ID ) ), 'content/permalink/media/meta unchanged ' . $post->ID ); }
 }
 set_theme_mod( 'ff90_home_layout', $initial );
+wp_delete_post( $match_id, true );
 $assert( ff90_fixture_date()->format( 'Y-m-d' ) === wp_date( 'Y-m-d' ), 'today follows WP timezone' );
 $_GET['ff90_date'] = '2026-10-18';
 $assert( ff90_fixture_date()->format( 'Y-m-d' ) === '2026-10-18', 'ISO date accepted' );

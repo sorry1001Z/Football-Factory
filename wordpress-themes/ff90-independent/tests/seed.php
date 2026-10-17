@@ -42,4 +42,6 @@ if ( ! $menu ) {
 set_theme_mod( 'nav_menu_locations', array( 'primary' => $menu_id, 'footer' => $menu_id ) );
 set_theme_mod( 'ff90_home_layout', 'colormag-01' );
 wp_delete_post( 1, true );
+update_option( 'widget_text', array( 2 => array( 'title' => 'FF90 · พื้นที่พาร์ตเนอร์', 'text' => 'QA — พื้นที่โฆษณาจำลองสำหรับทดสอบการจัดวาง', 'filter' => true, 'visual' => true ), '_multiwidget' => 1 ) );
+update_option( 'sidebars_widgets', array( 'wp_inactive_widgets' => array(), 'ff90-sidebar' => array(), 'ff90-advertisement' => array( 'text-2' ), 'ff90-footer' => array(), 'array_version' => 3 ) );
 echo wp_json_encode( array( 'post_ids' => $ids, 'home' => home_url( '/' ) ) );
