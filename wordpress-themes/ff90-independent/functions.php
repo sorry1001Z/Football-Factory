@@ -19,6 +19,7 @@ add_action( 'after_setup_theme', function () {
 add_action( 'wp_enqueue_scripts', function () {
     $version = wp_get_theme()->get( 'Version' );
     wp_enqueue_style( 'ff90-independent', get_stylesheet_uri(), array(), $version );
+    wp_enqueue_style( 'ff90-smartvariety-skin', get_template_directory_uri() . '/assets/css/smartvariety-skin.css', array( 'ff90-independent' ), $version );
     wp_enqueue_script( 'ff90-independent', get_template_directory_uri() . '/assets/js/theme.js', array(), $version, true );
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) { wp_enqueue_script( 'comment-reply' ); }
 } );

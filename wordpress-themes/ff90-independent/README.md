@@ -1,4 +1,4 @@
-# FF90 Independent 1.0.0
+# FF90 Independent 1.1.0
 
 Original, standalone WordPress theme. PHP 7.4+ / WordPress 6.5+. No parent,
 builder, paid theme, external font or API key required. Source and deliverables
@@ -6,7 +6,7 @@ are isolated here; existing themes, plugins and Hermes workflows are unchanged.
 
 ## Install
 
-1. Use `dist/ff90-independent-1.0.0.zip` or run `python3 tests/build.py`.
+1. Use `dist/ff90-independent-1.1.0.zip` or run `python3 tests/build.py`.
 2. On a staging WordPress site: Appearance → Themes → Add New → Upload Theme.
 3. Activate FF90 Independent. Assign Primary / Footer menus and sidebar widgets.
 4. Publish native posts with licensed Featured Images (1280×720 recommended).
@@ -61,3 +61,12 @@ retained. Back up the staging database before installation. Production changes
 require a separate operator approval.
 
 GPL-3.0-or-later. See LICENSE and NOTICE.
+
+## Smart Variety visual adaptation (1.1.0)
+
+Selected decoration from the user-supplied Smart Variety 1.0.7 is adapted in a
+separate CSS skin: centered desktop masthead, rounded search, category pills,
+menu underline/dropdown surfaces and section title borders. Both homepage
+layouts and native league/cup menus remain supported. Original FF90 business
+logic boundaries are unchanged. See docs/SMARTVARIETY_ADAPTATION.md, NOTICE and
+licenses/SmartVariety-GPL-2.0.txt for provenance and licensing.

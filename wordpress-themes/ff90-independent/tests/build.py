@@ -13,7 +13,7 @@ archive = out / f'ff90-independent-{version}.zip'
 allowed_root = {'.php', '.css'}
 files = sorted(p for p in root.rglob('*') if p.is_file() and (
     (len(p.relative_to(root).parts) == 1 and (p.suffix in allowed_root or p.name in {'LICENSE', 'NOTICE', 'README.md', 'CHANGELOG.md', 'readme.txt', 'screenshot.png'}))
-    or p.relative_to(root).parts[0] in {'assets', 'inc', 'template-parts', 'languages'}
+    or p.relative_to(root).parts[0] in {'assets', 'inc', 'template-parts', 'languages', 'licenses'}
 ))
 assert (root / 'screenshot.png').exists(), 'Generate the actual WP preview screenshot first'
 with ZipFile(archive, 'w', ZIP_DEFLATED, compresslevel=9) as z:

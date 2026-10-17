@@ -3,7 +3,7 @@ Contributors: ff90
 Requires at least: 6.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Version: 1.0.0
+Version: 1.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,10 +20,16 @@ Football/SEO/analytics integrations are optional and owned by plugins.
 == Copyright ==
 FF90 Independent, Copyright 2026 FF90 Contributors.
 FF90 Independent is distributed under the terms of the GNU GPL v3 or later.
-No third-party source, photography, fonts or paid ColorMag assets are included.
+Selected Smart Variety GPL-2.0-or-later decorative CSS is adapted with attribution.
+No third-party photography, fonts or paid ColorMag assets are included.
 See LICENSE and NOTICE. Screenshot images are original synthetic QA artwork.
 
 == Changelog ==
+= 1.1.0 =
+Selected licensed Smart Variety decoration: centered desktop header, rounded
+search, category pills and navigation/section accents; preserve native menus,
+full-frame banners, keyboard behavior and responsive layouts.
+
 = 1.0.0 =
 Two original homepages, sanitized native Customizer switch, uncropped featured
 images, 13 banner classes, optional football plugin slots, dark mode and native

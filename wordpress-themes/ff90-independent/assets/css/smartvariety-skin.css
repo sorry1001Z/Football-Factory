@@ -1,0 +1,141 @@
+/*
+ * FF90 decorative adaptation of Smart Variety 1.0.7 by indytheme.com.
+ * Source: user-supplied smartvariety_1.0.7.zip, styles/main.css.
+ * Original license: GPL-2.0-or-later; this adaptation: GPL-3.0-or-later.
+ * Preserve this notice; see NOTICE and licenses/SmartVariety-GPL-2.0.txt.
+ * Modified selectors, responsive behavior and accessible FF90 colors in 2026.
+ * Only presentation CSS is adapted; no vendor PHP, JS, images or fonts bundled.
+ */
+
+/* Adapted from .header__bottom / .headerbottom__logo; native FF90 markup. */
+.masthead-search { display: none; }
+@media (min-width: 1025px) {
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 32px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    min-height: 140px;
+  }
+  .masthead .identity { grid-column: 2; grid-row: 1; text-align: center; }
+  .masthead .header-note {
+    grid-column: 1;
+    grid-row: 1;
+    border: 0;
+    padding: 0;
+  }
+  .masthead .header-note strong { font-size: .95rem; }
+  .masthead-search {
+    display: block;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    width: 270px;
+    max-width: 100%;
+  }
+  .nav-inner { justify-content: center; }
+  .nav-inner > .header-search { display: none; }
+  .primary-nav > ul { justify-content: center; gap: 0; }
+  .primary-nav > ul > li > a { padding: 14px 20px; }
+  .primary-nav > ul > li:not(:last-child) > a {
+    background-image: linear-gradient(var(--line), var(--line));
+    background-size: 1px 16px;
+    background-position: right center;
+    background-repeat: no-repeat;
+  }
+}
+@media (max-width: 1024px) {
+  .masthead .header-note { display: none; }
+}
+
+/* Adapted from .searchform: rounded search, without width-changing animation. */
+.site-header .search-form {
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--soft);
+}
+.site-header .search-form input {
+  border: 0;
+  border-radius: 24px 0 0 24px;
+  background: transparent;
+}
+.site-header .search-form button {
+  border-radius: 24px;
+  flex-shrink: 0;
+}
+
+/* Adapted from .navlg__menu::after: accent underline for mouse AND keyboard. */
+@media (min-width: 1025px) {
+  .primary-nav > ul > li > a { position: relative; }
+  .primary-nav > ul > li > a::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 10px;
+    right: 10px;
+    margin: 0 auto;
+    background-color: var(--accent);
+    transition: width .2s ease-in-out;
+  }
+  .primary-nav > ul > li:hover > a::before,
+  .primary-nav > ul > li:focus-within > a::before,
+  .primary-nav > ul > .current-menu-item > a::before {
+    width: calc(100% - 20px);
+  }
+  /* Adapted from .navlgmenu__sub: scoped surface, existing bounded scroll kept. */
+  .primary-nav .sub-menu {
+    min-width: 230px;
+    border-radius: 5px;
+    padding: 6px;
+    border-top: 3px solid var(--accent);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+  }
+  .primary-nav .sub-menu a { padding: 10px 12px; border-radius: 3px; }
+  .primary-nav .sub-menu a:hover,
+  .primary-nav .sub-menu a:focus-visible { background: var(--soft); }
+}
+
+/* Adapted from .categorytag: category pills; every palette color supports white. */
+.news-card { --sv-category: #a61937; }
+.banner-breaking, .banner-result { --sv-category: #a61937; }
+.banner-transfer, .banner-team { --sv-category: #215377; }
+.banner-preview, .banner-competition { --sv-category: #165e53; }
+.banner-standings, .banner-stats { --sv-category: #694521; }
+.banner-tactics, .banner-infographic { --sv-category: #643b83; }
+.banner-youth, .banner-feature { --sv-category: #304d77; }
+.category-label {
+  padding: 2px 9px;
+  border-radius: 20px;
+  display: inline-block;
+  color: #fff;
+  background: var(--sv-category, #a61937);
+  font-size: .68rem;
+  line-height: 1.8;
+}
+.category-label:hover, .category-label:focus-visible { color: #fff; text-decoration: underline; }
+.news-card { border-radius: 5px; box-shadow: 0 3px 12px rgba(12, 23, 41, .035); }
+/* Keep all banner pixels: no Smart Variety image zoom/crop or title overlay. */
+.card-image img { object-fit: contain; transform: none; }
+
+/* Adapted from .columnheader1--border / __title: full title-width underline. */
+.section-heading { border-bottom: 2px solid var(--line); margin-bottom: 18px; }
+.section-heading .section-title {
+  border-bottom: 4px solid var(--accent);
+  padding-bottom: 10px;
+  margin-bottom: -2px;
+}
+.section-heading .section-title::after { content: none; }
+.sidebar-panel .section-title { border-bottom-width: 2px; }
+
+@media (max-width: 520px) {
+  .site-header .search-form { padding: 2px; }
+  .site-header .search-form input { padding-inline: 8px; }
+  .category-label { font-size: .63rem; padding-inline: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .primary-nav > ul > li > a::before { transition: none; }
+}

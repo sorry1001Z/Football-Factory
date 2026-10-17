@@ -1,8 +1,13 @@
 {
   "status": "PASS",
-  "files": 27,
-  "sha256": "51c3ab54b19534f9704da29fee023f2880cc72a3f36090d70b793cb5a8fe1315",
+  "themeVersion": "1.1.0",
+  "files": 29,
+  "sha256": "3f07b739a1396d70a1fc7b2596e6b0d3878c456ae731d8386ed9b34a68be02a8",
   "installed_file_match": true,
   "repeat_build_hash_match": true,
-  "archive": "dist/ff90-independent-1.0.0.zip"
+  "archive": "dist/ff90-independent-1.1.0.zip",
+  "licenses": [
+    "LICENSE (GPL-3.0-or-later)",
+    "licenses/SmartVariety-GPL-2.0.txt (original supplied license)"
+  ]
 }

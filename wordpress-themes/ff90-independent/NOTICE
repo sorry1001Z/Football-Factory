@@ -3,9 +3,21 @@ Original source licensed GPL-3.0-or-later. No warranty.
 
 Visual organization takes general inspiration from magazine layouts including
 ColorMag Free by ThemeGrill (GPLv3; reference 4.2.5, commit
-dd2f4ce50bd0b212bf3d3da7a084b605f35beb91). No upstream source or assets are
+dd2f4ce50bd0b212bf3d3da7a084b605f35beb91). No ColorMag source or assets are
 included. ColorMag / ThemeGrill trademarks are not FF90 branding. No paid
 ColorMag Pro/Plus source or demo assets are used.
 
 No bundled photography or external fonts. Screenshot fixtures are original,
 synthetic QA artwork, not documentary match images or news evidence.
+
+Smart Variety 1.0.7 decorative CSS adaptation:
+Author and original attribution: indytheme.com (http://www.indytheme.com).
+The user supplied smartvariety_1.0.7.zip. Its style.css and LICENSE declare
+GNU GPL v2 or later. Selected visual CSS patterns from styles/main.css were
+adapted in assets/css/smartvariety-skin.css, with FF90 selectors, modern
+responsive rules, keyboard states, contrast-safe colors and reduced motion.
+The original GPLv2 license is included in licenses/SmartVariety-GPL-2.0.txt.
+This adaptation is distributed under GPL-3.0-or-later as permitted by the
+original "or later" grant. No Smart Variety manager, PHP, JavaScript, icon
+libraries, proprietary-branded logo, demo images or bundled fonts are included.
+Original source notices must remain with these adapted CSS portions.

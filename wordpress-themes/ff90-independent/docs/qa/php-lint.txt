@@ -15,6 +15,7 @@ No syntax errors detected in wordpress-themes/ff90-independent/page.php
 No syntax errors detected in wordpress-themes/ff90-independent/404.php
 No syntax errors detected in wordpress-themes/ff90-independent/searchform.php
 No syntax errors detected in wordpress-themes/ff90-independent/tests/wp-contracts.php
+No syntax errors detected in wordpress-themes/ff90-independent/tests/menu-fixtures.php
 No syntax errors detected in wordpress-themes/ff90-independent/tests/seed.php
 No syntax errors detected in wordpress-themes/ff90-independent/tests/plugin-probe.php
 No syntax errors detected in wordpress-themes/ff90-independent/footer.php

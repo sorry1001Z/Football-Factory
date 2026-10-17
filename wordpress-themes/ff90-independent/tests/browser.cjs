@@ -166,7 +166,7 @@ async function documentChecks(page) {
     await test('No browser runtime exceptions',async()=>check(errors.length===0,JSON.stringify(errors)));
   } finally {
     wp('theme','mod','set','ff90_home_layout','colormag-01');
-    fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify({environment:{wordpress:wp('core','version'),php:'8.4.24',database:'SQLite (local only)',browser:'system Chromium',fixture:'Synthetic QA content; not live football news'},results,failed:failures},null,2));
+    fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify({environment:{themeVersion:wp('eval',"echo wp_get_theme()->get('Version');"),wordpress:wp('core','version'),php:'8.4.24',database:'SQLite (local only)',browser:'system Chromium',fixture:'Synthetic QA content; not live football news'},results,failed:failures},null,2));
     await browser.close();
   }
   if(failures.length)process.exitCode=1;

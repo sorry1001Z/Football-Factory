@@ -4,7 +4,8 @@
     "php": "8.4.24",
     "database": "SQLite (local only)",
     "browser": "system Chromium",
-    "fixture": "Synthetic QA content; not live football news"
+    "fixture": "Synthetic QA content; not live football news",
+    "themeVersion": "1.1.0"
   },
   "results": [
     {

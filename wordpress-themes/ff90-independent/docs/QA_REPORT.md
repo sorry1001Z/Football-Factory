@@ -79,7 +79,7 @@ help inspect full-frame rendering.
 
 ## Delivery / handoff
 
-Use `python3 tests/build.py` to reproduce `dist/ff90-independent-1.0.0.zip` and
+Use `python3 tests/build.py` to reproduce `dist/ff90-independent-1.1.0.zip` and
 its `.sha256` file. Repository-wide `dist/` is ignored, so ZIP is a generated
 local deliverable, not silently force-added to Git. Source-controlled reports,
 screenshots, tests, GPL text, notices and plugin contracts remain in this theme
@@ -101,3 +101,20 @@ scroll; mobile uses normal page scrolling. Updated images:
 `qa/screenshots/league-menu-desktop.png`, `cup-menu-desktop.png`, and
 `league-menu-mobile.png`. Earlier gallery images document the prior baseline.
 The current generated ZIP checksum is in `qa/package-results.json`.
+
+## Smart Variety visual adaptation — 1.1.0
+
+Selected GPL-v2-or-later decoration from the user-supplied Smart Variety 1.0.7
+was adapted as a separate FF90 CSS skin, with attribution and original license
+in the distributable. Native header markup adds a desktop search alongside the
+centered logo; only one search form is visible at each breakpoint. No vendor
+PHP/JavaScript, manager, fonts, demo photographs or branded assets were imported.
+See SMARTVARIETY_ADAPTATION.md for source files, hashes and license review.
+
+Revalidation against the installed 1.1.0 ZIP: 217 WP data contracts, all 32
+browser scenarios (including the 10 homepage viewport/layout combinations,
+dark mode, inner pages, Customizer and zero tested axe violations), native
+league/cup regression, SEO and empty/media/security checks. Fresh evidence is
+in `qa/`; gallery screenshots now show the adapted decoration. Theme Check
+remains exit 0. The live indytheme.com reference page could not be fetched
+(proxy CONNECT 403), so no claim of visual inspection or pixel parity is made.

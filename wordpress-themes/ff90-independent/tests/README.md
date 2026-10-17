@@ -72,7 +72,7 @@ results and real screenshots are written under `docs/qa/`.
 ```sh
 python3 tests/build.py
 # Install the ZIP in a separate real local WordPress theme directory.
-wp theme install /absolute/path/dist/ff90-independent-1.0.0.zip --force --activate
+wp theme install /absolute/path/dist/ff90-independent-1.1.0.zip --force --activate
 wp theme-check run ff90-independent --format=json
 ```
 

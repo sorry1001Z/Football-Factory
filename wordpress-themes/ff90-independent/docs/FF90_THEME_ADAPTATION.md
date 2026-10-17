@@ -20,3 +20,10 @@ FF90 Core at wordpress-plugins/football-factory-core registers ff_match, ff_team
 SEO Growth V4 and Analytics source are absent from this checkout. Native wp_head, wp_body_open, wp_footer, title-tag and core canonical behavior are preserved; the theme outputs no description, canonical, Open Graph, JSON-LD or analytics script itself. Actual plugin versions must be tested when supplied; test doubles demonstrate hook compatibility only.
 
 Theme does not create post types, migrate records, save news or media, calculate standings, call football providers, activate n8n or publish. Automation and image rights remain Hermes/plugin responsibilities. Switching ff90_home_layout changes only a theme_mod through the capability/nonce protected native Customizer.
+
+## Subsequent user-authorized Smart Variety styling
+
+Version 1.1.0 adapts selected decorative CSS from the user's supplied Smart
+Variety 1.0.7 (GPL v2 or later). Earlier statements describing the initial
+original-only implementation refer to 1.0.0. See SMARTVARIETY_ADAPTATION.md for
+exact provenance, licensing and exclusions; no ColorMag paid source was added.
