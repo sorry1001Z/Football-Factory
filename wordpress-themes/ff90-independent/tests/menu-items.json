@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "premier-league",
+    "name": "พรีเมียร์ลีก",
+    "group": "leagues"
+  },
+  {
+    "slug": "la-liga",
+    "name": "ลาลีกา",
+    "group": "leagues"
+  },
+  {
+    "slug": "bundesliga",
+    "name": "บุนเดสลีกา",
+    "group": "leagues"
+  },
+  {
+    "slug": "serie-a",
+    "name": "กัลโช่ เซเรีย อา",
+    "group": "leagues"
+  },
+  {
+    "slug": "ligue-1",
+    "name": "ลีกเอิง",
+    "group": "leagues"
+  },
+  {
+    "slug": "uefa-champions-league",
+    "name": "ยูฟ่าแชมเปียนส์ลีก",
+    "group": "cups"
+  },
+  {
+    "slug": "uefa-europa-league",
+    "name": "ยูฟ่ายูโรปาลีก",
+    "group": "cups"
+  },
+  {
+    "slug": "uefa-super-cup",
+    "name": "ยูฟ่าซูเปอร์คัพ",
+    "group": "cups"
+  },
+  {
+    "slug": "fa-cup",
+    "name": "เอฟเอ คัพ",
+    "group": "cups"
+  },
+  {
+    "slug": "carabao-cup",
+    "name": "คาราบาวคัพ",
+    "group": "cups"
+  },
+  {
+    "slug": "copa-del-rey",
+    "name": "โกปา เดล เรย์",
+    "group": "cups"
+  },
+  {
+    "slug": "supercopa-de-espana",
+    "name": "ซูเปร์โกปา เด เอสปัญญา",
+    "group": "cups"
+  },
+  {
+    "slug": "coppa-italia",
+    "name": "โกปา อิตาเลีย",
+    "group": "cups"
+  },
+  {
+    "slug": "supercoppa-italiana",
+    "name": "ซูเปร์โกปา อิตาเลียนา",
+    "group": "cups"
+  },
+  {
+    "slug": "dfb-pokal",
+    "name": "เดเอฟเบ โพคาล",
+    "group": "cups"
+  },
+  {
+    "slug": "dfl-supercup",
+    "name": "เดเอฟแอล ซูเปอร์คัพ",
+    "group": "cups"
+  },
+  {
+    "slug": "coupe-de-france",
+    "name": "กุปเดอฟร็องส์",
+    "group": "cups"
+  },
+  {
+    "slug": "trophee-des-champions",
+    "name": "ทรอเฟ เดช็องปียง",
+    "group": "cups"
+  }
+]

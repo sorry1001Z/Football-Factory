@@ -86,17 +86,18 @@ screenshots, tests, GPL text, notices and plugin contracts remain in this theme
 folder. Follow `tests/README.md` to reproduce the runtime QA. No production
 approval is implied by these local results.
 
-## League submenu update
+## Football navigation update
 
-Added a disclosure arrow for native parent menu items and configured five real
-WordPress category links beneath ข่าวฟุตบอล in the disposable sandbox:
-พรีเมียร์ลีก, ลาลีกา, บุนเดสลีกา, กัลโช่ เซเรีย อา, ลีกเอิง. No production
-menu/category records were changed. See LEAGUE_MENU.md for the native admin
-configuration; theme installation does not silently create site content.
+The current menu has two distinct roots: **ข่าวฟุตบอลลีก** (the existing menu
+label renamed, five league links retained) and **บอลถ้วย** (13 cup links).
+See LEAGUE_MENU.md for the full names and native admin configuration. Existing
+news/category URLs, published posts and media are unchanged. Only the
+disposable sandbox menu/category records were configured; production is untouched.
 
-`qa/submenu-results.json` records the added regression run for both layouts at
-all five widths, desktop keyboard/hover, mobile child links, five HTTP 200
-category destinations, and axe at 390/1440. Updated screenshots are
-`qa/screenshots/league-menu-desktop.png` and `league-menu-mobile.png`; earlier
-gallery images document the preceding baseline. The refreshed ZIP checksum is
-recorded in `qa/package-results.json`.
+`qa/submenu-results.json` records both layouts at all five widths, two separate
+submenus, 18 HTTP 200 child-category destinations, hover/keyboard access, axe
+at 390/1440, and last-item keyboard access at 1440×600. Long desktop dropdowns
+scroll; mobile uses normal page scrolling. Updated images:
+`qa/screenshots/league-menu-desktop.png`, `cup-menu-desktop.png`, and
+`league-menu-mobile.png`. Earlier gallery images document the prior baseline.
+The current generated ZIP checksum is in `qa/package-results.json`.

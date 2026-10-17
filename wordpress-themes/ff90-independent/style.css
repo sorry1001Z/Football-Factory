@@ -1006,3 +1006,11 @@ figure{
   margin-inline-start:.35em;
   font-size:.8em;
 }
+/* Keep long competition lists reachable on short desktop viewports. */
+@media(min-width:1025px){
+  .primary-nav .sub-menu{
+    max-height:clamp(120px,calc(100vh - 260px),480px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+}
