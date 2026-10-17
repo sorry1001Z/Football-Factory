@@ -1,0 +1,7 @@
+{
+  "file": "ff90-modules-B-to-L-0.1.0.zip",
+  "bytes": 156146,
+  "sha256": "602b92ccd6f1a809aca2505940a694da9dc02e1111a7c3142a3395e8805dd984",
+  "plugin_zips": 9,
+  "note": "Extract bundle then install individual plugin ZIPs; not one uploadable plugin."
+}

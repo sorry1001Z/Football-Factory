@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Build independent SEO packages with allowlisted runtime directories only."""
+"""Build independent WordPress module packages with allowlisted runtime directories only."""
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import hashlib,re,json
 root=Path(__file__).resolve().parents[2]
 result=[]
-for slug in ['ff90-seo','ff90-seo-football','ff90-seo-gsc']:
+for slug in ['ff90-seo', 'ff90-seo-football', 'ff90-seo-gsc', 'ff90-security', 'ff90-content-qa', 'ff90-editorial-approval', 'ff90-football-data', 'ff90-football-widgets', 'ff90-image-registry', 'ff90-banner-renderer', 'ff90-automation-bridge', 'ff90-operations']:
     plugin=root/'wordpress-plugins'/slug
     version=re.search(r'^ \* Version: ([\d.]+)$',(plugin/(slug+'.php')).read_text(),re.M).group(1)
     files=[plugin/(slug+'.php'),plugin/'readme.txt',plugin/'LICENSE']
@@ -22,4 +22,5 @@ for slug in ['ff90-seo','ff90-seo-football','ff90-seo-gsc']:
     digest=hashlib.sha256(archive.read_bytes()).hexdigest();archive.with_suffix('.zip.sha256').write_text(f'{digest}  {archive.name}\n')
     result.append({'plugin':slug,'version':version,'files':len(files),'sha256':digest})
     print(archive, digest)
-(root/'wordpress-plugins/ff90-seo/docs/qa/package-results.json').write_text(json.dumps(result,indent=2)+'\n')
+(root/'modules/ff90/docs/qa').mkdir(parents=True,exist_ok=True)
+(root/'modules/ff90/docs/qa/package-results.json').write_text(json.dumps(result,indent=2)+'\n')

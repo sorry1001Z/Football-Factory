@@ -1,0 +1,56 @@
+[
+  {
+    "plugin": "ff90-security",
+    "version": "0.1.0",
+    "sha256": "d3b45099168c00c88d4bcc220b959c18b58e1f90414e1b814f1326a06c6f1d2d",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-content-qa",
+    "version": "0.1.0",
+    "sha256": "a8f6f47bab771466dceda83fc033132eba9e97971f51da9cbf29e0a31510500b",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-editorial-approval",
+    "version": "0.1.0",
+    "sha256": "3c333ced4fb88a929a4e013bc5045a7a9636771b0afb4760d7dcfce3b86b632e",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-football-data",
+    "version": "0.1.0",
+    "sha256": "57ce1ccff8d6e5d38a9d1419a07bdb2def794db4e590ae7b234e5c324fd259df",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-football-widgets",
+    "version": "0.1.0",
+    "sha256": "cb043021734021bf28b11be1c626e8ca795475caf3ed37c2cfb0849ab943029b",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-image-registry",
+    "version": "0.1.0",
+    "sha256": "9a13f807d071a07607aa1b6624f58b946e0a4eb6d399a396c5bda5a695631cff",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-banner-renderer",
+    "version": "0.1.0",
+    "sha256": "6d35a0ad7175ea45e92297ba45dbbb9d5d620da17266caa4287e3336110fc796",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-automation-bridge",
+    "version": "0.1.0",
+    "sha256": "414b4789b195b60dbf6c7eb9a6abcaba0714092226b42258db9c86cd2480c70e",
+    "installed_source_package_bytes": "PASS"
+  },
+  {
+    "plugin": "ff90-operations",
+    "version": "0.1.0",
+    "sha256": "c3479c8cfa7e711cfeb368e399bc164a4100d596902c1686fb28bd0c99be6937",
+    "installed_source_package_bytes": "PASS"
+  }
+]

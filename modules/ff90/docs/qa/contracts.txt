@@ -1,0 +1,85 @@
+PASS: QA refuses an article without declared sources
+PASS: author cannot self-verify facts and rights
+PASS: native authorized REST can declare source URLs without human approval privileges
+PASS: independent editor records saved-version fact/rights attestation
+PASS: editorial approval binds to reviewed content fingerprint
+PASS: approved version publishes through the explicit publishing helper
+PASS: content change holds publication and invalidates prior approval
+PASS: stale review form cannot approve a newer version
+PASS: publication pause vetoes even approved stories
+PASS: REST changed-version publish denied before publication
+PASS: REST source mutation is checked in final proposed snapshot
+PASS: ordinary REST can publish unchanged approved snapshot
+PASS: source declarations are edit-context only, not leaked by public native REST
+PASS: Classic source edit is checked before publication hooks, not only after metadata save
+PASS: current approved story can be scheduled normally
+PASS: scheduled changed version held before any native publication event
+PASS: exact binary duplicates match across distinct attachment IDs
+PASS: resized same visual has different bytes but matching advisory perceptual fingerprint
+PASS: Featured Image change invalidates QA and approval
+PASS: image rights module feeds structural QA gate
+PASS: reviewer declares exact image bytes and source rights
+PASS: reviewer declares exact image bytes and source rights
+PASS: reviewer declares exact image bytes and source rights
+PASS: reviewer declares exact image bytes and source rights
+PASS: unused rights-declared image eligible
+PASS: image reservation granted to permitted article
+PASS: same image bytes cannot be concurrently leased by another article
+PASS: recent-use history excludes duplicate asset and selects unused candidate
+PASS: perceptual comparison rejects a resized variant used by recent news
+PASS: unlimited explicit rights have no invented expiry
+PASS: expired human image rights excluded
+PASS: unset renderer meta preserves native category banner fallback
+PASS: existing FF90 theme category classification remains compatible
+PASS: uncropped independent banner kind: general
+PASS: uncropped independent banner kind: breaking
+PASS: uncropped independent banner kind: transfer
+PASS: uncropped independent banner kind: preview
+PASS: uncropped independent banner kind: result
+PASS: uncropped independent banner kind: standings
+PASS: uncropped independent banner kind: stats
+PASS: uncropped independent banner kind: tactics
+PASS: uncropped independent banner kind: team
+PASS: uncropped independent banner kind: competition
+PASS: uncropped independent banner kind: infographic
+PASS: uncropped independent banner kind: youth
+PASS: uncropped independent banner kind: feature
+PASS: banner does not expose unpublished content
+PASS: disabled football provider makes no upstream request
+PASS: current standings adapter refuses misleading historical date requests
+PASS: provider fixture normalized and filtered to selected site-local day
+PASS: unknown source score stays null rather than fabricated zero
+PASS: fresh football cache prevents redundant provider requests
+PASS: standings renderer uses caption, row headers and narrow-screen scroll
+PASS: football output escapes provider text and labels source
+PASS: upstream failure returns labelled previous source data as stale
+PASS: upstream failure without history is an error, no fabricated fallback
+PASS: untrusted competition cannot alter request destination
+PASS: rate limit returns explicit provider error
+PASS: provider 429 activates local request backoff
+PASS: malformed provider response cannot become a successful empty scoreboard
+PASS: daily quota is enforced atomically before network
+PASS: authenticated automation request persisted in inbox
+PASS: idempotency key returns same job without duplicating work
+PASS: same idempotency key cannot be reused with another payload/task
+PASS: automation QA stops at human-review boundary without publishing
+PASS: unconnected Hermes/n8n handoff is blocked, not fake success
+PASS: transient task bounded retry attempt 1
+PASS: transient task bounded retry attempt 2
+PASS: transient task bounded retry attempt 3
+PASS: expired worker lease is recoverable without duplicate active claim
+PASS: old worker cannot commit a result after losing its lease token
+PASS: anonymous job enqueue denied
+PASS: private health endpoint denies anonymous clients
+PASS: private audit endpoint denies anonymous clients
+PASS: operations reports actual DB health and does not claim full restore
+PASS: private export explicitly covers WXR content only
+PASS: stored private content export checksum verifies
+PASS: native content export is valid WXR XML
+PASS: content export permissions restrict directory and file access
+PASS: corrupted export rejected by checksum verification
+PASS: export selector rejects path traversal
+PASS: five failed native logins throttle the IP/login pair
+PASS: login bucket stores salted hash instead of raw IP/login
+PASS: module operations leave minimal private audit records
+TOTAL: 84 module contracts passed; provider HTTP is DOUBLED, no live data claim
