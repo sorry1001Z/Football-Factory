@@ -1,0 +1,7 @@
+# Hermes assignment — FF90 Zero-Additional-API News & Image Factory
+Build independent from theme branch; **do not enable existing n8n FF90-MASTER or bypass manual review/rights gate**. Keep paid model/image APIs OFF without separate operator approval. Confirm local MiniMax M3 quota before claiming zero extra cost.
+Reuse `football-factory/automation/n8n` and existing FF90 image policy / composer; note current Banner Composer returns metadata but does NOT render real image files.
+Implement local deterministic SVG+Sharp or Pillow PNG/WebP renderer at 1280×720, 13 category styles (general/breaking/transfer/preview/result/standings/stats/tactics/team/competition/infographic/youth/feature), Thai wrapping and Safe Area >=64 px. Evidence: 13 individually rendered assets + dimensions/overflow QA, no cropped footer/text.
+Source/provenance contract: article id, type, verified source URI/title/date, optional match id / provider result, headline, media license metadata and rights confirmation. Match previews may analyze scenarios; final score only after authoritative result confirmed. If photo rights unclear use neutral graphic, never competitor scraping.
+Flow: source intake → deduplicate → Hermes content writing → factual QA → SEO advisory → media rights → WordPress Draft → human approval. Preserve run_id/editorial id and idempotency; hold jobs with missing data.
+Tests: offline n8n harness, three sourced article cases + 40 draft-only dry runs, no duplicated posts, retries, timeouts, audit + image QA. Separate branch/PR; never touch Production as a shortcut.

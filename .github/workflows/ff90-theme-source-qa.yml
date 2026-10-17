@@ -1,0 +1,28 @@
+name: FF90 Independent Theme Source QA
+on:
+  pull_request:
+    paths:
+      - 'wordpress-themes/ff90-independent/**'
+      - 'scripts/ff90_theme_release_check.py'
+      - '.github/workflows/ff90-theme-source-qa.yml'
+  workflow_dispatch:
+jobs:
+  theme-source-gate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify PHP runtime
+        run: php --version
+      - name: Verify Node runtime
+        run: node --version
+      - name: Validate dual layout WordPress theme source
+        run: python3 scripts/ff90_theme_release_check.py wordpress-themes/ff90-independent --json-out ff90-theme-qa.json
+      - name: Upload QA JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ff90-theme-source-qa
+          path: ff90-theme-qa.json
+          if-no-files-found: ignore

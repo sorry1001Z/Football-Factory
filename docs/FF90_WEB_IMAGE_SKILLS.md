@@ -1,0 +1,8 @@
+# FF90 Website/Image/SEO Agent Skill Checklist
+**Reusable project instructions, not a change to any model's underlying weights.**
+Web: WP PHP escaping, capabilities, Customizer allowlist, native WP Query with reset, responsive 360/390/768/1024/1440, keyboard navigation, H1 hierarchy, dark mode, no cropped 16:9 banner. Use GitHub PR and staging rollback.
+Image: source provenance + rights per asset, neutral graphics when missing rights; 1280×720 16:9, Safe Area >=64px, Thai text must fit; PNG master/WebP export, inspect every one of 13 category renders; concept art is separate from licensed production photos.
+SEO: SEO Growth V4 plugin is single owner for canonical/meta/JSON-LD, verify no duplicate Yoast/RankMath; GSC/GA4 data must be live and authorized; simulated samples labeled as demos; AI suggestions advisory until human approves changes.
+Automation: use Hermes/MiniMax M3 only if existing quota permits; n8n workflow inactive by default, deterministic dedupe and status recovery, WordPress Draft only, rights and editorial approval mandatory; no paid APIs by default.
+QA: scripts/tests are not equivalent to live E2E; report exactly what ran. Test WordPress real plugin on/off, news updates, fixtures, banner clipping, SEO, cache, no horizontal overflow and all safety gates. If a tool is unavailable, record blocker explicitly instead of inventing success.
+Full editable image renderer, detailed docs and skills are in the ChatGPT ZIP handoff; do not invent paths to that artifact from a GitHub runner.
