@@ -1,4 +1,5 @@
 No syntax errors detected in wordpress-themes/ff90-independent/header.php
+No syntax errors detected in wordpress-themes/ff90-independent/inc/editorial-features.php
 No syntax errors detected in wordpress-themes/ff90-independent/inc/presentation.php
 No syntax errors detected in wordpress-themes/ff90-independent/template-parts/empty.php
 No syntax errors detected in wordpress-themes/ff90-independent/template-parts/fixtures.php
@@ -18,5 +19,9 @@ No syntax errors detected in wordpress-themes/ff90-independent/tests/wp-contract
 No syntax errors detected in wordpress-themes/ff90-independent/tests/menu-fixtures.php
 No syntax errors detected in wordpress-themes/ff90-independent/tests/seed.php
 No syntax errors detected in wordpress-themes/ff90-independent/tests/plugin-probe.php
+No syntax errors detected in wordpress-themes/ff90-independent/tests/ad-contracts.php
+No syntax errors detected in wordpress-themes/ff90-independent/tests/editorial-setup.php
 No syntax errors detected in wordpress-themes/ff90-independent/footer.php
 No syntax errors detected in wordpress-themes/ff90-independent/front-page.php
+No syntax errors detected in wordpress-plugins/ff90-news-insights/ff90-news-insights.php
+No syntax errors detected in wordpress-plugins/ff90-news-insights/tests/contracts.php

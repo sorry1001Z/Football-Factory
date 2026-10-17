@@ -1,11 +1,11 @@
 {
   "environment": {
+    "themeVersion": "1.2.0",
     "wordpress": "6.9",
     "php": "8.4.24",
     "database": "SQLite (local only)",
     "browser": "system Chromium",
-    "fixture": "Synthetic QA content; not live football news",
-    "themeVersion": "1.1.0"
+    "fixture": "Synthetic QA content; not live football news"
   },
   "results": [
     {

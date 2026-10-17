@@ -20,7 +20,7 @@ try{
     const submenu=link.locator('..').locator(':scope > .sub-menu');
     if(width>1024){await link.hover();check(await submenu.isVisible(),'Hover dropdown hidden');await link.focus();await p.keyboard.press('Tab');check(await submenu.locator('a').first().evaluate(e=>document.activeElement===e),'Keyboard submenu focus failed');}
     const expected=items.filter(x=>x.group===group.key).map(x=>x.name);
-    check(JSON.stringify(await submenu.locator('a').allTextContents())===JSON.stringify(expected),group.name+' children mismatch');
+    check(JSON.stringify(await submenu.locator('a > .menu-label').allTextContents())===JSON.stringify(expected),group.name+' children mismatch');
     check(await submenu.isVisible(),'Submenu hidden');
     if(width>1024){await submenu.locator('a').last().focus();check(await submenu.locator('a').last().evaluate(e=>{const a=e.getBoundingClientRect(),s=e.closest('.sub-menu').getBoundingClientRect();return a.top>=s.top&&a.bottom<=s.bottom+1&&a.bottom<=innerHeight;}),'Last competition inaccessible');}
     if(layout==='colormag-01'&&width===1440){await link.hover();await submenu.evaluate(e=>e.scrollTop=0);await p.screenshot({path:path.join(out,'screenshots',group.key==='cups'?'cup-menu-desktop.png':'league-menu-desktop.png'),fullPage:false});}

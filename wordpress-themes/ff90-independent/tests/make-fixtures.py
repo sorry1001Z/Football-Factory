@@ -25,3 +25,10 @@ for index, kind in enumerate(kinds):
         draw.text(pos, text, font=ImageFont.truetype(font, size), fill=color)
     image.save(out / (kind + '.png'))
 print(f'Generated {len(kinds)} original QA banners at {out}')
+
+# Original ad upload fixture for native Customizer media-picker QA.
+ad = Image.new('RGB', (970, 120), '#15273e')
+draw = ImageDraw.Draw(ad)
+draw.rectangle((3, 3, 966, 116), outline='#ff8ba0', width=3)
+draw.text((28, 30), 'FF90 / QA ADVERTISEMENT / 970 x 120', font=ImageFont.truetype(font, 28), fill='white')
+ad.save(out / 'qa-sale-banner.png')

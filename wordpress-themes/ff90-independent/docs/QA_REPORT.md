@@ -79,7 +79,7 @@ help inspect full-frame rendering.
 
 ## Delivery / handoff
 
-Use `python3 tests/build.py` to reproduce `dist/ff90-independent-1.1.0.zip` and
+Use `python3 tests/build.py` to reproduce `dist/ff90-independent-1.2.0.zip` and
 its `.sha256` file. Repository-wide `dist/` is ignored, so ZIP is a generated
 local deliverable, not silently force-added to Git. Source-controlled reports,
 screenshots, tests, GPL text, notices and plugin contracts remain in this theme
@@ -118,3 +118,62 @@ league/cup regression, SEO and empty/media/security checks. Fresh evidence is
 in `qa/`; gallery screenshots now show the adapted decoration. Theme Check
 remains exit 0. The live indytheme.com reference page could not be fetched
 (proxy CONNECT 403), so no claim of visual inspection or pixel parity is made.
+
+## Editorial, contact and ad controls — 1.2.0
+
+The next user request adds original SVG icons to primary/menu-child items, a
+selected native ติดต่อเรา page, public email `rom2001th@gmail.com`, and
+Facebook/YouTube/TikTok icons as explicitly requested **non-link placeholders**.
+No social account was invented and no email was sent. The selected page and
+footer render the configured mailto address; primary navigation avoids a
+duplicate Contact destination.
+
+Three independent native Customizer image/URL controls are in **FF90 Banner
+Sale**: header beside logo, inline separator 1 and inline separator 2. A real
+Media Library selection, URL change, Publish request and resulting responsive
+image were tested, not just a setting/PID. Unsold-space design, mobile fit and
+sponsored link attributes were checked. No campaign or payment service exists.
+
+Statistics required a new isolated modular plugin, **FF90 News Insights**, at
+`wordpress-plugins/ff90-news-insights/`. Existing Core, external SEO/Analytics,
+Hermes source/automation and production remain unchanged. The theme renders
+publication-time NEW (<3 hours) and source-backed HOT/BEST from that plugin;
+HOT is today's top five and BEST Monday-to-today top five in WP timezone.
+Empty view data does not generate HOT/BEST. It begins counting on activation,
+without invented historical traffic. It is an approximate, signed-browser-
+deduplicated view counter, not unique people or advertising billing metrics.
+
+Verified on installed theme 1.2.0 and separately installed statistics ZIP:
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| New statistics/model and URL safety contracts | PASS 51 | `qa/insights-contracts.txt`: day/week boundaries, UTC→site timezone, exact NEW expiry, top-five order, ties, cache invalidation, private/password exclusions, URL validation. |
+| New real browser/HTTP feature scenarios | PASS 17 | `qa/editorial-results.json`: real requests count once per browser/post/day; second browser increments; refresh, DNT, bots and HEAD excluded. |
+| Both layouts × five sizes with ads/icons/badges | PASS 10, included above | No horizontal overflow or axe violations at 360/390/768/1024/1440, including a clearly labeled synthetic QA story with test-event badges. |
+| Ad safety/hide controls | PASS 6 | `qa/ad-contracts.txt`: empty-alt accessible fallback, sponsored markup, unsafe URL rejection, booked creatives retained, empty spaces hidden/restored. |
+| Native ad controls | PASS | `qa/screenshots/banner-sale-admin.png`; choose image in Media Library, Publish, saved ID/URL, sponsored link and full-frame rendered ratio. Responsive srcset may use a resized source. |
+| Statistics plugin off/on | PASS | NEW fallback and theme remain functional; no HOT/BEST without source; reactivation preserves test totals. |
+| Existing WordPress contracts | PASS 217 | `qa/wp-contracts.txt`. |
+| Existing browser/axe scenarios | PASS 32 | `qa/browser-results.json`, refreshed with 1.2.0. |
+| Existing native menu regression | PASS 10 viewport/layout cases | `qa/submenu-results.json`, includes all 18 competition child links and short desktop. |
+| Theme Check/PHP/JS | PASS | Installed distributable, native WP Theme Check exit 0; no REQUIRED/WARNING entries; same four optional recommendations. |
+
+Synthetic story, uploaded test ad, test statistics and temporary ad settings
+were removed/restored after the feature test. End-of-run daily statistics
+table is empty; screenshots of HOT/BEST explicitly depict test events, not
+real audience. Additional current images are `editorial-features-1440.png`,
+`editorial-features-390.png` and `banner-sale-admin.png` under `qa/screenshots`.
+
+GD was added through signed Debian packages to make real image processing
+available in the local PHP runtime. Initial media QA exposed the missing GD
+extension and the default Upload/Media Library tab distinction; those were
+corrected before the passing run. The final assertion validates actual
+responsive ratio/contain rather than incorrectly requiring the original
+970-pixel source to be selected at every viewport.
+
+**Coverage limits:** the first-party counter runs on public server-rendered
+article requests. Full-page caches, offline/PWA and REST-only apps require the
+real Analytics adapter before claiming complete readership coverage. Existing
+external Analytics/SEO Growth V4, production traffic and future PWA features
+remain NOT_RUN. No production changes or new PR creation are claimed. See
+EDITORIAL_FEATURES.md and QUICK_ADMIN_TH.md for operator-facing configuration.

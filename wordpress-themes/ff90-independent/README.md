@@ -1,4 +1,4 @@
-# FF90 Independent 1.1.0
+# FF90 Independent 1.2.0
 
 Original, standalone WordPress theme. PHP 7.4+ / WordPress 6.5+. No parent,
 builder, paid theme, external font or API key required. Source and deliverables
@@ -6,7 +6,7 @@ are isolated here; existing themes, plugins and Hermes workflows are unchanged.
 
 ## Install
 
-1. Use `dist/ff90-independent-1.1.0.zip` or run `python3 tests/build.py`.
+1. Use `dist/ff90-independent-1.2.0.zip` or run `python3 tests/build.py`.
 2. On a staging WordPress site: Appearance → Themes → Add New → Upload Theme.
 3. Activate FF90 Independent. Assign Primary / Footer menus and sidebar widgets.
 4. Publish native posts with licensed Featured Images (1280×720 recommended).
@@ -70,3 +70,23 @@ menu underline/dropdown surfaces and section title borders. Both homepage
 layouts and native league/cup menus remain supported. Original FF90 business
 logic boundaries are unchanged. See docs/SMARTVARIETY_ADAPTATION.md, NOTICE and
 licenses/SmartVariety-GPL-2.0.txt for provenance and licensing.
+
+## Menus, contact, badges and advertising (1.2.0)
+
+Original SVG icons accompany native menu items. Configure the Contact page and
+public email in **Appearance → Customize → FF90 Contact & Social**. The local
+FF90 example uses `rom2001th@gmail.com`. Facebook/YouTube/TikTok are accessible
+non-link icons until genuine URLs are supplied, as requested.
+
+Use **Appearance → Customize → FF90 Banner Sale** to choose/upload a header
+banner and two independent inline banners, set optional links, then Publish.
+No code is needed. Empty slots show a sellable-space design linking to Contact.
+Images preserve their full frame on mobile. See docs/EDITORIAL_FEATURES.md.
+
+The separately installable **FF90 News Insights** plugin lives at
+`wordpress-plugins/ff90-news-insights/` and supplies real daily/weekly rankings.
+Build it with `python3 tests/build-insights.py`; its ZIP is separate from the
+theme. NEW uses publication time (<3 hours), HOT today's top five, BEST this
+week's top five (Monday onward), in the WordPress site timezone. No audience
+figures are invented. Read the plugin's cache/REST coverage limits before
+claiming full production analytics; this is not a PWA implementation.

@@ -1,11 +1,19 @@
 {
   "status": "PASS",
-  "themeVersion": "1.1.0",
-  "files": 29,
-  "sha256": "3f07b739a1396d70a1fc7b2596e6b0d3878c456ae731d8386ed9b34a68be02a8",
+  "themeVersion": "1.2.0",
+  "files": 31,
+  "sha256": "7e68b840c975c4e68992a9f3c21d3559c2b2ef2fff5527d3d5a9a6b60aeea9e6",
   "installed_file_match": true,
   "repeat_build_hash_match": true,
-  "archive": "dist/ff90-independent-1.1.0.zip",
+  "archive": "dist/ff90-independent-1.2.0.zip",
+  "companionPlugin": {
+    "name": "FF90 News Insights",
+    "version": "1.0.0",
+    "files": 3,
+    "sha256": "79b3515bd51a3bafe35fe2046de3641fd962db391d88d45c1b52a3bc0692e0ad",
+    "installed_file_match": true,
+    "archive": "wordpress-plugins/ff90-news-insights/dist/ff90-news-insights-1.0.0.zip"
+  },
   "licenses": [
     "LICENSE (GPL-3.0-or-later)",
     "licenses/SmartVariety-GPL-2.0.txt (original supplied license)"

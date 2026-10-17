@@ -1,0 +1,7 @@
+PASS: empty advertiser alt gets a usable accessible fallback
+PASS: paid destination identified as sponsored
+PASS: unsafe destination cannot create a link
+PASS: hide-empty switch does not hide a booked creative
+PASS: empty available slot can be hidden
+PASS: clearing creative returns to sellable placeholder
+TOTAL: 6 checks passed

@@ -72,7 +72,7 @@ results and real screenshots are written under `docs/qa/`.
 ```sh
 python3 tests/build.py
 # Install the ZIP in a separate real local WordPress theme directory.
-wp theme install /absolute/path/dist/ff90-independent-1.1.0.zip --force --activate
+wp theme install /absolute/path/dist/ff90-independent-1.2.0.zip --force --activate
 wp theme-check run ff90-independent --format=json
 ```
 
@@ -88,3 +88,30 @@ root folder, `style.css`, `index.php`, screenshot, LICENSE, and absence of QA
 seeds/credentials. Re-run frontend QA against the installed ZIP after final
 runtime source changes. Actual SEO Growth V4, Analytics and football-provider
 adapters are NOT_RUN until their versions/data are supplied.
+
+## Editorial feature and statistics regression (1.2.0)
+
+Local PHP must include GD or Imagick for real Media Library upload/resizing
+QA. This instance uses Debian-verified php8.4-gd. The server was restarted
+with the extension enabled; WordPress itself uses the native image editor.
+
+Install the separate FF90 News Insights ZIP; it never bundles with the theme:
+
+```sh
+python3 tests/build-insights.py
+wp plugin install /absolute/path/wordpress-plugins/ff90-news-insights/dist/ff90-news-insights-1.0.0.zip --activate
+wp eval-file tests/editorial-setup.php
+python3 tests/make-fixtures.py
+wp eval-file /absolute/path/wordpress-plugins/ff90-news-insights/tests/contracts.php
+node tests/editorial-features.cjs
+```
+
+The setup helper is sandbox-only and configures the user-approved public
+contact email without fabricating social accounts. Contract tests create and
+remove their own rows/posts. Browser tests use synthetic QA news/banner and
+two real local request contexts to verify increment/dedup/exclusions; no test
+event is described as real readership. The media test actually opens the native
+Media Library tab, chooses an image, edits its URL, publishes, and checks the
+rendered image ratio. Responsive srcset can choose a resized file, so the
+assertion checks full-frame ratio/contain rather than forcing original pixels.
+Temporary creative/settings/posts/statistics are restored/deleted afterward.

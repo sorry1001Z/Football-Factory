@@ -51,3 +51,14 @@ actual source is in this repository; real-version integration remains NOT_RUN.
 Contract-test doubles must be clearly reported as doubles, not plugin QA.
 
 Core 0.1.0 currently emits its own JSON-LD using `Football_Factory_Core::print_schema` on `wp_head` (the concrete class/callback must be checked in the installed version). A real SEO plugin must coordinate schema ownership with Core as well as core WordPress canonical; the theme intentionally does not suppress plugin output. This cross-plugin production collision check is NOT_RUN without SEO Growth V4.
+
+## FF90 News Insights — new isolated optional module
+
+The subsequent user request for real popularity badges adds a separate new
+plugin at wordpress-plugins/ff90-news-insights, without editing existing Core,
+SEO or automation plugins. It supplies `ff90_post_badges` and
+`ff90_category_badges` arrays of allowed `new`, `best`, `hot` keys. The theme
+only renders these badges and native-time NEW fallback. See EDITORIAL_FEATURES.md
+for day/week definitions, first-party deduplication and real Analytics adapter
+limits. This module does not replace or claim validation of SEO Growth V4 or
+the user's external Analytics plugin.

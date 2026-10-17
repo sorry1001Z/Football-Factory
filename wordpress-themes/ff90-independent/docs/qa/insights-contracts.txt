@@ -1,0 +1,52 @@
+PASS: week is Monday through Sunday in site timezone
+PASS: UTC midnight boundary converted to Asia/Bangkok
+PASS: invalid ranking period rejected
+PASS: no HOT ranking without recorded views
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: record synthetic test event
+PASS: daily HOT returns exactly top five nonzero view totals
+PASS: weekly BEST includes earlier weekdays but daily HOT does not
+PASS: earlier week events excluded from current day
+PASS: weekly limit adapter supported
+PASS: ties resolved by newer publication date
+PASS: cached ranking invalidated when a view changes the leader
+PASS: private posts cannot accrue views
+PASS: password-protected posts cannot accrue views
+PASS: invalid post cannot accrue views
+PASS: NEW at two hours 59 minutes 59 seconds
+PASS: NEW expires exactly at three hours
+PASS: negative publication age cannot be NEW
+PASS: private posts cannot be NEW
+PASS: external ranking adapter cannot expose private/invalid posts
+PASS: social JavaScript URL rejected
+PASS: lookalike social host rejected
+PASS: array social value rejected
+PASS: credential-bearing URL rejected
+PASS: genuine HTTPS social host accepted
+TOTAL: 51 checks passed; all statistics above are synthetic QA fixtures, not audience claims.
