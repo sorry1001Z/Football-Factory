@@ -1,0 +1,218 @@
+PASS: default layout B
+PASS: invalid layout falls back safely
+PASS: invalid layout falls back safely
+PASS: invalid layout falls back safely
+PASS: invalid layout falls back safely
+PASS: invalid layout falls back safely
+PASS: invalid layout falls back safely
+PASS: 13 banner kinds
+PASS: Customizer edit_theme_options capability
+PASS: Customizer allowlist sanitizer
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: only published query result
+PASS: layout selection roundtrip main-v2
+PASS: ISO-8601 kickoff remains unchanged main-v2
+PASS: content/permalink/media/meta unchanged 4
+PASS: content/permalink/media/meta unchanged 6
+PASS: content/permalink/media/meta unchanged 8
+PASS: content/permalink/media/meta unchanged 10
+PASS: content/permalink/media/meta unchanged 12
+PASS: content/permalink/media/meta unchanged 14
+PASS: content/permalink/media/meta unchanged 16
+PASS: content/permalink/media/meta unchanged 18
+PASS: content/permalink/media/meta unchanged 20
+PASS: content/permalink/media/meta unchanged 22
+PASS: content/permalink/media/meta unchanged 24
+PASS: content/permalink/media/meta unchanged 26
+PASS: content/permalink/media/meta unchanged 28
+PASS: content/permalink/media/meta unchanged 38
+PASS: content/permalink/media/meta unchanged 39
+PASS: content/permalink/media/meta unchanged 41
+PASS: content/permalink/media/meta unchanged 42
+PASS: content/permalink/media/meta unchanged 44
+PASS: content/permalink/media/meta unchanged 45
+PASS: content/permalink/media/meta unchanged 47
+PASS: content/permalink/media/meta unchanged 48
+PASS: content/permalink/media/meta unchanged 50
+PASS: content/permalink/media/meta unchanged 51
+PASS: content/permalink/media/meta unchanged 53
+PASS: content/permalink/media/meta unchanged 54
+PASS: content/permalink/media/meta unchanged 56
+PASS: content/permalink/media/meta unchanged 57
+PASS: content/permalink/media/meta unchanged 59
+PASS: content/permalink/media/meta unchanged 60
+PASS: content/permalink/media/meta unchanged 62
+PASS: content/permalink/media/meta unchanged 63
+PASS: content/permalink/media/meta unchanged 65
+PASS: content/permalink/media/meta unchanged 66
+PASS: content/permalink/media/meta unchanged 68
+PASS: content/permalink/media/meta unchanged 69
+PASS: content/permalink/media/meta unchanged 71
+PASS: content/permalink/media/meta unchanged 72
+PASS: content/permalink/media/meta unchanged 74
+PASS: content/permalink/media/meta unchanged 75
+PASS: layout selection roundtrip colormag-01
+PASS: ISO-8601 kickoff remains unchanged colormag-01
+PASS: content/permalink/media/meta unchanged 4
+PASS: content/permalink/media/meta unchanged 6
+PASS: content/permalink/media/meta unchanged 8
+PASS: content/permalink/media/meta unchanged 10
+PASS: content/permalink/media/meta unchanged 12
+PASS: content/permalink/media/meta unchanged 14
+PASS: content/permalink/media/meta unchanged 16
+PASS: content/permalink/media/meta unchanged 18
+PASS: content/permalink/media/meta unchanged 20
+PASS: content/permalink/media/meta unchanged 22
+PASS: content/permalink/media/meta unchanged 24
+PASS: content/permalink/media/meta unchanged 26
+PASS: content/permalink/media/meta unchanged 28
+PASS: content/permalink/media/meta unchanged 38
+PASS: content/permalink/media/meta unchanged 39
+PASS: content/permalink/media/meta unchanged 41
+PASS: content/permalink/media/meta unchanged 42
+PASS: content/permalink/media/meta unchanged 44
+PASS: content/permalink/media/meta unchanged 45
+PASS: content/permalink/media/meta unchanged 47
+PASS: content/permalink/media/meta unchanged 48
+PASS: content/permalink/media/meta unchanged 50
+PASS: content/permalink/media/meta unchanged 51
+PASS: content/permalink/media/meta unchanged 53
+PASS: content/permalink/media/meta unchanged 54
+PASS: content/permalink/media/meta unchanged 56
+PASS: content/permalink/media/meta unchanged 57
+PASS: content/permalink/media/meta unchanged 59
+PASS: content/permalink/media/meta unchanged 60
+PASS: content/permalink/media/meta unchanged 62
+PASS: content/permalink/media/meta unchanged 63
+PASS: content/permalink/media/meta unchanged 65
+PASS: content/permalink/media/meta unchanged 66
+PASS: content/permalink/media/meta unchanged 68
+PASS: content/permalink/media/meta unchanged 69
+PASS: content/permalink/media/meta unchanged 71
+PASS: content/permalink/media/meta unchanged 72
+PASS: content/permalink/media/meta unchanged 74
+PASS: content/permalink/media/meta unchanged 75
+PASS: layout selection roundtrip main-v2
+PASS: ISO-8601 kickoff remains unchanged main-v2
+PASS: content/permalink/media/meta unchanged 4
+PASS: content/permalink/media/meta unchanged 6
+PASS: content/permalink/media/meta unchanged 8
+PASS: content/permalink/media/meta unchanged 10
+PASS: content/permalink/media/meta unchanged 12
+PASS: content/permalink/media/meta unchanged 14
+PASS: content/permalink/media/meta unchanged 16
+PASS: content/permalink/media/meta unchanged 18
+PASS: content/permalink/media/meta unchanged 20
+PASS: content/permalink/media/meta unchanged 22
+PASS: content/permalink/media/meta unchanged 24
+PASS: content/permalink/media/meta unchanged 26
+PASS: content/permalink/media/meta unchanged 28
+PASS: content/permalink/media/meta unchanged 38
+PASS: content/permalink/media/meta unchanged 39
+PASS: content/permalink/media/meta unchanged 41
+PASS: content/permalink/media/meta unchanged 42
+PASS: content/permalink/media/meta unchanged 44
+PASS: content/permalink/media/meta unchanged 45
+PASS: content/permalink/media/meta unchanged 47
+PASS: content/permalink/media/meta unchanged 48
+PASS: content/permalink/media/meta unchanged 50
+PASS: content/permalink/media/meta unchanged 51
+PASS: content/permalink/media/meta unchanged 53
+PASS: content/permalink/media/meta unchanged 54
+PASS: content/permalink/media/meta unchanged 56
+PASS: content/permalink/media/meta unchanged 57
+PASS: content/permalink/media/meta unchanged 59
+PASS: content/permalink/media/meta unchanged 60
+PASS: content/permalink/media/meta unchanged 62
+PASS: content/permalink/media/meta unchanged 63
+PASS: content/permalink/media/meta unchanged 65
+PASS: content/permalink/media/meta unchanged 66
+PASS: content/permalink/media/meta unchanged 68
+PASS: content/permalink/media/meta unchanged 69
+PASS: content/permalink/media/meta unchanged 71
+PASS: content/permalink/media/meta unchanged 72
+PASS: content/permalink/media/meta unchanged 74
+PASS: content/permalink/media/meta unchanged 75
+PASS: layout selection roundtrip colormag-01
+PASS: ISO-8601 kickoff remains unchanged colormag-01
+PASS: content/permalink/media/meta unchanged 4
+PASS: content/permalink/media/meta unchanged 6
+PASS: content/permalink/media/meta unchanged 8
+PASS: content/permalink/media/meta unchanged 10
+PASS: content/permalink/media/meta unchanged 12
+PASS: content/permalink/media/meta unchanged 14
+PASS: content/permalink/media/meta unchanged 16
+PASS: content/permalink/media/meta unchanged 18
+PASS: content/permalink/media/meta unchanged 20
+PASS: content/permalink/media/meta unchanged 22
+PASS: content/permalink/media/meta unchanged 24
+PASS: content/permalink/media/meta unchanged 26
+PASS: content/permalink/media/meta unchanged 28
+PASS: content/permalink/media/meta unchanged 38
+PASS: content/permalink/media/meta unchanged 39
+PASS: content/permalink/media/meta unchanged 41
+PASS: content/permalink/media/meta unchanged 42
+PASS: content/permalink/media/meta unchanged 44
+PASS: content/permalink/media/meta unchanged 45
+PASS: content/permalink/media/meta unchanged 47
+PASS: content/permalink/media/meta unchanged 48
+PASS: content/permalink/media/meta unchanged 50
+PASS: content/permalink/media/meta unchanged 51
+PASS: content/permalink/media/meta unchanged 53
+PASS: content/permalink/media/meta unchanged 54
+PASS: content/permalink/media/meta unchanged 56
+PASS: content/permalink/media/meta unchanged 57
+PASS: content/permalink/media/meta unchanged 59
+PASS: content/permalink/media/meta unchanged 60
+PASS: content/permalink/media/meta unchanged 62
+PASS: content/permalink/media/meta unchanged 63
+PASS: content/permalink/media/meta unchanged 65
+PASS: content/permalink/media/meta unchanged 66
+PASS: content/permalink/media/meta unchanged 68
+PASS: content/permalink/media/meta unchanged 69
+PASS: content/permalink/media/meta unchanged 71
+PASS: content/permalink/media/meta unchanged 72
+PASS: content/permalink/media/meta unchanged 74
+PASS: content/permalink/media/meta unchanged 75
+PASS: today follows WP timezone
+PASS: ISO date accepted
+PASS: impossible date falls back
+PASS: array input falls back
+TOTAL: 217 checks passed

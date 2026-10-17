@@ -16,10 +16,10 @@ versions that were not supplied. No deployment or automation activation occurred
 
 | Check | Result | Evidence / limits |
 | --- | --- | --- |
-| PHP syntax | PASS | `qa/php-lint.log`; runtime and test PHP files parsed with PHP 8.4.24. PHP 7.4 runtime NOT_RUN. |
+| PHP syntax | PASS | `qa/php-lint.txt`; runtime and test PHP files parsed with PHP 8.4.24. PHP 7.4 runtime NOT_RUN. |
 | Theme JavaScript parse | PASS | `node --check assets/js/theme.js`; actual navigation/dark-mode behavior also exercised in Chromium. |
 | WordPress Theme Check on installed ZIP | PASS, exit 0 | `qa/theme-check.json`; no REQUIRED failures or WARNING entries. Four optional recommendations: block patterns, block styles, custom header, custom background. |
-| WP data/setting contracts | PASS, 217 checks | `qa/wp-contracts.log`; allowlist, Customizer capability, published-only queries, 13 kinds, date input, content/permalink/media/meta invariance, ISO-8601 `_ff90_kickoff_at` preservation. |
+| WP data/setting contracts | PASS, 217 checks | `qa/wp-contracts.txt`; allowlist, Customizer capability, published-only queries, 13 kinds, date input, content/permalink/media/meta invariance, ISO-8601 `_ff90_kickoff_at` preservation. |
 | Browser scenarios on installed ZIP | PASS, 32/32 | `qa/browser-results.json`; no browser runtime exceptions. |
 | Both homepages × 360/390/768/1024/1440 | PASS, 10/10 | Real full-page screenshots; DOM horizontal overflow and image loading/contain checks; long Thai titles. |
 | Automated accessibility | PASS in tested scope | Axe WCAG 2 A / AA and WCAG 2.1 AA tags: zero violations in 10 home layouts, two dark-mode views and 12 inner-page views. This is not a full manual WCAG certification. |
