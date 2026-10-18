@@ -10,7 +10,7 @@ function ff90_football_install() {
     ) $charset;" );
 }
 function ff90_football_token() { return defined( 'FF90_FOOTBALL_DATA_TOKEN' ) ? (string) FF90_FOOTBALL_DATA_TOKEN : (string) ( getenv( 'FF90_FOOTBALL_DATA_TOKEN' ) ?: '' ); }
-function ff90_football_options() { return wp_parse_args( get_option( 'ff90_football_options', array() ), array( 'enabled' => false, 'competition' => 'PL' ) ); }
+function ff90_football_options() { return wp_parse_args( get_option( 'ff90_football_options', array() ), array( 'enabled' => false, 'competition' => 'PL', 'provider' => 'football-data.org', 'season' => 0, 'auto_refresh' => false ) ); }
 function ff90_football_date_valid( $date ) { $d = is_string( $date ) ? DateTimeImmutable::createFromFormat( '!Y-m-d', $date, wp_timezone() ) : false; return $d && $d->format( 'Y-m-d' ) === $date; }
 function ff90_football_cache_key( $kind, $competition, $date ) { return 'ff90_fd_' . hash( 'sha256', $kind . '|' . $competition . '|' . $date . '|' . wp_timezone_string() ); }
 function ff90_football_take_quota() {
@@ -49,6 +49,7 @@ function ff90_football_get( $kind, $competition = '', $date = '' ) {
     $options = ff90_football_options(); $competition = $competition ?: $options['competition']; $date = $date ?: wp_date( 'Y-m-d' );
     if ( ! in_array( $kind, array( 'matches', 'standings' ), true ) || ! is_string( $competition ) || ! preg_match( '/^[A-Z0-9_-]{1,20}$/D', $competition ) || ! ff90_football_date_valid( $date ) ) { return new WP_Error( 'football_validation', 'Invalid football request.' ); }
     if ( 'standings' === $kind && $date !== wp_date( 'Y-m-d' ) ) { return new WP_Error( 'football_validation', 'Historical standings are not supported by this current-table adapter.' ); }
+    if ( 'api-football' === $options['provider'] ) { return ff90_af_get( $kind, $competition, $date ); }
     if ( ! $options['enabled'] || ! ff90_football_token() ) { return new WP_Error( 'football_not_connected', 'ยังไม่ได้เชื่อมผู้ให้บริการข้อมูลฟุตบอล' ); }
     $key = ff90_football_cache_key( $kind, $competition, $date ); $fresh = get_transient( $key ); if ( is_array( $fresh ) ) { return $fresh; }
     $history = get_transient( $key . '_last' );
@@ -70,11 +71,14 @@ function ff90_football_get( $kind, $competition = '', $date = '' ) {
         set_transient( $key, $result, 'standings' === $kind ? 900 : 300 ); set_transient( $key . '_last', $result, DAY_IN_SECONDS ); do_action( 'ff90_audit_event', 'football_source_refreshed' ); return $result;
     } finally { if ( get_option( $lock_key ) === $lock ) { delete_option( $lock_key ); } }
 }
-add_action( 'admin_init', function () { register_setting( 'ff90_football', 'ff90_football_options', array( 'sanitize_callback' => function ( $v ) { $competition = isset( $v['competition'] ) && is_string( $v['competition'] ) && preg_match( '/^[A-Z0-9_-]{1,20}$/D', $v['competition'] ) ? $v['competition'] : 'PL'; return array( 'enabled' => ! empty( $v['enabled'] ), 'competition' => $competition ); } ) ); } );
+add_action( 'admin_init', function () { register_setting( 'ff90_football', 'ff90_football_options', array( 'sanitize_callback' => function ( $v ) { $competition = isset( $v['competition'] ) && is_string( $v['competition'] ) && preg_match( '/^[A-Z0-9_-]{1,20}$/D', $v['competition'] ) ? $v['competition'] : 'PL'; return array( 'enabled' => ! empty( $v['enabled'] ), 'competition' => $competition, 'provider' => in_array( $v['provider'] ?? '', array( 'football-data.org', 'api-football' ), true ) ? $v['provider'] : 'football-data.org', 'season' => absint( $v['season'] ?? 0 ), 'auto_refresh' => ! empty( $v['auto_refresh'] ) ); } ) ); } );
 add_action( 'admin_menu', function () {
     add_options_page( 'Football Data', 'FF90 Football Data', 'manage_options', 'ff90-football', function () {
         if ( ! current_user_can( 'manage_options' ) ) { return; } $o = ff90_football_options();
-        echo '<div class="wrap"><h1>Football Data Engine</h1><p>football-data.org v4. Configure FF90_FOOTBALL_DATA_TOKEN in server environment or wp-config.php; token is never stored in these settings. Activation makes no provider request. Default budget: 100 upstream requests/day. Actual provider access/plan must be verified.</p><form method="post" action="options.php">'; settings_fields( 'ff90_football' );
+        echo '<div class="wrap"><h1>Football Data Engine</h1><p>Choose football-data.org v4 (FF90_FOOTBALL_DATA_TOKEN) or direct API-Football v3 (API_FOOTBALL_KEY) in server configuration. Keys are never stored here. API-Football: hard cap 80/day UTC, matches shared for 1 hour, standings 6 hours. Free plan entitlement/current seasons must be verified. No automatic paid upgrade. Set season start year only after confirming access; historical seasons are labelled.</p><form method="post" action="options.php">'; settings_fields( 'ff90_football' );
+        echo '<p><label>Provider <select name="ff90_football_options[provider]"><option value="football-data.org" ' . selected( $o['provider'], 'football-data.org', false ) . '>football-data.org</option><option value="api-football" ' . selected( $o['provider'], 'api-football', false ) . '>API-Football (direct API-Sports)</option></select></label></p><p><label>API-Football season start year <input type="number" min="0" max="2100" name="ff90_football_options[season]" value="' . esc_attr( $o['season'] ) . '"></label> 0 = not selected; standings unavailable until access is verified.</p>';
+        echo '<p><label><input type="checkbox" name="ff90_football_options[auto_refresh]" value="1" ' . checked( $o['auto_refresh'], true, false ) . '> Hourly refresh for five major leagues (requires a functioning WP-Cron runner and a verified active Free plan). Does not publish news.</label></p>';
+        if ( 'api-football' === $o['provider'] ) { echo '<p>Local request attempts today (UTC): ' . esc_html( ff90_af_usage() ) . ' / 80. External usage of the same key is not included.</p>'; }
         echo '<p><label><input type="checkbox" name="ff90_football_options[enabled]" value="1" ' . checked( $o['enabled'], true, false ) . '> Enable configured provider requests</label></p><p><label>Competition code <input name="ff90_football_options[competition]" value="' . esc_attr( $o['competition'] ) . '"></label></p>'; submit_button(); echo '</form></div>';
     } );
 } );

@@ -36,3 +36,8 @@ entry point ที่ระบุชัดและ fail closed หาก QA/plu
 ปลั๊กอิน PHP อื่นที่เรียก `wp_publish_post` โดยตรงหรือเขียน SQL มีสิทธิ์ใน process
 เดียวกันและข้าม preflight ได้ ต้องแก้ publisher adapter ของระบบนั้นเมื่อได้รับมอบหมาย
 ไม่ใช่ใส่ module C แล้วอ้างว่าคุมทุก privileged plugin ได้ทันที
+
+
+## อัปเดต API-Football — 18 ตุลาคม 2026
+
+Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football บน local แล้ว ยืนยัน Free active 100/day, fixtures วันนี้ 5 ลีก และพบว่า standings PL ปี 2026 ถูกปฏิเสธ (2024 ใช้ได้) สถานะเก่า NOT_RUN ของ API-Football ในเอกสารนี้ถูกแทนเฉพาะส่วนที่ตรวจจริงข้างต้น ดู [แผน Free และผลเชื่อมจริง](API_FOOTBALL_FREE_PLAN_TH.md) ส่วน Google/Hermes/Production และฟีเจอร์อื่นยังคงสถานะเดิม

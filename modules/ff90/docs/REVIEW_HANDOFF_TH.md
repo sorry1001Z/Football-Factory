@@ -20,8 +20,8 @@ Implementation baseline: `8a8ffe8` (ใช้ branch ล่าสุดสำห
 | ff90-security | 0.1.0 | Security baseline; ไม่ใช่ Security V4 ครบชุด |
 | ff90-content-qa | 0.1.0 | ตรวจโครงสร้าง/แหล่งข่าวและ human fact/rights attestation; ไม่ใช่ fact-check API |
 | ff90-editorial-approval | 0.1.0 | Approval ผูกกับ snapshot; ต้องเชื่อม publisher ของ Hermes ผ่านสัญญาที่กำหนด |
-| ff90-football-data | 0.1.0 | football-data.org v4 adapter/cache/quota; API จริง NOT_RUN |
-| ff90-football-widgets | 0.1.0 | Fixtures/results/standings; ต้องใช้ Football Data |
+| ff90-football-data | 0.2.0 | football-data.org + API-Football; Free/fixtures จริงบน local ผ่าน, standings ปัจจุบันติดสิทธิ์ Free |
+| ff90-football-widgets | 0.1.1 | Fixtures/results/standings; ต้องใช้ Football Data |
 | ff90-image-registry | 0.1.0 | สิทธิ์ภาพ/hash/lease/heuristic กันภาพซ้ำ; ต้องมีแหล่งภาพมีสิทธิ์ |
 | ff90-banner-renderer | 0.1.0 | Featured banner 13 รูปแบบ; ไม่สร้างภาพ |
 | ff90-automation-bridge | 0.1.0 | Durable inbox/idempotency/recovery; n8n/Hermes จริง NOT_RUN; ไม่มี bundled publisher |
@@ -38,3 +38,8 @@ Theme แยกอยู่ที่ `wordpress-themes/ff90-independent/` รุ
 ## เปิดชุดส่งต่อ
 
 แตก `ff90-all-plugins-review.zip`: `source/` เป็นไฟล์ที่ติดตามใน Git ของปลั๊กอินทั้ง 14 ตัวพร้อมเอกสารโมดูล, `plugins/` เป็น ZIP ติดตั้งแยกตัว, `MANIFEST.json` ระบุ hash ของแต่ละ ZIP ห้ามอัปโหลดชุดรวมเป็นปลั๊กอินตัวเดียว ชุดนี้ไม่มี credentials จาก environment และไม่รวม WordPress database/media
+
+
+## อัปเดต API-Football — 18 ตุลาคม 2026
+
+Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football บน local แล้ว ยืนยัน Free active 100/day, fixtures วันนี้ 5 ลีก และพบว่า standings PL ปี 2026 ถูกปฏิเสธ (2024 ใช้ได้) สถานะเก่า NOT_RUN ของ API-Football ในเอกสารนี้ถูกแทนเฉพาะส่วนที่ตรวจจริงข้างต้น ดู [แผน Free และผลเชื่อมจริง](API_FOOTBALL_FREE_PLAN_TH.md) ส่วน Google/Hermes/Production และฟีเจอร์อื่นยังคงสถานะเดิม

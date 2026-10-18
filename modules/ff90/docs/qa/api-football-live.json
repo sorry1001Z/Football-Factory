@@ -1,0 +1,46 @@
+{
+    "checked_at_utc": "2026-10-18T14:00:25+00:00",
+    "runtime": "Local WordPress 6.9 / PHP 8.4 / SQLite; real API-Football, not HTTP doubles",
+    "subscription": {
+        "plan": "Free",
+        "active": true,
+        "limit_day": 100
+    },
+    "provider": "api-football",
+    "configured_season": 2026,
+    "auto_refresh": true,
+    "hard_daily_budget_utc": 80,
+    "local_attempts_today_utc": 9,
+    "fixtures": {
+        "PL": {
+            "count": 4,
+            "stale": false,
+            "fetched_at": "2026-10-18T13:56:08+00:00"
+        },
+        "PD": {
+            "count": 4,
+            "stale": false,
+            "fetched_at": "2026-10-18T13:56:08+00:00"
+        },
+        "BL1": {
+            "count": 2,
+            "stale": false,
+            "fetched_at": "2026-10-18T13:56:08+00:00"
+        },
+        "SA": {
+            "count": 4,
+            "stale": false,
+            "fetched_at": "2026-10-18T13:56:08+00:00"
+        },
+        "FL1": {
+            "count": 6,
+            "stale": false,
+            "fetched_at": "2026-10-18T13:56:08+00:00"
+        }
+    },
+    "standings": {
+        "PL_2026": "BLOCKED_BY_FREE_PLAN: provider says try seasons 2022-2024",
+        "PL_2024": "VERIFIED: 20 teams; not substituted for current season"
+    },
+    "native_hourly_event": "scheduled"
+}

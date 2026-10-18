@@ -1,0 +1,27 @@
+PASS: disabled API-Football does not call provider
+PASS: fixed HTTPS provider and private server header
+PASS: native provider selection, FT and unknown score normalize correctly
+PASS: multiple leagues/pages share one upstream daily-fixtures snapshot
+PASS: invalid competition and arbitrary historical dates make no request
+PASS: fixed HTTPS provider and private server header
+PASS: real API-Sports nested all/goals standings shape and selected season
+PASS: widget visibly labels selected season rather than claiming current table
+PASS: fixed HTTPS provider and private server header
+PASS: status keeps plan/quota only and strips account data
+PASS: request helper rejects arbitrary endpoints and parameters
+PASS: invalid calendar date cannot become a fabricated fixture
+PASS: fixed HTTPS provider and private server header
+PASS: network error retains labelled last-good snapshot
+PASS: negative cache prevents page traffic from draining error retries
+PASS: fixed HTTPS provider and private server header
+PASS: HTTP 200 plan restriction is a failure, never successful empty fixtures
+PASS: fixed HTTPS provider and private server header
+PASS: incomplete paginated global snapshot is not silently accepted
+PASS: fixed HTTPS provider and private server header
+PASS: 429 activates shared bounded backoff
+PASS: fixed HTTPS provider and private server header
+PASS: scheduled refresh stops after status when plan is not Free
+PASS: disabled scheduler never performs provider requests
+PASS: malformed standing metrics are rejected rather than converted to zeros
+PASS: atomic hard 80/day cap prevents the 81st network attempt
+TOTAL: 26 assertions passed; HTTP DOUBLES only, no live key read.

@@ -75,3 +75,8 @@ analytics, private host backup adapter plus actual restore drill, MySQL/MariaDB,
 external staging/production/CDN, Firefox/Safari and manual screen-reader review.
 GitHub PR creation remains unavailable through the previously forbidden API;
 source branch push and local review artifacts are separate and supported.
+
+
+## อัปเดต API-Football — 18 ตุลาคม 2026
+
+Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football บน local แล้ว ยืนยัน Free active 100/day, fixtures วันนี้ 5 ลีก และพบว่า standings PL ปี 2026 ถูกปฏิเสธ (2024 ใช้ได้) สถานะเก่า NOT_RUN ของ API-Football ในเอกสารนี้ถูกแทนเฉพาะส่วนที่ตรวจจริงข้างต้น ดู [แผน Free และผลเชื่อมจริง](API_FOOTBALL_FREE_PLAN_TH.md) ส่วน Google/Hermes/Production และฟีเจอร์อื่นยังคงสถานะเดิม

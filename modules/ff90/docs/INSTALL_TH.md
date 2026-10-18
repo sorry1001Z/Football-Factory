@@ -57,3 +57,8 @@ Security เป็น baseline ไม่ใช่ external V4 ครบชุด
 WXR มีข่าว/metadata/author metadata/attachment URLs แต่ไม่มีไฟล์ภาพจริงหรือ full
 account/options/config tables. ไม่มี restore engine ในแพ็กเกจนี้ การ verify checksum
 ไม่ใช่การทดสอบกู้คืน. อ่าน STATUS_TH.md ก่อนระบุว่าโมดูลใดพร้อมใช้งานจริงแล้ว
+
+
+## อัปเดต API-Football — 18 ตุลาคม 2026
+
+Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football บน local แล้ว ยืนยัน Free active 100/day, fixtures วันนี้ 5 ลีก และพบว่า standings PL ปี 2026 ถูกปฏิเสธ (2024 ใช้ได้) สถานะเก่า NOT_RUN ของ API-Football ในเอกสารนี้ถูกแทนเฉพาะส่วนที่ตรวจจริงข้างต้น ดู [แผน Free และผลเชื่อมจริง](API_FOOTBALL_FREE_PLAN_TH.md) ส่วน Google/Hermes/Production และฟีเจอร์อื่นยังคงสถานะเดิม

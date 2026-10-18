@@ -1,7 +1,7 @@
 <?php
 /** Destructive fixtures only inside the explicitly marked disposable local WP sandbox. */
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI || ! defined( 'FF90_QA_SANDBOX' ) || ! FF90_QA_SANDBOX ) { throw new RuntimeException( 'Disposable sandbox required.' ); }
-if ( ff90_football_token() || defined( 'FF90_BACKUP_DIR' ) || getenv( 'FF90_BACKUP_DIR' ) ) { throw new RuntimeException( 'Refusing to override real provider or private backup configuration.' ); }
+if ( ff90_football_token() || ( function_exists( 'ff90_af_token' ) && ff90_af_token() ) || defined( 'FF90_BACKUP_DIR' ) || getenv( 'FF90_BACKUP_DIR' ) ) { throw new RuntimeException( 'Refusing to override real provider or private backup configuration.' ); }
 define( 'FF90_FOOTBALL_DATA_TOKEN', 'synthetic-qa-provider-token-not-real' );
 define( 'FF90_BACKUP_DIR', '/workspace/ff90-tools/qa-content-backup-' . wp_generate_uuid4() );
 require_once ABSPATH . 'wp-admin/includes/image.php'; require_once ABSPATH . 'wp-admin/includes/user.php';

@@ -12,3 +12,8 @@
 ข้อจำกัด: Football HTTP เป็น test doubles ไม่ใช่ live API; Google, Football API, n8n/Hermes และ cron จริงยัง NOT_RUN ต้องตั้ง credentials/handler ก่อนใช้งานจริง Monitoring ภายนอกและ full DB/media backup/restore ยังไม่ครบ WXR เป็น content export เท่านั้น Security ยังเป็น baseline ไม่ใช่ V4 ครบทั้งหมด ดู STATUS_TH.md และ QA_REPORT.md สำหรับข้อจำกัดรายโมดูล
 
 WordPress.org update checks แจ้งว่าเชื่อมไม่ได้ใน sandbox ที่จำกัด HTTP ภายนอก ไม่ได้ใช้ผลนี้อ้างว่าอัปเดตปลั๊กอิน/ธีมล่าสุดสำเร็จ
+
+
+## อัปเดต API-Football — 18 ตุลาคม 2026
+
+Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football บน local แล้ว ยืนยัน Free active 100/day, fixtures วันนี้ 5 ลีก และพบว่า standings PL ปี 2026 ถูกปฏิเสธ (2024 ใช้ได้) สถานะเก่า NOT_RUN ของ API-Football ในเอกสารนี้ถูกแทนเฉพาะส่วนที่ตรวจจริงข้างต้น ดู [แผน Free และผลเชื่อมจริง](API_FOOTBALL_FREE_PLAN_TH.md) ส่วน Google/Hermes/Production และฟีเจอร์อื่นยังคงสถานะเดิม

@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('no
 const{chromium}=require('/workspace/ff90-tools/browser/node_modules/playwright-core');const Axe=require('/workspace/ff90-tools/browser/node_modules/@axe-core/playwright').default;
 const wp=(...a)=>execFileSync('/workspace/ff90-tools/bin/wp',a,{encoding:'utf8'}).trim();
 if(!['true','1'].includes(wp('config','get','FF90_QA_SANDBOX')))throw Error('Disposable sandbox marker required');
-if(wp('eval',"echo ff90_football_token()?'configured':'empty';")!=='empty')throw Error('Refusing to override real football credentials');
+if(wp('eval',"echo (ff90_football_token() || (function_exists('ff90_af_token') && ff90_af_token()))?'configured':'empty';")!=='empty')throw Error('Refusing to override real football credentials');
 const base=wp('option','get','home');if(new URL(base).hostname!=='127.0.0.1')throw Error('Local loopback required');
 const out=path.join(__dirname,'../docs/qa');fs.mkdirSync(path.join(out,'screenshots'),{recursive:true});
 const check=(v,m)=>{if(!v)throw Error(m)},results=[];async function test(name,fn){await fn();results.push({name,status:'PASS'});console.log('PASS',name);}

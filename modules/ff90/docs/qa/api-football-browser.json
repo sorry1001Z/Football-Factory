@@ -1,0 +1,41 @@
+{
+  "source": "Real API-Football responses via WordPress local; hourly cached, not real-time; current standings blocked by Free entitlement",
+  "results": [
+    {
+      "width": 360,
+      "http": 200,
+      "fixture_sections": 5,
+      "overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 390,
+      "http": 200,
+      "fixture_sections": 5,
+      "overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 768,
+      "http": 200,
+      "fixture_sections": 5,
+      "overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 1024,
+      "http": 200,
+      "fixture_sections": 5,
+      "overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 1440,
+      "http": 200,
+      "fixture_sections": 5,
+      "overflow": false,
+      "axe_violations": 0
+    }
+  ],
+  "browser_exceptions": []
+}
