@@ -1,0 +1,28 @@
+{
+  "date_bangkok": "2026-10-19",
+  "split_provider_http_doubles": {
+    "assertions": 34,
+    "status": "PASS"
+  },
+  "api_football_regression": {
+    "assertions": 26,
+    "status": "PASS"
+  },
+  "module_regression": {
+    "assertions": 84,
+    "status": "PASS"
+  },
+  "live_football_data": {
+    "status": "BLOCKED_BY_NETWORK",
+    "observed": "cURL error 56: CONNECT tunnel failed, response 403",
+    "key_validity": "NOT_VERIFIED",
+    "plan": "NOT_VERIFIED",
+    "five_league_current_standings": "NOT_VERIFIED"
+  },
+  "local_options": {
+    "provider": "api-football",
+    "standings_provider": "same",
+    "enabled": true,
+    "auto_refresh": true
+  }
+}

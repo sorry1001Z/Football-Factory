@@ -5,7 +5,8 @@ function ff90_football_render( $kind, $args = array() ) {
     $data = function_exists( 'ff90_football_get' ) ? ff90_football_get( 'standings' === $kind ? 'standings' : 'matches', $args['competition'], $args['date'] ) : new WP_Error( 'dependency_missing', 'Football Data Engine not active.' );
     if ( is_wp_error( $data ) ) { return '<p class="ff90-football-unavailable">' . esc_html( $data->get_error_message() ) . '</p>'; }
     $html = '<section class="ff90-football-data"><p>Source: <a rel="nofollow" href="' . esc_url( $data['source_url'] ) . '">' . esc_html( $data['provider'] ) . '</a> · <time datetime="' . esc_attr( $data['fetched_at'] ) . '">' . esc_html( $data['fetched_at'] ) . '</time>' . ( $data['stale'] ? ' · ข้อมูลแคชเก่า — ยังอัปเดตจากแหล่งข้อมูลไม่ได้' : '' ) . '</p>';
-    if ( ! empty( $data['season'] ) ) { $html .= '<p>ฤดูกาลเริ่มปี ' . esc_html( (string) $data['season'] ) . ' — เป็นตารางของฤดูกาลที่เลือก ไม่ใช่การยืนยันตารางฤดูกาลปัจจุบัน</p>'; }
+    if ( ! empty( $data['season_label'] ) ) { $html .= '<p>ฤดูกาล ' . esc_html( $data['season_label'] ) . '</p>'; }
+    elseif ( ! empty( $data['season'] ) ) { $html .= '<p>ฤดูกาลเริ่มปี ' . esc_html( (string) $data['season'] ) . ' — เป็นตารางของฤดูกาลที่เลือก ไม่ใช่การยืนยันตารางฤดูกาลปัจจุบัน</p>'; }
     if ( ! $data['data'] ) { return $html . '<p>ยังไม่มีรายการจากแหล่งข้อมูลในช่วงที่เลือก</p></section>'; }
     if ( 'standings' === $kind ) {
         foreach ( $data['data'] as $group ) {

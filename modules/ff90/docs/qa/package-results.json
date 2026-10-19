@@ -37,15 +37,15 @@
   },
   {
     "plugin": "ff90-football-data",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "files": 5,
-    "sha256": "c5820289edd06c9caf64b92302430777b6353109cd255a0caefa49e70cfd145b"
+    "sha256": "9eef0cd8707c34fb8d834db5ce3a7e5fee38a8366755fb62e5eeed377bbcff54"
   },
   {
     "plugin": "ff90-football-widgets",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "files": 4,
-    "sha256": "546d0d233bc3228f431f6f73fb43be6f98691b683a054018b5d701c47006f13a"
+    "sha256": "66b5c4f9b8fab05a09f27ce945bf077ff840eebb5d570ce7487f458b99af3480"
   },
   {
     "plugin": "ff90-image-registry",

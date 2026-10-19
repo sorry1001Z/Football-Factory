@@ -101,10 +101,10 @@ add_action( 'ff90_af_refresh', function () {
     $o = ff90_football_options();
     if ( empty( $o['auto_refresh'] ) || ! $o['enabled'] || 'api-football' !== $o['provider'] ) { return; }
     $status = ff90_af_request( 'status' );
-    if ( is_wp_error( $status ) || $status['stale'] || empty( $status['data']['subscription']['active'] ) || 'free' !== strtolower( $status['data']['subscription']['plan'] ) || $status['data']['requests']['limit_day'] < 80 ) { return; }
+    $can_refresh_matches = ! is_wp_error( $status ) && ! $status['stale'] && ! empty( $status['data']['subscription']['active'] ) && 'free' === strtolower( $status['data']['subscription']['plan'] ) && $status['data']['requests']['limit_day'] >= 80;
     foreach ( array( 'PL', 'PD', 'BL1', 'SA', 'FL1' ) as $code ) {
-        ff90_football_get( 'matches', $code );
-        ff90_football_get( 'standings', $code );
+        if ( $can_refresh_matches ) { ff90_football_get( 'matches', $code ); }
+        if ( $can_refresh_matches || 'football-data.org' === $o['standings_provider'] ) { ff90_football_get( 'standings', $code ); }
     }
 } );
 function ff90_af_normalize( $kind, $rows, $league_id, $date, $season ) {
