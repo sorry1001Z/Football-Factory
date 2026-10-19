@@ -1,0 +1,44 @@
+{
+  "tested_at": "2026-10-19T07:04:12.227Z",
+  "scope": "Diagnostic local baselines only: existing Next production build/mock content vs native WordPress/PHP built-in server/SQLite/live providers. Different data and cache; not a production ranking.",
+  "systems": [
+    {
+      "name": "Next.js FF90 original",
+      "requests": 21,
+      "initial_request_ttfb_ms": 254.92,
+      "warm_ttfb_median_ms": 22.22,
+      "warm_ttfb_p95_ms": 32.32,
+      "html_bytes": 94942,
+      "html_gzip_bytes": 10223,
+      "external_requests_blocked": 0,
+      "document_title": "Football Factory — Latest news, analysis, fixtures and standings · FF90.online",
+      "js_files": 7,
+      "css_files": 2,
+      "js_raw_bytes": 375789,
+      "js_gzip_bytes": 112590,
+      "css_raw_bytes": 30763,
+      "css_gzip_bytes": 7565,
+      "failed_loaded_images": 0,
+      "pending_lazy_images": 2
+    },
+    {
+      "name": "WordPress FF90 independent",
+      "requests": 21,
+      "initial_request_ttfb_ms": 266.91,
+      "warm_ttfb_median_ms": 254.99,
+      "warm_ttfb_p95_ms": 276.61,
+      "html_bytes": 92180,
+      "html_gzip_bytes": 13591,
+      "external_requests_blocked": 0,
+      "document_title": "FF90 – ทุกมุมของเกมฟุตบอล",
+      "js_files": 1,
+      "css_files": 3,
+      "js_raw_bytes": 1739,
+      "js_gzip_bytes": 666,
+      "css_raw_bytes": 33331,
+      "css_gzip_bytes": 8903,
+      "failed_loaded_images": 0,
+      "pending_lazy_images": 13
+    }
+  ]
+}

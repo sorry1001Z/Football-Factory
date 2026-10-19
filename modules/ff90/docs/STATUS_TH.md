@@ -51,3 +51,8 @@ Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football 
 ## อัปเดตล่าสุด 19 ตุลาคม 2026 — ตารางคะแนนเชื่อมจริงแล้ว
 
 CONNECT 403 ไม่เกิดในรอบทดสอบล่าสุด football-data.org คืน HTTP 200 ทั้ง PL/PD/BL1/SA/FL1 เป็นฤดูกาล 2026/2027 เปิด standings_provider=football-data.org บน WordPress local แล้ว โดยคง fixtures/results จาก API-Football สถานะ BLOCKED/NOT_VERIFIED เก่าของการเชื่อมต่อนี้ถูกแทนด้วยผลจริง ดู [ขอบเขตและแผนใช้งานรายเดือน](FOOTBALL_DATA_CONNECTION_TH.md) ไม่ได้สมัครหรืออัปเกรดบริการเสียเงิน
+
+
+## เปรียบเทียบสถาปัตยกรรม 19 ตุลาคม 2026
+
+[รายงาน Next.js เดิมเทียบ WordPress ใหม่](ARCHITECTURE_COMPARISON_TH.md) มี local diagnostic baseline และข้อเสนอเลือก WordPress เพื่อความง่ายในการดูแล ยังไม่ใช่ benchmark บน Cloud VPS 03 และไม่สรุปความเร็ว Production จากคนละ dataset/cache/runtime รอสเปก VPS, ชุดข้อมูลเดียวกัน, page-cache/analytics, full restore และ Hermes E2E ก่อนย้าย
