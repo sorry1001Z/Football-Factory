@@ -36,6 +36,27 @@ function ff90_bridge_create_draft(WP_REST_Request $request) {
     $content = isset($data['content_html']) && is_string($data['content_html']) ? wp_kses_post($data['content_html']) : '';
     $source_url = isset($data['source_url']) && is_string($data['source_url']) ? esc_url_raw($data['source_url']) : '';
     $source_title = isset($data['source_title']) && is_string($data['source_title']) ? sanitize_text_field($data['source_title']) : '';
+    // Reuse FF90-05 review schema QA states; never substitute new QC logic.
+    // qa_wp_draft, desktop and mobile are post-draft checks and must be evaluated
+    // by FF90-05 before a human can approve publication.
+    $qa = isset($data['qa']) && is_array($data['qa']) ? $data['qa'] : [];
+    $preflight = ['qa_article', 'qa_fact', 'qa_seo'];
+    foreach ($preflight as $name) {
+        if (($qa[$name] ?? '') !== 'PASS') {
+            return ff90_bridge_error('ff90_quality_hold', $name . ' must PASS under existing FF90 QC.', 422);
+        }
+    }
+    if (($qa['qa_cover'] ?? '') !== 'PASS' && ($qa['qa_cover'] ?? '') !== 'HOLD') {
+        return ff90_bridge_error('ff90_cover_hold', 'Cover QC must be PASS or explicitly HOLD.', 422);
+    }
+    if (($qa['qa_image_rights'] ?? '') !== 'PASS' && ($qa['qa_image_rights'] ?? '') !== 'HOLD') {
+        return ff90_bridge_error('ff90_rights_hold', 'Image rights QC must be PASS or explicitly HOLD.', 422);
+    }
+    if (($qa['qa_cover'] ?? '') === 'HOLD' || ($qa['qa_image_rights'] ?? '') === 'HOLD') {
+        if (!empty($data['media_id'])) {
+            return ff90_bridge_error('ff90_cover_not_cleared', 'Held image cannot be attached.', 422);
+        }
+    }
     $verified = ($data['facts_verified'] ?? false) === true;
     $rights = ($data['rights_confirmed'] ?? false) === true;
     $asset_type = $data['asset_type'] ?? 'none';
@@ -52,6 +73,9 @@ function ff90_bridge_create_draft(WP_REST_Request $request) {
     $image_source = isset($data['image_source_url']) && is_string($data['image_source_url']) ? esc_url_raw($data['image_source_url']) : '';
     $image_author = isset($data['image_author']) && is_string($data['image_author']) ? sanitize_text_field($data['image_author']) : '';
     $media_id = isset($data['media_id']) ? absint($data['media_id']) : 0;
+    if ($asset_type !== 'none' && (($qa['qa_cover'] ?? '') !== 'PASS' || ($qa['qa_image_rights'] ?? '') !== 'PASS')) {
+        return ff90_bridge_error('ff90_asset_qa', 'Image attach requires FF90 cover and rights PASS.', 422);
+    }
     if ($asset_type !== 'none' && (!$rights || !$license || !$image_author || !wp_http_validate_url($image_source))) {
         return ff90_bridge_error('ff90_rights', 'Image provenance and confirmed rights required.', 422);
     }
@@ -88,6 +112,11 @@ function ff90_bridge_create_draft(WP_REST_Request $request) {
                 '_ff90_image_source' => $image_source,
                 '_ff90_image_author' => $image_author,
                 '_ff90_asset_type' => $asset_type,
+                '_ff90_qa_article' => 'PASS',
+                '_ff90_qa_fact' => 'PASS',
+                '_ff90_qa_seo' => 'PASS',
+                '_ff90_qa_cover' => sanitize_key((string)$qa['qa_cover']),
+                '_ff90_qa_image_rights' => sanitize_key((string)$qa['qa_image_rights']),
             ],
         ], true);
         if (is_wp_error($post_id)) {
