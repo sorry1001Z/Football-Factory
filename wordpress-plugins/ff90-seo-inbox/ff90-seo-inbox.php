@@ -48,7 +48,7 @@ function ff90_seo_accept(WP_REST_Request $request) {
             $skipped++; continue;
         }
         // Deterministic identity. Existing proposal is updated rather than duplicated.
-        $identity=hash('sha256',mb_strtolower(trim($keyword),'UTF-8'));
+        $identity=hash('sha256',trim($keyword));
         $existing=get_posts(['post_type'=>'ff_seo_proposal','post_status'=>'any',
             'meta_key'=>'_ff90_seo_identity','meta_value'=>$identity,
             'numberposts'=>1,'fields'=>'ids']);
@@ -60,15 +60,16 @@ function ff90_seo_accept(WP_REST_Request $request) {
             'pages'=>$pages,'report_date'=>sanitize_text_field((string)($payload['generated_at'] ?? '')),
         ],JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
         $post=['post_type'=>'ff_seo_proposal','post_status'=>'private',
-            'post_title'=>mb_substr('[SEO] '.$keyword,0,200,'UTF-8'),
+            'post_title'=>wp_html_excerpt('[SEO] '.$keyword,200,''),
             'post_content'=>$summary];
         if ($existing) {
             $post['ID']=(int)$existing[0];
-            $id=wp_update_post($post,true); $updated++;
+            $id=wp_update_post($post,true);
         } else {
-            $id=wp_insert_post($post,true); $created++;
+            $id=wp_insert_post($post,true);
         }
         if (is_wp_error($id)) return $id;
+        if ($existing) { $updated++; } else { $created++; }
         update_post_meta($id,'_ff90_seo_identity',$identity);
         update_post_meta($id,'_ff90_seo_action',$action);
         update_post_meta($id,'_ff90_seo_score',isset($rec['score'])?floatval($rec['score']):'');
