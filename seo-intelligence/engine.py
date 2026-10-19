@@ -23,15 +23,24 @@ def gsc_queries(site: str, token: str, start: str, end: str):
     # Search type web; 2D query/page prevents conflating different landing pages.
     body = {"startDate": start, "endDate": end, "dimensions": ["query", "page"],
             "type": "web", "rowLimit": 25000, "dataState": "final"}
-    data = request_json(url, token, payload=body)
     rows = []
-    for row in data.get("rows", []):
-        keys = row.get("keys", [])
-        if len(keys) < 2:
-            continue
-        rows.append({"keyword":keys[0], "page":keys[1], "clicks":float(row.get("clicks", 0)),
-                     "impressions":float(row.get("impressions", 0)),
-                     "ctr":float(row.get("ctr", 0)), "position":float(row.get("position", 0))})
+    # Search Analytics is bounded/truncated by Google; pagination improves coverage,
+    # but low-volume and anonymized queries may still be unavailable.
+    for offset in range(0, 100000, 25000):
+        body["startRow"] = offset
+        data = request_json(url, token, payload=body)
+        returned = data.get("rows", [])
+        if not returned:
+            break
+        for row in returned:
+            keys = row.get("keys", [])
+            if len(keys) < 2:
+                continue
+            rows.append({"keyword":keys[0], "page":keys[1], "clicks":float(row.get("clicks", 0)),
+                         "impressions":float(row.get("impressions", 0)),
+                         "ctr":float(row.get("ctr", 0)), "position":float(row.get("position", 0))})
+        if len(returned) < 25000:
+            break
     return rows
 
 def ahrefs_overview(keywords, token: str, country="th", batch_size=20):
