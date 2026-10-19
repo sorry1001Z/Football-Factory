@@ -67,3 +67,19 @@ TTFB เป็น loopback ภายในเครื่อง ไม่มี 
 ## การตัดสินใจตอนนี้
 
 ทดลอง WordPress เต็มตัวต่อเป็นทางหลัก และรักษา Next เดิมไว้เทียบ ยังไม่ย้าย Production จนกว่าจะผ่านการเทียบ dataset เดียว, cache-aware analytics, full backup/restore และ Hermes E2E หากผู้ใช้ต้องการ React application UI ขั้นสูงเป็นแกนหลัก ให้ประเมิน Next/headless ใหม่โดยรวม CMS/DB/process ที่ต้องดูแลทั้งหมด
+
+
+## อัปเดตสเปก VPS ที่ผู้ใช้ยืนยัน
+
+Cloud VPS 03: CPU 4 vCore, RAM 8 GB, SSD 100 GB, Public IPv4 1 IP, Domestic 1 Gbps shared, International 200 Mbps shared และ Unlimited monthly transfer ส่วน OS, control panel, บริการที่มีอยู่, free disk/RAM และการวาง n8n/Hermes ร่วมเครื่องยังไม่ทราบ ข้อมูลนี้แทนส่วนที่ระบุว่ายังไม่ทราบสเปกข้างต้น ไม่ใช่ผลตรวจเครื่องผ่าน SSH
+
+สเปกนี้เป็นจุดเริ่มต้นที่เหมาะสมในการทดลองทั้ง WordPress และ Next.js ไม่ใช่เหตุผลที่บังคับให้ต้องเลือก WordPress และไม่ใช่หลักฐานว่ารองรับผู้ใช้พร้อมกันจำนวนใดได้แล้ว ข้อเสนอ WordPress ยังอิงความง่ายของ editorial/admin/deploy และการลดชั้น CMS/frontend ที่ต้องดูแล
+
+- WordPress: ใช้ Nginx หรือ web server ที่มีอยู่ร่วมกับ PHP-FPM/OPcache และ MySQL/MariaDB พร้อม full-page cache ที่ purge ถูกต้อง กำหนดจำนวน PHP workers หลังวัด RSS/request และ slow requests จริง ไม่ใช้ SQLite/PHP built-in server เป็นผลแทน VPS Production
+- Next.js: CPU/RAM เพียงพอสำหรับเริ่มทดลอง production process เช่นกัน แต่ต้องนับ CMS/DB และ build memory รวมด้วย หลีกเลี่ยงการ build ขณะ automation/image processing หนักบนเครื่องเดียวกัน
+- หากเพิ่ม n8n/Hermes ร่วม VPS: แยก processes/queues และเผื่อ RAM/CPU ก่อนเพิ่ม concurrency ยังไม่เปิดหรือเปลี่ยน Content Automation ในงานนี้ ตรวจว่ามี browser/AI/image jobs ที่กินทรัพยากรหรือไม่
+- SSD 100 GB ต้องแบ่งให้ OS, DB, uploads, logs และพื้นที่ว่างสำหรับ backup/restore ชั่วคราว ภาพข่าวอาจเป็นส่วนที่โตเร็ว ควรใช้ขนาดภาพเหมาะสม/รูปแบบบีบอัดและ log rotation สำรองนอก VPS แยกจากสำเนาในเครื่อง ไม่เก็บ full backup ทุกวันไม่จำกัดจนดิสก์เต็ม
+- Shared bandwidth เป็นอัตราพอร์ตที่แบ่งใช้ ไม่ใช่ความเร็วรับประกันต่อผู้ชม Unlimited transfer ไม่ได้หมายถึง throughput, CPU หรือ concurrent users ไม่จำกัด ยังต้องวัดจากจุดที่ผู้ชมใช้งานจริง
+- 1 Public IPv4 สามารถใช้ reverse proxy/SNI แยก staging และเว็บไซต์ตาม hostname ได้ แต่ต้องแยก DB/config/credentials/cache/cookies และ resource limits ให้เหมาะสม การรันสองระบบเพื่อเทียบพร้อมกันมีต้นทุนทรัพยากร จึงยังต้องออกแบบก่อนติดตั้ง
+
+ไม่จำเป็นต้องเสนอเช่า VPS ใหม่จากสเปกนี้ ขณะนี้คงทดสอบ local และรอ Automation ตามผู้ใช้ ยังไม่ SSH, deploy, เปลี่ยน DNS หรือซื้อบริการใด การตัดสินใจจำนวนผู้ใช้/ความเร็ว/พื้นที่เหลือต้องยืนยันด้วยข้อมูลบนเครื่องจริงและ load/restore tests
