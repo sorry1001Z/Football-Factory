@@ -53,3 +53,8 @@ Regression suite 84 ข้อเดิมและ browser 13 ข้อผ่า
 ## ส่วนที่ยังติด
 
 ตารางคะแนนฤดูกาลปัจจุบันของพรีเมียร์ลีก: BLOCKED_BY_FREE_PLAN ไม่ใช้ตารางปีเก่าปลอมเป็นปัจจุบัน ส่วนลีกอื่นยังไม่ได้ยืนยัน standings entitlement จริงครบทุกลีก ตัวเลือกที่มีค่าใช้จ่ายต้องให้ผู้ใช้อนุมัติก่อนเสมอ Google และ Content Automation ไม่อยู่ในงานรอบนี้
+
+
+## อัปเดตล่าสุด 19 ตุลาคม 2026 — ตารางคะแนนเชื่อมจริงแล้ว
+
+CONNECT 403 ไม่เกิดในรอบทดสอบล่าสุด football-data.org คืน HTTP 200 ทั้ง PL/PD/BL1/SA/FL1 เป็นฤดูกาล 2026/2027 เปิด standings_provider=football-data.org บน WordPress local แล้ว โดยคง fixtures/results จาก API-Football สถานะ BLOCKED/NOT_VERIFIED เก่าของการเชื่อมต่อนี้ถูกแทนด้วยผลจริง ดู [ขอบเขตและแผนใช้งานรายเดือน](FOOTBALL_DATA_CONNECTION_TH.md) ไม่ได้สมัครหรืออัปเกรดบริการเสียเงิน

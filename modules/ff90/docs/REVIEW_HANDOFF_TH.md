@@ -48,3 +48,8 @@ Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football 
 ## 19 ตุลาคม 2026 — เตรียมแหล่งตารางคะแนนแยก
 
 เพิ่ม Data Engine 0.3.0 / Widgets 0.1.2 และรับคีย์ football-data.org แล้ว แต่ cloud proxy ปฏิเสธ CONNECT 403 ก่อนถึง API จึงยังไม่สลับ source และไม่อ้างว่าตรวจสิทธิ์ 5 ลีกสำเร็จ ดู [สถานะและขั้นตอนแก้ Network](FOOTBALL_DATA_CONNECTION_TH.md)
+
+
+## อัปเดตล่าสุด 19 ตุลาคม 2026 — ตารางคะแนนเชื่อมจริงแล้ว
+
+CONNECT 403 ไม่เกิดในรอบทดสอบล่าสุด football-data.org คืน HTTP 200 ทั้ง PL/PD/BL1/SA/FL1 เป็นฤดูกาล 2026/2027 เปิด standings_provider=football-data.org บน WordPress local แล้ว โดยคง fixtures/results จาก API-Football สถานะ BLOCKED/NOT_VERIFIED เก่าของการเชื่อมต่อนี้ถูกแทนด้วยผลจริง ดู [ขอบเขตและแผนใช้งานรายเดือน](FOOTBALL_DATA_CONNECTION_TH.md) ไม่ได้สมัครหรืออัปเกรดบริการเสียเงิน

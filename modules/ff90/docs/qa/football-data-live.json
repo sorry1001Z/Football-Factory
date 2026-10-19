@@ -1,0 +1,97 @@
+{
+  "checked_at_utc": "2026-10-19T06:46:21+00:00",
+  "leagues": {
+    "PL": {
+      "status": "PASS",
+      "source": "football-data.org",
+      "season": "2026/2027",
+      "season_start": "2026-08-21",
+      "season_end": "2027-05-30",
+      "teams": 20,
+      "stale": false,
+      "fetched_at": "2026-10-19T06:46:22+00:00"
+    },
+    "PD": {
+      "status": "PASS",
+      "source": "football-data.org",
+      "season": "2026/2027",
+      "season_start": "2026-08-16",
+      "season_end": "2027-05-30",
+      "teams": 20,
+      "stale": false,
+      "fetched_at": "2026-10-19T06:46:23+00:00"
+    },
+    "BL1": {
+      "status": "PASS",
+      "source": "football-data.org",
+      "season": "2026/2027",
+      "season_start": "2026-08-28",
+      "season_end": "2027-05-22",
+      "teams": 18,
+      "stale": false,
+      "fetched_at": "2026-10-19T06:46:23+00:00"
+    },
+    "SA": {
+      "status": "PASS",
+      "source": "football-data.org",
+      "season": "2026/2027",
+      "season_start": "2026-08-23",
+      "season_end": "2027-05-30",
+      "teams": 20,
+      "stale": false,
+      "fetched_at": "2026-10-19T06:46:24+00:00"
+    },
+    "FL1": {
+      "status": "PASS",
+      "source": "football-data.org",
+      "season": "2026/2027",
+      "season_start": "2026-08-22",
+      "season_end": "2027-05-29",
+      "teams": 18,
+      "stale": false,
+      "fetched_at": "2026-10-19T06:46:24+00:00"
+    }
+  },
+  "rate_headers": [
+    {
+      "path": "/v4/competitions/PL/standings",
+      "http": 200,
+      "headers": {
+        "x-requests-available-minute": 9,
+        "x-requestcounter-reset": 26
+      }
+    },
+    {
+      "path": "/v4/competitions/PD/standings",
+      "http": 200,
+      "headers": {
+        "x-requests-available-minute": 8,
+        "x-requestcounter-reset": 25
+      }
+    },
+    {
+      "path": "/v4/competitions/BL1/standings",
+      "http": 200,
+      "headers": {
+        "x-requests-available-minute": 7,
+        "x-requestcounter-reset": 25
+      }
+    },
+    {
+      "path": "/v4/competitions/SA/standings",
+      "http": 200,
+      "headers": {
+        "x-requests-available-minute": 6,
+        "x-requestcounter-reset": 24
+      }
+    },
+    {
+      "path": "/v4/competitions/FL1/standings",
+      "http": 200,
+      "headers": {
+        "x-requests-available-minute": 5,
+        "x-requestcounter-reset": 23
+      }
+    }
+  ]
+}

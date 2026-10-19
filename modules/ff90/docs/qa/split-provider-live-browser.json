@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-19T06:49:38.351Z",
+  "sources": [
+    "API-Football",
+    "football-data.org"
+  ],
+  "season": "2026/2027",
+  "results": [
+    {
+      "width": 360,
+      "http": 200,
+      "standings_tables": 5,
+      "team_rows": 96,
+      "horizontal_page_overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 390,
+      "http": 200,
+      "standings_tables": 5,
+      "team_rows": 96,
+      "horizontal_page_overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 768,
+      "http": 200,
+      "standings_tables": 5,
+      "team_rows": 96,
+      "horizontal_page_overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 1024,
+      "http": 200,
+      "standings_tables": 5,
+      "team_rows": 96,
+      "horizontal_page_overflow": false,
+      "axe_violations": 0
+    },
+    {
+      "width": 1440,
+      "http": 200,
+      "standings_tables": 5,
+      "team_rows": 96,
+      "horizontal_page_overflow": false,
+      "axe_violations": 0
+    }
+  ],
+  "browser_exceptions": []
+}

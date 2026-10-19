@@ -13,15 +13,16 @@
     "status": "PASS"
   },
   "live_football_data": {
-    "status": "BLOCKED_BY_NETWORK",
-    "observed": "cURL error 56: CONNECT tunnel failed, response 403",
-    "key_validity": "NOT_VERIFIED",
-    "plan": "NOT_VERIFIED",
-    "five_league_current_standings": "NOT_VERIFIED"
+    "status": "PASS",
+    "http": 200,
+    "key_validity": "VERIFIED",
+    "five_league_current_standings": "VERIFIED: PL20/PD20/BL1 18/SA20/FL1 18, season 2026/2027",
+    "billing_plan_name": "NOT_RETURNED_BY_STANDINGS_ENDPOINT",
+    "note": "No subscription or upgrade performed; CONNECT 403 no longer reproduced"
   },
   "local_options": {
     "provider": "api-football",
-    "standings_provider": "same",
+    "standings_provider": "football-data.org",
     "enabled": true,
     "auto_refresh": true
   }
