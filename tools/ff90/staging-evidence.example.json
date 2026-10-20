@@ -1,0 +1,23 @@
+{
+  "production_url": "https://wp.ff90.online",
+  "staging_url": "",
+  "database_isolated": false,
+  "uploads_isolated": false,
+  "queue_enabled": false,
+  "auto_publish_disabled": true,
+  "automation_draft_enabled": false,
+  "backup_sha256": "",
+  "backup_timestamp": "",
+  "restore_test_passed": false,
+  "uploads_restore_verified": false,
+  "database_restore_verified": false,
+  "plugin_inventory_verified": false,
+  "connector_healthy": false,
+  "service_user_verified": false,
+  "deny_publish_verified": false,
+  "secret_in_vault": false,
+  "server_side_qc_verified": false,
+  "image_rights_verified": false,
+  "seo_single_writer_verified": false,
+  "minimax_article_package_verified": false
+}
