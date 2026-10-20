@@ -1,0 +1,33 @@
+{
+  "environment": "WordPress 6.9 / PHP 8.4 / SQLite / Chromium; loopback only",
+  "results": [
+    {
+      "name": "Gutenberg sidebar analyzes unsaved content through authenticated WordPress REST",
+      "status": "PASS"
+    },
+    {
+      "name": "Standalone coordinates Core schema, canonical and description without duplication",
+      "status": "PASS"
+    },
+    {
+      "name": "News sitemap, robots discovery and native sitemap return real HTTP XML",
+      "status": "PASS"
+    },
+    {
+      "name": "Settings page saves advisory mode through native nonce-protected Settings API",
+      "status": "PASS"
+    },
+    {
+      "name": "Classic Editor nonce-protected meta box saves metadata through native post form",
+      "status": "PASS"
+    },
+    {
+      "name": "Optional GSC settings stays disconnected without exposing credentials or fake metrics",
+      "status": "PASS"
+    },
+    {
+      "name": "No browser exceptions",
+      "status": "PASS"
+    }
+  ]
+}

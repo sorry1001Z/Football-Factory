@@ -1,0 +1,239 @@
+{
+  "environment": {
+    "themeVersion": "1.2.0",
+    "wordpress": "6.9",
+    "php": "8.4.24",
+    "database": "SQLite (local only)",
+    "browser": "system Chromium",
+    "fixture": "Synthetic QA content; not live football news"
+  },
+  "results": [
+    {
+      "name": "main-v2 360px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 360,
+        "images": 15,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "main-v2 390px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "images": 15,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "main-v2 768px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 768,
+        "images": 15,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "main-v2 1024px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 1024,
+        "images": 15,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "main-v2 1440px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "images": 15,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "colormag-01 360px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 360,
+        "images": 23,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "colormag-01 390px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "images": 23,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "colormag-01 768px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 768,
+        "images": 23,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "colormag-01 1024px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 1024,
+        "images": 23,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "colormag-01 1440px responsive + axe",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "images": 23,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "dark mode 390px axe + persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "dark mode 1440px axe + persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "article 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "category 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "search 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "search-empty 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "not-found 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 404,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "author 390px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "article 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "category 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "search 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "search-empty 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "not-found 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 404,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "author 1440px",
+      "status": "PASS",
+      "detail": {
+        "http": 200,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "13 banner classes and full image frames",
+      "status": "PASS"
+    },
+    {
+      "name": "Core plugin off / on fallback regression",
+      "status": "PASS"
+    },
+    {
+      "name": "Optional renderer / SEO / analytics hook probe (TEST DOUBLE)",
+      "status": "PASS"
+    },
+    {
+      "name": "Date navigation ISO / invalid / injection",
+      "status": "PASS"
+    },
+    {
+      "name": "Customizer UI layout switch and persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "Customizer rejects missing nonce",
+      "status": "PASS"
+    },
+    {
+      "name": "No-JavaScript navigation fallback",
+      "status": "PASS"
+    },
+    {
+      "name": "No browser runtime exceptions",
+      "status": "PASS"
+    }
+  ],
+  "failed": []
+}

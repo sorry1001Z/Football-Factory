@@ -1,0 +1,33 @@
+{
+  "scope": "Disposable isolated local clone; no real keys, no external calls, no publishing",
+  "results": [
+    {
+      "name": "Anonymous cannot read automation control status or submit preflight",
+      "status": "PASS"
+    },
+    {
+      "name": "New Content & Image admin page and forced safe controls render",
+      "status": "PASS"
+    },
+    {
+      "name": "Existing Automation Inbox page stays separate and reachable",
+      "status": "PASS"
+    },
+    {
+      "name": "Cookie plus REST nonce reaches status and fail-closed preflight over HTTP",
+      "status": "PASS"
+    },
+    {
+      "name": "All imported draft previews stay private and render for administrator at 390px",
+      "status": "PASS",
+      "detail": {
+        "drafts": 24,
+        "no_publication": true
+      }
+    },
+    {
+      "name": "No admin/browser runtime exceptions",
+      "status": "PASS"
+    }
+  ]
+}

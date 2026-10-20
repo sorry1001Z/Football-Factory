@@ -5,7 +5,7 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import hashlib,re,json
 root=Path(__file__).resolve().parents[2]
 result=[]
-for slug in ['ff90-seo', 'ff90-seo-football', 'ff90-seo-gsc', 'ff90-security', 'ff90-content-qa', 'ff90-editorial-approval', 'ff90-football-data', 'ff90-football-widgets', 'ff90-image-registry', 'ff90-banner-renderer', 'ff90-automation-bridge', 'ff90-operations']:
+for slug in ['ff90-seo', 'ff90-seo-football', 'ff90-seo-gsc', 'ff90-security', 'ff90-content-qa', 'ff90-editorial-approval', 'ff90-football-data', 'ff90-football-widgets', 'ff90-image-registry', 'ff90-banner-renderer', 'ff90-automation-bridge', 'ff90-operations', 'ff90-content-image-automation']:
     plugin=root/'wordpress-plugins'/slug
     version=re.search(r'^ \* Version: ([\d.]+)$',(plugin/(slug+'.php')).read_text(),re.M).group(1)
     files=[plugin/(slug+'.php'),plugin/'readme.txt',plugin/'LICENSE']

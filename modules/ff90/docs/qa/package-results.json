@@ -70,5 +70,11 @@
     "version": "0.1.0",
     "files": 4,
     "sha256": "c3479c8cfa7e711cfeb368e399bc164a4100d596902c1686fb28bd0c99be6937"
+  },
+  {
+    "plugin": "ff90-content-image-automation",
+    "version": "0.3.1",
+    "files": 4,
+    "sha256": "68a69f89500431b6ef46bcc318e5c2df1a6efd937ae70872248a8599b471fc6b"
   }
 ]

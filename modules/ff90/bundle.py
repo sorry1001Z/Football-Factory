@@ -5,7 +5,7 @@ from zipfile import ZipFile,ZipInfo,ZIP_DEFLATED
 import hashlib,json
 root=Path(__file__).resolve().parents[2]
 manifest=json.loads((root/'modules/ff90/docs/qa/package-results.json').read_text())
-plugins=[e for e in manifest if e['plugin'] not in ['ff90-seo','ff90-seo-football','ff90-seo-gsc']]
+plugins=[e for e in manifest if e['plugin'] not in ['ff90-seo','ff90-seo-football','ff90-seo-gsc','ff90-content-image-automation']]
 assert len(plugins)==9
 out=root/'modules/ff90/dist';out.mkdir(exist_ok=True)
 bundle=out/'ff90-modules-B-to-L-0.1.0.zip'

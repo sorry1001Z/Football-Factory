@@ -1,0 +1,93 @@
+{
+  "scope": "Native WordPress + existing FF90 Core only; SEO Growth V4 NOT_RUN",
+  "results": [
+    {
+      "layout": "main-v2",
+      "route": "/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "route": "/ff90-qa-general/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 1,
+      "description": 0,
+      "keys": [
+        "NewsArticle|http://127.0.0.1:8089/ff90-qa-general"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "route": "/category/general/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089/category/general"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "route": "/?s=FF90",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "route": "/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "route": "/ff90-qa-general/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 1,
+      "description": 0,
+      "keys": [
+        "NewsArticle|http://127.0.0.1:8089/ff90-qa-general"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "route": "/category/general/",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089/category/general"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "route": "/?s=FF90",
+      "status": "PASS",
+      "title": 1,
+      "canonical": 0,
+      "description": 0,
+      "keys": [
+        "WebSite|http://127.0.0.1:8089"
+      ]
+    }
+  ]
+}

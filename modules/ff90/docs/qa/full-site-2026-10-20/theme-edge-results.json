@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "name": "main-v2 empty homepage",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 empty homepage",
+      "status": "PASS"
+    },
+    {
+      "name": "Native article without featured media",
+      "status": "PASS"
+    },
+    {
+      "name": "Search input script remains inert",
+      "status": "PASS"
+    }
+  ]
+}

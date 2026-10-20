@@ -1,0 +1,200 @@
+{
+  "groups": [
+    {
+      "name": "ข่าวฟุตบอลลีก",
+      "key": "leagues"
+    },
+    {
+      "name": "บอลถ้วย",
+      "key": "cups"
+    }
+  ],
+  "items": [
+    {
+      "slug": "premier-league",
+      "name": "พรีเมียร์ลีก",
+      "group": "leagues"
+    },
+    {
+      "slug": "la-liga",
+      "name": "ลาลีกา",
+      "group": "leagues"
+    },
+    {
+      "slug": "bundesliga",
+      "name": "บุนเดสลีกา",
+      "group": "leagues"
+    },
+    {
+      "slug": "serie-a",
+      "name": "กัลโช่ เซเรีย อา",
+      "group": "leagues"
+    },
+    {
+      "slug": "ligue-1",
+      "name": "ลีกเอิง",
+      "group": "leagues"
+    },
+    {
+      "slug": "uefa-champions-league",
+      "name": "ยูฟ่าแชมเปียนส์ลีก",
+      "group": "cups"
+    },
+    {
+      "slug": "uefa-europa-league",
+      "name": "ยูฟ่ายูโรปาลีก",
+      "group": "cups"
+    },
+    {
+      "slug": "uefa-super-cup",
+      "name": "ยูฟ่าซูเปอร์คัพ",
+      "group": "cups"
+    },
+    {
+      "slug": "fa-cup",
+      "name": "เอฟเอ คัพ",
+      "group": "cups"
+    },
+    {
+      "slug": "carabao-cup",
+      "name": "คาราบาวคัพ",
+      "group": "cups"
+    },
+    {
+      "slug": "copa-del-rey",
+      "name": "โกปา เดล เรย์",
+      "group": "cups"
+    },
+    {
+      "slug": "supercopa-de-espana",
+      "name": "ซูเปร์โกปา เด เอสปัญญา",
+      "group": "cups"
+    },
+    {
+      "slug": "coppa-italia",
+      "name": "โกปา อิตาเลีย",
+      "group": "cups"
+    },
+    {
+      "slug": "supercoppa-italiana",
+      "name": "ซูเปร์โกปา อิตาเลียนา",
+      "group": "cups"
+    },
+    {
+      "slug": "dfb-pokal",
+      "name": "เดเอฟเบ โพคาล",
+      "group": "cups"
+    },
+    {
+      "slug": "dfl-supercup",
+      "name": "เดเอฟแอล ซูเปอร์คัพ",
+      "group": "cups"
+    },
+    {
+      "slug": "coupe-de-france",
+      "name": "กุปเดอฟร็องส์",
+      "group": "cups"
+    },
+    {
+      "slug": "trophee-des-champions",
+      "name": "ทรอเฟ เดช็องปียง",
+      "group": "cups"
+    }
+  ],
+  "results": [
+    {
+      "layout": "main-v2",
+      "width": 360,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "width": 390,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "width": 768,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "width": 1024,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "main-v2",
+      "width": 1440,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "width": 360,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "width": 390,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "width": 768,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "width": 1024,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    },
+    {
+      "layout": "colormag-01",
+      "width": 1440,
+      "status": "PASS",
+      "rootMenus": [
+        "ข่าวฟุตบอลลีก",
+        "บอลถ้วย"
+      ]
+    }
+  ],
+  "archiveLinks": "18/18 HTTP 200; empty categories show honest empty state",
+  "shortDesktop": "PASS 1440x600; last cup keyboard reachable",
+  "keyboard": "Tab enters each submenu",
+  "axe": "zero violations at 390/1440"
+}

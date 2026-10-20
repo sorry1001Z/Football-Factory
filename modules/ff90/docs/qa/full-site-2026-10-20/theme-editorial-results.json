@@ -1,0 +1,73 @@
+{
+  "scope": "Disposable local WordPress; synthetic QA story and test request events, not audience claims",
+  "results": [
+    {
+      "name": "NEW works with zero audience and no invented HOT/BEST",
+      "status": "PASS"
+    },
+    {
+      "name": "Real request counted once; same browser refresh deduplicated",
+      "status": "PASS"
+    },
+    {
+      "name": "Second reader counted; DNT/bot/HEAD excluded",
+      "status": "PASS"
+    },
+    {
+      "name": "HOT/BEST follow recorded events; category menu ribbon uses same source",
+      "status": "PASS"
+    },
+    {
+      "name": "Contact email, distinct contact menu, social icons without fake links",
+      "status": "PASS"
+    },
+    {
+      "name": "main-v2 360px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "main-v2 390px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "main-v2 768px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "main-v2 1024px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "main-v2 1440px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 360px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 390px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 768px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 1024px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "colormag-01 1440px ads + icons + badges",
+      "status": "PASS"
+    },
+    {
+      "name": "Native media picker and Publish configure sale banner without code",
+      "status": "PASS"
+    },
+    {
+      "name": "Statistics module deactivation keeps theme and time-based NEW working",
+      "status": "PASS"
+    }
+  ]
+}

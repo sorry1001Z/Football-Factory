@@ -8,7 +8,7 @@ Implementation baseline: `8a8ffe8` (ใช้ branch ล่าสุดสำห
 
 โปรดตรวจ Source ของปลั๊กอินทั้งหมดใน `wordpress-plugins/` บน branch ข้างต้น อ่านเอกสารนี้ร่วมกับ `modules/ff90/docs/STATUS_TH.md`, `INSTALL_TH.md`, `QA_REPORT.md` และ `N8N_HANDOFF_TH.md` ก่อนสรุปสถานะ ตรวจโค้ดจริงและหลักฐานทดสอบ แยก implemented / tested locally / waiting integration / NOT_RUN ให้ชัด อย่าสรุปว่า V4 ครบหรือ production ready จากเลขเวอร์ชัน ห้ามแก้ Production, News Automation ของ Hermes หรือเผยแพร่ข้อมูลลับ หากเข้า private repository ไม่ได้ ให้ผู้ใช้แนบไฟล์ ff90-all-plugins-review.zip ซึ่งมี Source, เอกสาร และ ZIP ติดตั้งแยกแต่ละตัว
 
-## ปลั๊กอินทั้งหมด 14 ตัว
+## ปลั๊กอินทั้งหมด 15 ตัว
 
 | Directory | Version | หน้าที่ / ข้อจำกัดสำคัญ |
 |---|---|---|
@@ -26,6 +26,7 @@ Implementation baseline: `8a8ffe8` (ใช้ branch ล่าสุดสำห
 | ff90-banner-renderer | 0.1.0 | Featured banner 13 รูปแบบ; ไม่สร้างภาพ |
 | ff90-automation-bridge | 0.1.0 | Durable inbox/idempotency/recovery; n8n/Hermes จริง NOT_RUN; ไม่มี bundled publisher |
 | ff90-operations | 0.1.0 | Health และ private WXR content export; ไม่ใช่ full DB/media backup และไม่มี restore engine |
+| ff90-content-image-automation | 0.3.1 | แผงตรวจ metadata/QC และ preflight 422 เสมอ; ไม่มี writer/render/upload/publish |
 
 SEO Football และ GSC ใช้ร่วมกับ SEO Core; Editorial ใช้ Content QA; Widgets ใช้ Football Data อ่าน INSTALL_TH.md สำหรับลำดับและการตั้งค่า สิทธิ์/nonce/REST authentication ต้องคงไว้ Privileged PHP/direct SQL ไม่อยู่ภายใต้ sandbox ของ Editorial Gate
 
@@ -37,7 +38,7 @@ Theme แยกอยู่ที่ `wordpress-themes/ff90-independent/` รุ
 
 ## เปิดชุดส่งต่อ
 
-แตก `ff90-all-plugins-review.zip`: `source/` เป็นไฟล์ที่ติดตามใน Git ของปลั๊กอินทั้ง 14 ตัวพร้อมเอกสารโมดูล, `plugins/` เป็น ZIP ติดตั้งแยกตัว, `MANIFEST.json` ระบุ hash ของแต่ละ ZIP ห้ามอัปโหลดชุดรวมเป็นปลั๊กอินตัวเดียว ชุดนี้ไม่มี credentials จาก environment และไม่รวม WordPress database/media
+แตก `ff90-all-plugins-review.zip`: `source/` เป็นไฟล์ที่ติดตามใน Git ของปลั๊กอินทั้ง 15 ตัวพร้อมเอกสารโมดูล, `plugins/` เป็น ZIP ติดตั้งแยกตัว, `MANIFEST.json` ระบุ hash ของแต่ละ ZIP ห้ามอัปโหลดชุดรวมเป็นปลั๊กอินตัวเดียว ชุดนี้ไม่มี credentials จาก environment และไม่รวม WordPress database/media
 
 
 ## อัปเดต API-Football — 18 ตุลาคม 2026
@@ -53,3 +54,8 @@ Football Data Engine 0.2.0 และ Widgets 0.1.1 เพิ่ม API-Football 
 ## อัปเดตล่าสุด 19 ตุลาคม 2026 — ตารางคะแนนเชื่อมจริงแล้ว
 
 CONNECT 403 ไม่เกิดในรอบทดสอบล่าสุด football-data.org คืน HTTP 200 ทั้ง PL/PD/BL1/SA/FL1 เป็นฤดูกาล 2026/2027 เปิด standings_provider=football-data.org บน WordPress local แล้ว โดยคง fixtures/results จาก API-Football สถานะ BLOCKED/NOT_VERIFIED เก่าของการเชื่อมต่อนี้ถูกแทนด้วยผลจริง ดู [ขอบเขตและแผนใช้งานรายเดือน](FOOTBALL_DATA_CONNECTION_TH.md) ไม่ได้สมัครหรืออัปเกรดบริการเสียเงิน
+
+
+## 20 ตุลาคม 2026 — ปลั๊กอินตัวที่ 15 และ Full-site QA
+
+ติดตั้ง ff90-content-image-automation 0.3.1 แบบ Queue OFF/Auto Publish OFF แล้ว แยก admin slug จาก Bridge ตรวจ 547 PHP/WordPress assertions + 97 browser cases ผ่านบนสำเนาแยก ข่าว 24 Draft เดิมไม่เปลี่ยน แต่ยังไม่ใช่ Automation pipeline จริง ดู [ผล QA](FULL_SITE_QA_2026-10-20_TH.md) และ [หน้าที่/API/จุดซ้อนทับทั้ง 15 ตัว](PLUGIN_API_MAP_TH.md)

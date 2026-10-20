@@ -1,0 +1,167 @@
+{
+  "date_bangkok": "2026-10-20",
+  "scope": "Isolated local WordPress clone, 15 FF90 plugins; no external production changes",
+  "php_contract_assertions": 547,
+  "php_suites": [
+    {
+      "suite": "seed",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 0,
+      "summary": []
+    },
+    {
+      "suite": "theme-contracts",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 217,
+      "summary": [
+        "TOTAL: 217 checks passed"
+      ]
+    },
+    {
+      "suite": "ad-contracts",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 6,
+      "summary": [
+        "TOTAL: 6 checks passed"
+      ]
+    },
+    {
+      "suite": "module-contracts",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 84,
+      "summary": [
+        "TOTAL: 84 module contracts passed; provider HTTP is DOUBLED, no live data claim"
+      ]
+    },
+    {
+      "suite": "seo-contracts",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 42,
+      "summary": [
+        "TOTAL: 42 checks passed"
+      ]
+    },
+    {
+      "suite": "seo-advanced",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 28,
+      "summary": [
+        "TOTAL: 28 advanced module checks passed"
+      ]
+    },
+    {
+      "suite": "gsc-doubled",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 29,
+      "summary": [
+        "TOTAL: 29 HTTP-DOUBLED checks passed; live Google NOT_RUN"
+      ]
+    },
+    {
+      "suite": "api-football-doubled",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 26,
+      "summary": [
+        "TOTAL: 26 assertions passed; HTTP DOUBLES only, no live key read."
+      ]
+    },
+    {
+      "suite": "split-provider-doubled",
+      "exit_code": 0,
+      "status": "PASS",
+      "pass_lines": 34,
+      "summary": [
+        "TOTAL: 34 split-provider assertions passed; HTTP DOUBLES only."
+      ]
+    },
+    {
+      "suite": "content-image-pure",
+      "status": "PASS",
+      "assertions": 22
+    },
+    {
+      "suite": "content-image-wordpress",
+      "status": "PASS",
+      "assertions": 12
+    },
+    {
+      "suite": "SEO TS/PHP parity",
+      "status": "PASS",
+      "reference_cases": 47
+    }
+  ],
+  "browser_cases": 97,
+  "browser_suites": [
+    {
+      "suite": "modules-browser-results.json",
+      "cases": 13,
+      "status": "PASS"
+    },
+    {
+      "suite": "seo-browser-results.json",
+      "cases": 7,
+      "status": "PASS"
+    },
+    {
+      "suite": "theme-browser-results.json",
+      "cases": 32,
+      "status": "PASS"
+    },
+    {
+      "suite": "theme-edge-results.json",
+      "cases": 4,
+      "status": "PASS"
+    },
+    {
+      "suite": "theme-editorial-results.json",
+      "cases": 17,
+      "status": "PASS"
+    },
+    {
+      "suite": "theme-seo-results.json",
+      "cases": 8,
+      "status": "PASS"
+    },
+    {
+      "suite": "theme-submenu-results.json",
+      "cases": 10,
+      "status": "PASS"
+    },
+    {
+      "suite": "content-image-browser",
+      "cases": 6,
+      "status": "PASS"
+    }
+  ],
+  "static": {
+    "php_files": 71,
+    "js_files": 3,
+    "failures": []
+  },
+  "theme_check": {
+    "RECOMMENDED": 4,
+    "INFO": 1
+  },
+  "original_24_drafts": {
+    "unchanged": true,
+    "status": "draft",
+    "publications": 0
+  },
+  "clone_initial_setup_issue": "WordPress js/css dist assets initially omitted during clone; restored before rerunning browser suites successfully. No assertions disabled. Core-off fallback test accepts current independent widget not-connected state.",
+  "not_run": [
+    "Real Google OAuth",
+    "Real n8n/Hermes/MiniMax workflow",
+    "Full DB/media backup restore",
+    "VPS/MySQL/MariaDB/TLS/load testing",
+    "Firefox/Safari",
+    "Independent fact/license verification of imported news"
+  ]
+}

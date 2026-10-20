@@ -1,0 +1,57 @@
+{
+  "runtime": "Local WordPress 6.9, PHP 8.4, SQLite, Chromium; football HTTP is DOUBLED",
+  "results": [
+    {
+      "name": "Security headers present on actual frontend response",
+      "status": "PASS"
+    },
+    {
+      "name": "Gutenberg source declarations save through native REST metadata",
+      "status": "PASS"
+    },
+    {
+      "name": "Editorial settings opt into approval enforcement through native Settings API",
+      "status": "PASS"
+    },
+    {
+      "name": "Human QA form rejects missing nonce before attestation",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent saved-version fact and rights review uses real admin form",
+      "status": "PASS"
+    },
+    {
+      "name": "Editorial approval form then native REST publishes only reviewed version",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent renderer and football widgets 360px + axe",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent renderer and football widgets 390px + axe",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent renderer and football widgets 768px + axe",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent renderer and football widgets 1024px + axe",
+      "status": "PASS"
+    },
+    {
+      "name": "Independent renderer and football widgets 1440px + axe",
+      "status": "PASS"
+    },
+    {
+      "name": "Same modules render with unrelated Twenty Twenty-Five theme",
+      "status": "PASS"
+    },
+    {
+      "name": "No browser exceptions",
+      "status": "PASS"
+    }
+  ]
+}

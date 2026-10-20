@@ -56,3 +56,8 @@ CONNECT 403 ไม่เกิดในรอบทดสอบล่าสุ�
 ## เปรียบเทียบสถาปัตยกรรม 19 ตุลาคม 2026
 
 [รายงาน Next.js เดิมเทียบ WordPress ใหม่](ARCHITECTURE_COMPARISON_TH.md) มี local diagnostic baseline และข้อเสนอเลือก WordPress เพื่อความง่ายในการดูแล ยังไม่ใช่ benchmark บน Cloud VPS 03 และไม่สรุปความเร็ว Production จากคนละ dataset/cache/runtime รอสเปก VPS, ชุดข้อมูลเดียวกัน, page-cache/analytics, full restore และ Hermes E2E ก่อนย้าย
+
+
+## 20 ตุลาคม 2026 — ปลั๊กอินตัวที่ 15 และ Full-site QA
+
+ติดตั้ง ff90-content-image-automation 0.3.1 แบบ Queue OFF/Auto Publish OFF แล้ว แยก admin slug จาก Bridge ตรวจ 547 PHP/WordPress assertions + 97 browser cases ผ่านบนสำเนาแยก ข่าว 24 Draft เดิมไม่เปลี่ยน แต่ยังไม่ใช่ Automation pipeline จริง ดู [ผล QA](FULL_SITE_QA_2026-10-20_TH.md) และ [หน้าที่/API/จุดซ้อนทับทั้ง 15 ตัว](PLUGIN_API_MAP_TH.md)
